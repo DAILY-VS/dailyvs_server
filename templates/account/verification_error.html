@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{%static 'css/style.css'%}" />
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+    <title>비밀번호 재설정</title>
+  </head>
+  <body>
+    <div class="signup-box">
+      <div class="login-box">
+        <div class="login-nav">
+          <span
+            ><a href="/"
+              ><img
+                src="{% static 'img/icon/left_page.png'%}"
+                style="width: 30px" /></a
+          ></span>
+          <div class="login-name"></div>
+        </div>
+        <div>
+          <img src="{% static 'img/Only_Text.png' %}" style="width: 250px;" />
+        </div>
+        <img src="{% static 'img/warning.png' %}" style="width: 150px; margin-bottom: 30px;" />
+        <div class="change-pw-container">
+          <h2>이메일 인증 오류</h2>
+          <div>인증 코드가 올바르지 않습니다. 다시 시도해주세요.</div>
+           <a href="{% url 'vs_account:signup' %}" class="email-signup-btn">회원가입으로 돌아가기</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+<script>
+  document.getElementById("email-button").onclick = function () {
+    alert("인증 이메일이 전송되었습니다.");
+  };
+</script>

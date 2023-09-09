@@ -1,0 +1,76 @@
+{% load static %} {% block content %}
+<div class="chart-analysis-container">
+<div class="result-chart-category">
+  <div id="TFmbtiChartanalysis" style="opacity:0"></div>
+</div>
+</div>
+<script>
+  var TFoptionsanalysis = {
+    series: [
+      {
+        name: "{{ poll.choice_set.all.0.choice_text }}",
+        data: [{{t_choice1_percentage}}, {{f_choice1_percentage}}],
+      },
+      {
+        name: "{{ poll.choice_set.all.1.choice_text }}",
+        data: [{{t_choice2_percentage}}, {{f_choice2_percentage}}],
+      },
+    ],
+    colors: ["#17355a", "#ff495a"],
+    chart: {
+      type: "bar",
+      height: 180,
+      width: 450,
+      stacked: true,
+      stackType: "100%",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+      },
+    },
+    stroke: {
+      width: 1,
+      colors: ["#fff"],
+    },
+    title: {
+      text: "",
+    },
+    xaxis: {
+      categories: ["T", "F"],
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + "K";
+        },
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      offsetX: 40,
+    },
+  };
+
+  document.addEventListener("DOMContentLoaded", function (event) {
+    setTimeout (function() { 
+
+      var chart = new ApexCharts(
+      document.querySelector("#TFmbtiChartanalysis"),
+      TFoptionsanalysis
+    );
+    chart.render();
+
+  const TFmbtiChart = document.getElementById("TFmbtiChartanalysis");
+  TFmbtiChart.style.opacity = "1" 
+    }, 3500);
+  });
+  
+</script>
+
+
+{% endblock %}

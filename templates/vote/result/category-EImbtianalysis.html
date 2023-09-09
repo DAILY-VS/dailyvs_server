@@ -1,0 +1,70 @@
+{% load static %} {% block content %}
+<div class="chart-analysis-container">
+<div id="EImbtiChartanalysis" style="opacity:0"></div>
+</div>
+<script>
+  var EIoptionsanalysis = {
+    series: [
+      {
+        name: "{{ poll.choice_set.all.0.choice_text }}",
+        data: [{{e_choice1_percentage}}, {{i_choice1_percentage}}],
+      },
+      {
+        name: "{{ poll.choice_set.all.1.choice_text }}",
+        data: [{{e_choice2_percentage}}, {{i_choice2_percentage}}],
+      },
+    ],
+    colors: ["#17355a", "#ff495a"],
+    chart: {
+      type: "bar",
+      height: 180,
+      width: 450,
+      stacked: true,
+      stackType: "100%",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+      },
+    },
+    stroke: {
+      width: 1,
+      colors: ["#fff"],
+    },
+    title: {
+      text: "",
+    },
+    xaxis: {
+      categories: ["E", "I"],
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + "K";
+        },
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      offsetX: 40,
+    },
+  };
+
+  document.addEventListener("DOMContentLoaded", function (event) {
+    setTimeout(function() {
+      var chart = new ApexCharts(
+        document.querySelector("#EImbtiChartanalysis"),
+        EIoptionsanalysis
+      );
+      chart.render();
+      const EImbtiChart = document.getElementById("EImbtiChartanalysis");
+      EImbtiChart.style.opacity = "1";
+    }, 3500); 
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,81 @@
+{% load static %} {% block content %}
+<div class="main-grid-container">
+  <div id="main-grid-content" class="main-list-title">🗒️ 투표 모음 리스트</div>
+  <form action="{% url 'vote:main' %}" method="get">
+    <select name="sort" class="option_select" id="selectSort" data-url="{% url 'vote:main' %}">
+      <option value="latest" {% if sort == 'latest' %}selected{% endif %}>최신순</option>
+      <option value="popular" {% if sort == 'popular' %}selected{% endif %}>인기순</option>
+      <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>등록순</option>
+    </select>    
+  </form>
+  <div class="main-grid-content">
+    {% for page in page_obj %}
+    <a class="main-grid-square" href="{% url 'vote:detail' page.id %}">
+      <div class="grid-square-pic">
+        <img src="../../../media/{{page.thumbnail}}" />
+        <span class="grid-square-like-view">{{page.title}}</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  <div class="pagination-box">
+    <div class="pagination">
+       {% for page_number in page_obj.paginator.page_range %}
+      <a
+        class="page-btn {% if page_number == page_obj.number %}red-pink{% endif %}"
+        href="?page={{ page_number }}"
+      >
+        {{ page_number }}
+      </a>
+      {% endfor %} 
+    </div>
+  </div>
+  {% endblock %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const pollList = document.querySelector(".main-grid-content");
+  const pagination = document.querySelector(".pagination");
+  const selectSort = document.querySelector("#selectSort");
+
+  const savedSortValue = sessionStorage.getItem("selectedSort");
+  if (savedSortValue) {
+    selectSort.value = savedSortValue;
+  }
+
+  const initialSortValue = selectSort.value;
+  const initialPageUrl = `${selectSort.getAttribute('data-url')}?sort=${initialSortValue}`;
+  updateContent(initialPageUrl);
+
+  selectSort.addEventListener("change", function () {
+    const sortValue = selectSort.value;
+    const pageUrl = `${selectSort.getAttribute('data-url')}?sort=${sortValue}`;
+    updateContent(pageUrl);
+    
+    sessionStorage.setItem("selectedSort", sortValue);
+  });
+
+  function updateContent(pageUrl) {
+    fetch(pageUrl)
+      .then((response) => response.text())
+      .then((data) => {
+        const parser = new DOMParser();
+        const newDoc = parser.parseFromString(data, "text/html");
+
+        pollList.innerHTML = newDoc.querySelector(".main-grid-content").innerHTML;
+        pagination.innerHTML = newDoc.querySelector(".pagination").innerHTML;
+      })
+      .catch((error) => console.error("Error fetching page:", error));
+  }
+
+  pagination.addEventListener("click", function (event) {
+    if (event.target.tagName === "A") {
+      event.preventDefault();
+      const pageUrl = event.target.getAttribute("href");
+      updateContent(pageUrl);
+    }
+  });
+});
+
+</script>

@@ -1,0 +1,89 @@
+{% load static %} {% block content %}
+<div class="main-carousel-title">🔥Hot🔥</div>
+<div
+  id="carouselExampleDark"
+  class="carousel carousel-dark slide"
+  data-bs-ride="carousel"
+>
+  <div class="carousel-indicators">
+    <button
+      type="button"
+      data-bs-target="#carouselExampleDark"
+      data-bs-slide-to="0"
+      class="active"
+      aria-current="true"
+      aria-label="Slide 1"
+      style="z-index: 0"
+    ></button>
+    <button
+      type="button"
+      data-bs-target="#carouselExampleDark"
+      data-bs-slide-to="1"
+      aria-label="Slide 2"
+    ></button>
+    <button
+      type="button"
+      data-bs-target="#carouselExampleDark"
+      data-bs-slide-to="2"
+      aria-label="Slide 3"
+    ></button>
+  </div>
+  <div class="carousel-inner">
+    {% for poll in promotion_polls %}
+    <div
+      class="carousel-item {% if forloop.first %}active{% endif %}"
+      data-bs-interval="10000"
+    >
+      <a href="{% url 'vote:detail' poll.id %}">
+        <div class="carousel-image-container">
+          <img
+            src="../../../media/{{poll.thumbnail}}"
+            class="w-100 carousel-image"
+            alt="..."
+          />
+        </div>
+        <div class="carousel-caption d-md-block">
+          <h5 class="carousel-poll-title">{{ poll.title }}</h5>
+          <text class="carousel-poll-content">{{ poll.content }}</text>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  <button
+    class="carousel-control-prev"
+    type="button"
+    data-bs-target="#carouselExampleDark"
+    data-bs-slide="prev"
+  >
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button
+    class="carousel-control-next"
+    type="button"
+    data-bs-target="#carouselExampleDark"
+    data-bs-slide="next"
+    style="z-index: 0"
+  >
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var myCarousel = document.querySelector("#carouselExampleDark");
+    var carousel = new bootstrap.Carousel(myCarousel);
+
+    var textContainers = document.querySelectorAll(".carousel-poll-content");
+    var maxLength = 52; // 최대 길이
+    var ellipsis = "..."; // 생략 부호
+
+    textContainers.forEach(function (textContainer) {
+      if (textContainer.textContent.length > maxLength) {
+        textContainer.textContent = textContainer.textContent.substring(0, maxLength) + ellipsis;
+      }
+    });
+  });
+</script>
+{% endblock %}

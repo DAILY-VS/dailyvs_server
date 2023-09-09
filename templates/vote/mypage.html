@@ -1,0 +1,105 @@
+{% extends 'vote/base.html' %} {% load static %} {% block content %}
+
+<div>
+  <div class="mypage-container">
+    <div class="mypage-greeting">
+      안녕하세요,
+      <div class="mypage-greet-name"><strong class="mypage-real-username1">{{user.nickname}}</strong><span>님!</span></div>
+    </div>
+    <div class="mypage-prof-container">
+      <img src="{% static 'img/Logged.png'%}" alt="" style="width: 80px"/>
+      <div class="mypage-info-wrap">
+        <div class="mypage-nickname-wrap">
+          <span class="mypage-blue">{{user.nickname}}&nbsp</span>
+          <span id="mypage-gray" class="mypage-blue">님</span>
+          <a href="{% url 'vote:update' %}" class="mypage-revise-btn"
+            >회원정보 수정</a
+          >
+        </div>
+        <hr class="mypage-hr" />
+        <div class="mypage-prof-detail">
+          <div class="mypage-nickname-wrap">
+            <span class="mypage-red">MBTI:</span>
+            <span class="mypage-blue">&nbsp&nbsp{{user.mbti}}</span>
+          </div>
+          <div class="mypage-nickname-wrap">
+            <span class="mypage-red">성별:</span>
+            <span class="mypage-blue">&nbsp&nbsp{{user.gender}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="likelist-row"><span class="mypage-heart-img"><img
+    src="{% static 'img/user.png'%}"
+    style="width: 30px"
+  /></span><div class="mypage-real-username">나의 VOTE LIST</div><span></div>
+    <div class="mypage-voted-pagination">
+       <div class="voted-list-container">
+        {% for uservote in page_obj %}
+              <div class="mypage-voted-list">
+                <a href="{% url 'vote:calcstat' uservote.poll.id uservote.id 0%}">{{ uservote.poll }}</a>
+                <div class="mypage-particular-choice">
+                  <span class="mychoice-turq">나의 선택</span>
+                  <span class="mychoice-bold">{{ uservote.choice.choice_text }}</span>
+                </div>
+              </div>
+        {% endfor %}
+      </div>
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a
+          class="page-btn gray"
+          href="?page={{ page_obj.previous_page_number }}"
+        >
+          <img
+            src="{% static 'img/icon/left_page.png' %}"
+            style="width: 30px"
+          />
+        </a>
+        {% endif %} {% for page_number in page_obj.paginator.page_range %}
+        <a
+          class="page-btn {% if page_number == page_obj.number %}red-pink{% endif %}"
+          href="?page={{ page_number }}"
+        >
+          {{ page_number }}
+        </a>
+        {% endfor %} {% if page_obj.has_next %}
+        <a class="page-btn gray" href="?page={{ page_obj.next_page_number }}">
+          <img
+            src="{% static 'img/icon/right_page.png' %}"
+            style="width: 30px"
+          />
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% include 'vote/mypage_like.html' %}
+  </div>
+  </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $(".mypage-voted-pagination").on("click", ".page-btn", function (e) {
+        e.preventDefault();
+
+        var url = $(this).attr("href");
+
+        $.ajax({
+          type: "GET",
+          url: url,
+          success: function (data) {
+            $(".mypage-voted-pagination").html(
+              $(data).find(".mypage-voted-pagination").html()
+            );
+          },
+          error: function () {
+            alert("오류가 발생했습니다.");
+          },
+        });
+      });
+    });
+  </script>
+
+</div>
+{% endblock %}

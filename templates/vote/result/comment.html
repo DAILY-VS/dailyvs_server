@@ -1,0 +1,627 @@
+{% load static %} {% block content %} {% csrf_token %}
+<div class="comment-container">
+  <div class="comment-top-container">
+    <div class="comment-category-title">댓글</div>
+  </div>
+
+  <div class="comment-input-container">
+    <div class="coment-user-info">
+      <div class="comment-user-name">{{ user.nickname }}</div>
+      <div class="user-sub-info">{{ user.mbti }}</div>
+      <div class="user-sub-info">{{ user.gender }}</div>
+    </div>
+    <textarea
+      class="replyContent"
+      id="content_id"
+      placeholder="댓글을 입력해주세요."
+    ></textarea>
+    <button id="comment_write" class="btnReply">댓글달기</button>
+  </div>
+  <div class="comment-additional-info">
+    <div class="comment-quantity-count">
+      <span class="comment-qc-s">댓글수</span>
+      <img src="{% static 'img/icon/chat.png' %}" style="width: 20px; padding-bottom:2px;"/>
+      <span class="comment-quantity">{{comments_count}}</span>
+    </div>
+  <!-- 정렬 영역 -->
+      <form action="#" method="get" class="comment-sort-area">
+        <select name="sort" class="option_select" id="selectSort" onchange="this.form.submit()">
+            <option value="latest" {% if sort == 'latest' %}selected{% endif %}>최신순</option>
+            <option value="likes" {% if sort == 'likes' and not choice_filter %}selected{% endif %}>좋아요순</option>
+        </select>
+
+        <select name="choice_filter" class="option_select_choice" id="selectChoice" onchange="this.form.submit()">
+            <option value="" {% if not choice_filter %}selected{% endif %}>--전체--</option>
+            {% for choice in choices %}
+                <option value="{{ choice.choice_text }}" {% if choice_filter == choice.choice_text %}selected{% endif %}>{{ choice.choice_text }} </option>
+            {% endfor %}
+        </select>
+    </form>
+  </div>
+  <div class="replyTable" id="comment-list">
+    <div class="replyTody">
+      {% for comment in comments reversed%}
+      {% if comment.parent_comment is null %}
+      <div class="replyTr{{ comment.id }}">
+        <div class="stored-comment-container">
+            <div class="comment-top-section">
+                <div class="comment-nickname">{{ comment.user_info.nickname }}</div>
+                <div class="comment-sub-info">
+                    <div class="user-sub-info">{{ comment.user_info.mbti}}</div>
+                    <div class="user-sub-info">{{ comment.user_info.gender}}</div>
+                    <div class="user-sub-info choice-color">
+                      {% for uservote in uservotes %}
+                      {%if uservote.user == comment.user_info %}
+                        {{uservote.choice.choice_text}}
+                      {% endif %}
+                    {% endfor %}
+                    </div>
+                </div>
+                    <div class="time-line">
+                      {% if comment.time_difference > 6 %}
+                        {{ comment.created_at|date:"m월 d일 H:i" }}
+                      {% else %}
+                        {{ comment.created_at|timesince }} 전
+                      {% endif %}
+                    </div>  
+            </div>
+            <div class="comment-content-delete">
+                <div class="stored-comment-content">{{ comment.content }}</div>
+                {% if user.is_authenticated and user.nickname == comment.user_info.nickname %}
+                    <img
+                    src="{% static 'img/icon/x.png' %}"
+                    type="button"
+                    value="x"
+                    onclick="replyDelete({{ comment.id }})"
+                    />
+                {% endif %}
+            </div>
+
+            <div class="comment-reply-like-row">
+              <!-- 좋아요 표시 영역 -->
+              <div class="detail-like-container">
+                  <span
+                  class="comment-like-button"
+                  id="comment-like-button-{{ comment.id }}"
+                  data-comment-id="{{ comment.id }}"
+                  data-user-like="{{ user_likes_comment }}"
+                >
+                  <img
+                    src="{% static 'img/icon/blank_heart.png'%}"
+                    style="width: 20px"
+                  />
+                </span>
+                <span id="comment-like-count-{{ comment.id }}"
+                      class="comment-like-count">
+                      {{ comment.comment_like.count }}
+                </span>
+                <span class="like-word"> likes</span>
+
+              </div>
+              <button id="reply-toggle-btn-{{ comment.id }}" class="reply-toggle-btn" data-comment-id="{{ comment.id }}">답글 <span id="nestedCount{{ comment.id }}" data-comment-id="{{ comment.id }}"></span></button>
+            </div>
+            </div>
+        </div>
+        <div class="every-reply-container">
+              <div class="nested-reply-container" data-parent-id="{{ comment.id }}" style="display:none">
+                  <!-- 대댓글 표시 영역 -->
+                  <div class="nested-replyTody">
+                    {% for child_comment in comments %}
+                      {% if child_comment.parent_comment_id == comment.id %}
+                        <div class="nested-replyTr{{ child_comment.id }}">
+                          <div class="nested-row">
+                            <div><img src="{% static 'img/icon/reply.png' %}" style="width:25px;" /></div>
+                            <div class="comment-nickname">{{ child_comment.user_info.nickname }}</div>
+                            <div class="comment-sub-info">
+                              <div class="user-sub-info">{{ child_comment.user_info.mbti}}</div>
+                              <div class="user-sub-info">{{ child_comment.user_info.gender}}</div>
+                              <div class="user-sub-info choice-color">                                              
+                                  {% for uservote in uservotes %}
+                                  {%if uservote.user == comment.user_info %}
+                                    {{uservote.choice.choice_text}}
+                                  {% endif %}
+                                {% endfor %}
+                              </div>
+                            </div>
+                            <div class="time-line">{{ child_comment.created_at|timesince }} 전</div>
+                          </div>
+                          <div class="comment-content-delete">
+                            <div class="stored-comment-content">{{ child_comment.content }}</div>
+                            {% if user.is_authenticated and user.nickname == child_comment.user_info.nickname %}
+                              <img
+                                src="{% static 'img/icon/x.png' %}"
+                                type="button"
+                                value="x"
+                                onclick="nestedReplyDelete({{ child_comment.id }})"
+                              />
+                            {% endif %}
+                          </div>
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+              
+                <!-- 대댓글 작성 영역 -->
+                  {% if not comment.parent_comment %}
+                  <div class="nested-reply-input-container">
+                    <textarea
+                      class="nested-replyContent"
+                      id="nested_content_id_{{ comment.id }}"
+                      placeholder="대댓글을 입력해주세요."
+                    ></textarea>
+                    <button class="btnNestedReply" data-comment-id="{{ comment.id }}" data-parent-id="{{ parent_comment_id }}">등록</button>
+                  </div>        
+                  {% endif %}
+              </div>
+              {% endif %}
+              {% endfor %}
+              {% if new_comment_count > 6 %}
+               <button id="load-more-comments">댓글 더보기</button>
+              {% endif %}
+            </div>
+          </div>
+      </div>
+  </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'js/comment.js' %}"></script>
+<script>
+// 좋아요
+function handleLikeButton(likeButton) {
+  const commentId = likeButton.getAttribute("data-comment-id");
+  const userId = "{{ user.id }}";  // 현재 사용자의 ID
+  const heartImage = likeButton.querySelector("img");
+  const likeCountElement = document.querySelector(`#comment-like-count-${commentId}`);
+  const userLikesComment = localStorage.getItem(`userLikesComment-${userId}-${commentId}`);
+  const isAuthenticated = "{{ user.is_authenticated }}";
+
+  if (isAuthenticated === "True") {
+    if (userLikesComment === "true") {
+      heartImage.src = "{% static 'img/icon/pink_heart.png'%}";
+    } else {
+      heartImage.src = "{% static 'img/icon/blank_heart.png'%}";
+    }
+
+    likeButton.addEventListener("click", () => {
+      axios
+        .post(
+          "/comment_like/",
+          { comment_id: commentId },
+          {
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+          }
+        )
+        .then((response) => {
+          const message = response.data.message;
+          const likeCount = response.data.like_count;
+          const newUserLikesComment = response.data.user_likes_comment;
+
+          localStorage.setItem(`userLikesComment-${userId}-${commentId}`, newUserLikesComment);
+
+          if (message === "좋아요 취소") {
+            heartImage.src = "{% static 'img/icon/blank_heart.png'%}";
+          } else {
+            heartImage.src = "{% static 'img/icon/pink_heart.png'%}";
+          }
+
+          likeCountElement.textContent = likeCount;
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    });
+  } else {
+    likeButton.addEventListener("click", () => {
+      if (confirm("로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
+        var loginUrl = "/account/login/";
+        window.location.href = loginUrl;  // 로그인 페이지 URL로 이동
+      }
+    });
+  }
+}
+
+// 페이지 로드 시 좋아요 버튼 처리
+document.querySelectorAll(".comment-like-button").forEach((likeButton) => {
+  handleLikeButton(likeButton);
+});
+
+
+function getCookie(name) {
+  var value = "; " + document.cookie;
+  var parts = value.split("; " + name + "=");
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
+// 페이지 로드 시 좋아요 상태 표시
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".comment-like-button").forEach((likeButton) => {
+    const commentId = likeButton.getAttribute("data-comment-id");
+    const userId = "{{ user.id }}";  // 현재 사용자의 ID
+    const heartImage = likeButton.querySelector("img");
+    const userLikesComment = localStorage.getItem(`userLikesComment-${userId}-${commentId}`);
+    if (userLikesComment === "true") {
+      heartImage.src = "{% static 'img/icon/pink_heart.png'%}";
+    } else {
+      heartImage.src = "{% static 'img/icon/blank_heart.png'%}";
+    }
+  });
+});
+
+
+$(document).ready(function () {
+  var savedCommentId;
+  var savedCommentIds = [];
+  var special_comment_id;
+  $(".comment-like-button").each(function () {
+    const commentId = $(this).attr("data-comment-id");
+    const likeCountElement = $(this).closest(".detail-like-container").find(".comment-like-count");
+    const commentLikeCount = $(this).closest(".detail-like-container").attr("data-comment-like-count");
+    
+    likeCountElement.text(commentLikeCount);
+  });
+
+   // 댓글 작성 버튼 클릭 시 처리
+  $("#comment_write").click(function () {
+    content = $(".replyContent").val(); // 댓글 내용 가져오기
+    if (content.trim() !== "") {
+      submitComment();
+    } else {
+      alert("댓글을 입력해주세요.");
+    }
+  });
+
+
+  $(".replyContent").on("keypress", function (event) {
+    if (event.which === 13 && !event.shiftKey) { 
+      event.preventDefault(); 
+
+      content = $(".replyContent").val(); 
+      if (content.trim() !== "") {
+        submitComment();
+      } else {
+        alert("댓글을 입력해주세요.");
+      }
+    }
+  });
+
+    
+  //댓글 달기
+  function submitComment(content) {
+    var content = $(".replyContent").val();
+    var isAuthenticated = "{{ user.is_authenticated }}";
+    var parent_comment_id;
+    if (isAuthenticated === "True") {
+      $.ajax({
+        type: "POST",
+        url: "{% url 'vote:comment_write' poll.id %}",
+        dataType: "json",
+        data: {
+          content: content,
+          csrfmiddlewaretoken: "{{ csrf_token }}",
+        },
+        success: function (response) {
+          savedCommentId = response.comment_id;
+          savedCommentIds.push(savedCommentId);
+
+          btnReply = document.createElement('button');
+          btnReply.className = "reply-toggle-btn";
+          btnReply.id = `reply-toggle-btn-${response.comment_id}`;
+          btnReply.innerHTML = `
+          답글 <span id="nestedCount${response.comment_id}" data-comment-id="${response.comment_id}"></span>`;
+
+          var newComment =
+            '<div class="replyTr' +
+            response.comment_id +
+            '">' +
+            '<div class="stored-comment-container">' +
+            '<div class="comment-top-section">' +
+            '<div class="comment-nickname">' + response.nickname + '</div>' +
+            '<div class="comment-sub-info">' +
+            '<div class="user-sub-info">' + response.mbti + '</div>' +
+            '<div class="user-sub-info">' + response.gender + '</div>' +
+            '<div class="user-sub-info choice-color">' + response.choice + '</div>' +
+            '</div>' +
+            '<div class="time-line">' +  response.created_at +'</div>' +
+            '</div>' +
+            '<div class="comment-content-delete">' +
+            '<div class="stored-comment-content">' + response.content + '</div>' +
+            '<img src="{% static 'img/icon/x.png' %}" type="button" value="x" onclick="replyDelete(' + response.comment_id + ')" style="width: 10px" class="addtion-delete-btn"/>' + '</div>' +
+            '<div class="comment-reply-like-row">'+
+            `<div class="detail-like-container">
+                  <span
+                  class="comment-like-button"
+                  id="comment-like-button-${ response.comment_id }"
+                  data-comment-id="${ response.comment_id }"
+                  data-user-like="${ response.comment_id }"
+                >
+                  <img
+                    src="{% static 'img/icon/blank_heart.png'%}"
+                    style="width: 20px"
+                  />
+                </span>
+                <span id="comment-like-count-${ response.comment_id }"
+                      class="comment-like-count">
+                      0
+                </span>
+                <span class="like-word"> likes</span>
+
+              </div>` + `<button id="reply-toggle-btn-${ response.comment_id }" class="reply-toggle-btn" data-comment-id="${ response.comment_id }" onclick="openReply('${ response.comment_id }')">답글 <span id="nestedCount${ response.comment_id }" data-comment-id="${ response.comment_id }"></span></button>`+
+            '</div>' +
+            `<div class="every-reply-container">
+              <div class="nested-reply-container" data-parent-id="${ response.comment_id }" style="display:none">
+                  <!-- 대댓글 표시 영역 -->
+                  <div class="nested-replyTody">
+                  </div>
+                  <!-- 대댓글 작성 영역 -->
+                  <div class="nested-reply-input-container">
+                    <textarea
+                      class="nested-replyContent"
+                      id="nested_content_id_${response.comment_id}"
+                      placeholder="대댓글을 입력해주세요."
+                    ></textarea>
+                    <button class="btnNestedReply" data-comment-id="{{ comment.id }}" data-parent-id="{{ parent_comment_id }}">등록</button>
+                  </div>        
+                </div>
+            </div>` 
+            ;
+
+        $(".replyTody").prepend(newComment);
+        $(".replyContent").val("");
+        var newComment_quantity = $(".comment-quantity");
+        newComment_quantity.text(response.new_comment_count);
+        
+        const commentLikeButton = document.querySelector(`#comment-like-button-${response.comment_id}`);
+        handleLikeButton(commentLikeButton);
+        // var parent_comment_id = response.comment_id;
+        var comment_id = response.comment_id;
+        var nestedReplyButton = $(".btnNestedReply[data-comment-id='" + response.comment_id + "']");
+        nestedReplyButton.data("comment-id", response.comment_id); // 데이터 설정
+        },
+        error: function () {
+          if ($(".replyContent").val() == "") {
+            alert("댓글을 입력해주세요.");
+          } else {
+            alert("오류가 발생했습니다.");
+            console.log(error)
+          }
+        },
+      });
+    } else {
+      if (confirm("로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
+        var loginUrl = "/account/login/";
+        window.location.href = loginUrl;  // 로그인 페이지 URL로 이동
+      }
+    }  
+  }
+
+  // 대댓글 달기
+  $(document).on("click", ".btnNestedReply", function () {
+    var isAuthenticated = "{{ user.is_authenticated }}";
+    // var parent_comment_id;
+    // console.log("pci",parent_comment_id)
+    // $(this).attr("data-parent-id", parent_comment_id);
+
+    var comment_id;
+    if (savedCommentId) {
+      comment_id = savedCommentId; 
+      special_comment_id = savedCommentId;
+    } 
+    else {
+      comment_id = $(this).data("comment-id"); 
+      if (comment_id == '') {
+          comment_id = special_comment_id;
+      }
+    }
+
+    var nestedContent;
+    if (comment_id !== '') {
+        nestedContent = $("#nested_content_id_" + comment_id).val();
+    }
+    
+    if (nestedContent == undefined) {
+      comment_id = savedCommentIds[-2]; 
+      nestedContent = $("#nested_content_id_" + comment_id).val();
+    }
+    console.log(comment_id)
+    console.log(nestedContent)
+    // console.log(parent_comment_id)
+    if (isAuthenticated === "True") {
+      $.ajax({
+        type: "POST",
+        url: "{% url 'vote:comment_write' poll.id %}",
+        dataType: "json",
+        cache: false,
+        data: {
+          content: nestedContent,
+          parent_comment_id: comment_id, // 대댓글의 부모 댓글 ID 전달
+          csrfmiddlewaretoken: "{{ csrf_token }}",
+        },
+        success: function (response) {
+          // 새로운 대댓글 생성
+          var newNestedComment =
+            '<div class="nested-replyTr' + response.comment_id + '">' +
+            '<div class="nested-row">' + ' <div>' +
+            '<img src="{% static "img/icon/reply.png" %}" style="width:25px; height: 25px;" />' + '</div>' +
+            '<div class="comment-nickname">' + response.nickname + '</div>' +
+            '<div class="comment-sub-info">' +
+            '<div class="user-sub-info">' + response.mbti + '</div>' +
+            '<div class="user-sub-info">' + response.gender + '</div>' +
+            '<div class="user-sub-info choice-color">' + response.choice + '</div>' +
+            '</div>' +
+            '<div class="time-line">'+ '방금 전' + '</div>'  +
+            '</div>' +
+            '<div class="comment-content-delete">' +
+            '<div class="stored-comment-content" style="margin-left: 20px;">' + response.content + '</div>' +
+            '<img src="{% static "img/icon/x.png" %}" type="button" value="x" onclick="nestedReplyDelete(' + response.comment_id + ')" />' +
+            '</div>' +
+            '</div>' +
+            '</div>' ;
+
+          $("#nested_content_id_" + comment_id).val("");
+
+          var nestedReplyContainer = $(".nested-reply-container[data-parent-id='" + comment_id + "']");
+          var nestedReplyInputContainer = nestedReplyContainer.find('.nested-reply-input-container');
+          
+          // 새 대댓글 이동
+          nestedReplyContainer.append(newNestedComment);
+
+          // 입력창 이동
+          nestedReplyInputContainer.detach();
+          nestedReplyContainer.append(nestedReplyInputContainer);
+
+          // 대댓글 시간순 정렬
+          var nestedReplies = nestedReplyContainer.children('.nested-replyTr');
+          var sortedReplies = nestedReplies.toArray().sort(function (a, b) {
+            var timeA = $(a).find('.time-line').text();
+            var timeB = $(b).find('.time-line').text();
+            return new Date(timeA) - new Date(timeB);
+          });
+
+          // 대댓글을 정렬된 순서로 다시 배치
+          nestedReplies.detach();
+          nestedReplyContainer.prepend(sortedReplies);
+
+          savedCommentId = response.comment_id;
+          savedCommentIds.push(savedCommentId);
+          console.log(savedCommentIds)
+          savedCommentId = undefined;
+        },
+        error: function () {
+          if ($("#nested_content_id_" + comment_id).val() == "") {
+            alert("대댓글을 입력해주세요.");
+            location.reload();
+          } else {
+            console.log(error)
+            alert("오류가 발생했습니다.");
+            location.reload();
+          }
+        },
+      });
+    } else {
+      if (confirm("로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
+        var loginUrl = "/account/login/";
+        window.location.href = loginUrl; // 로그인 페이지 URL로 이동
+      }
+    }
+  });
+});
+
+   // 댓글 삭제
+   function replyDelete(value) {
+    var comment_id = value;
+    var delete_warning = confirm("댓글을 삭제하시겠습니까?");
+
+    if (delete_warning == true) {
+      // 로그인 여부 확인
+      var isAuthenticated = "{{ user.is_authenticated }}";
+      if (isAuthenticated === "True") {
+        $.ajax({
+          type: "POST",
+          url: "{% url 'vote:comment_delete' poll.id %}",
+          dataType: "json",
+          data: {
+            comment_id: comment_id,
+            csrfmiddlewaretoken: "{{csrf_token}}",
+          },
+          success: function (response) {
+            if (response.success) {
+              $("#" + response.comment_id).remove();
+              var replyTr = document.querySelector(
+                `.replyTr${response.comment_id}`
+              );
+              if (replyTr) {
+                replyTr.remove();
+              }
+            } else {
+              alert(response.error);
+            }
+            var newComment_quantity = $(".comment-quantity");
+            newComment_quantity.text(response.new_comment_count);
+          },
+          error: function () {
+            alert("오류가 발생했습니다.");
+          },
+        });
+      } else {
+        alert("로그인을 해주세요");
+      }
+    }
+   }
+
+
+    function nestedReplyDelete(value) {
+    var comment_id = value;
+    var delete_warning = confirm("대댓글을 삭제하시겠습니까?");
+
+    if (delete_warning == true) {
+      var isAuthenticated = "{{ user.is_authenticated }}";
+      if (isAuthenticated === "True") {
+        $.ajax({
+          type: "POST",
+          url: "{% url 'vote:comment_delete' poll.id %}",
+          dataType: "json",
+          data: {
+            comment_id: comment_id,
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+          },
+          success: function (response) {
+            if (response.success) {
+              $("#" + response.comment_id).remove();
+              var nestedReplyTr = document.querySelector(
+                `.nested-replyTr${response.comment_id}`
+              );
+              if (nestedReplyTr) {
+                nestedReplyTr.remove();
+              }
+            } else {
+              alert(response.error);
+            }
+          },
+          error: function () {
+            alert("오류가 발생했습니다.");
+          },
+        });
+      } else {
+        alert("로그인을 해주세요");
+      }
+    }
+  };
+
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const loadMoreComments = document.getElementById('load-more-comments');
+    const commentItems = document.querySelectorAll('[class^="replyTr"]');
+    const batchSize = 6;
+    let visibleCount = batchSize;
+
+    for (let i = 0; i < commentItems.length; i++) {
+      if (i < visibleCount) {
+        commentItems[i].style.display = 'flex';
+      } else {
+        commentItems[i].style.display = 'none';
+      }
+    }
+
+    loadMoreComments.addEventListener('click', function () {
+      visibleCount += batchSize;
+      for (let i = 0; i < commentItems.length; i++) {
+        if (i < visibleCount) {
+          commentItems[i].style.display = 'flex';
+        } else {
+          commentItems[i].style.display = 'none';
+        }
+      }
+
+      if (visibleCount >= commentItems.length) {
+        loadMoreComments.disabled = true;
+        loadMoreComments.style.backgroundColor = '#c4c4c4';
+        loadMoreComments.textContent = '더 이상 항목 없음';
+      }
+    });
+  });
+</script>
+
+{% endblock %}

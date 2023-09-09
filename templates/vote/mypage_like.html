@@ -1,0 +1,57 @@
+{% load static %} {% block content %}
+<div class="mypage-like-votelist">
+  <div class="likelist-row"><span class="mypage-heart-img"><img
+    src="{% static 'img/icon/pink_heart.png'%}"
+    style="width: 30px"
+  /></span><div class="mypage-real-username">나의 VOTE 좋아요 LIST</div><span></div>
+  <div class="mypage-like-column" id="polls-like-container">
+    {% for poll_like in polls_like %}
+      {% if poll_like.id %}
+        <div class="poll-like-item">
+          <div class="circular-image"><img src="../../../media/{{ poll_like.thumbnail}}" style="width:30px"/></div>
+          <a href="{% url 'vote:detail' poll_like.id %}">{{ poll_like.title }}</a>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% if length_polls_like > 3 %}
+  <button id="load-more-btn">더보기</button>
+  {% endif %}
+</div>
+{% endblock %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const pollItems = document.querySelectorAll('.poll-like-item');
+    const batchSize = 3;
+    let visibleCount = batchSize;
+
+    // 초기에는 일부 항목만 보이도록 설정
+    for (let i = 0; i < pollItems.length; i++) {
+      if (i < visibleCount) {
+        pollItems[i].style.display = 'flex';
+      } else {
+        pollItems[i].style.display = 'none';
+      }
+    }
+
+    // "더보기" 버튼 클릭 시 처리
+    loadMoreBtn.addEventListener('click', function () {
+      visibleCount += batchSize;
+      for (let i = 0; i < pollItems.length; i++) {
+        if (i < visibleCount) {
+          pollItems[i].style.display = 'flex';
+        } else {
+          pollItems[i].style.display = 'none';
+        }
+      }
+
+      // 더 이상 보여줄 항목이 없으면 버튼 비활성화
+      if (visibleCount >= pollItems.length) {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.style.backgroundColor = '#c4c4c4';
+        loadMoreBtn.textContent = '더 이상 항목 없음';
+      }
+    });
+  });
+</script>

@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{%static 'css/style.css'%}" />
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+    <title>Daily vs signup</title>
+  </head>
+  <body>
+    <div class="signup-box">
+      <div class="login-box">
+        <div class="login-nav">
+          <span
+            ><a href="/"
+              ><img
+                src="{% static 'img/icon/left_page.png'%}"
+                style="width: 30px" /></a
+          ></span>
+          <div class="login-name">회원가입</div>
+        </div>
+        <div>
+          <img src="{% static 'img/Only_Text.png' %}" style="width: 250px" />
+        </div>
+        <form
+          action="{% url 'vs_account:signup' %}"
+          method="POST"
+          class="signup-container"
+        >
+          {% csrf_token %} {{ form }}
+          <div class="invalid-feedback">
+            {% if error in form.nickname.errors %} {{ error }} {% endif %}
+          </div>
+          <div class="invalid-feedback">
+            {% if error in form.email.errors %}
+                {{ error }}
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-primary login-btn">
+            회원가입
+          </button>
+        </form>
+
+
+{% comment %} start social {% endcomment %}
+{% load socialaccount %}
+<div>
+    {% if user.is_authenticated %}
+        <a href="/accounts/logout" type="button" class="h1">Logout</a>   
+    {% else %}                
+        <a href="{% provider_login_url 'kakao' %}" method='post'> <div class="kakao-login-btn"><img src="{% static 'img/icon/kakao-talk-i.png' %}" style="width:30px"/>카카오 로그인</div></a>
+    {% endif %}
+</div>
+{% comment %} end social {% endcomment %}
+
+        <p class="lets-login">
+          바로 로그인하러 가기
+          <a href="{% url 'vs_account:login' %}">로그인</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

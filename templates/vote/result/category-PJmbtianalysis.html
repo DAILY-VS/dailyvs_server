@@ -1,0 +1,76 @@
+{% load static %} {% block content %}
+<div class="chart-analysis-container">
+<div class="result-chart-category">
+<div id="PJmbtiChartanalysis" style="opacity:0"></div>
+</div>
+</div>
+
+<script>
+  var PJoptionsanalysis = {
+    series: [
+      {
+        name: "{{ poll.choice_set.all.0.choice_text }}",
+        data: [{{p_choice1_percentage}}, {{j_choice1_percentage}}],
+      },
+      {
+        name: "{{ poll.choice_set.all.1.choice_text }}",
+        data: [{{p_choice2_percentage}}, {{j_choice2_percentage}}],
+      },
+    ],
+    colors: ["#17355a", "#ff495a"],
+    chart: {
+      type: "bar",
+      height: 180,
+      width: 450,
+      stacked: true,
+      stackType: "100%",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+      },
+    },
+    stroke: {
+      width: 1,
+      colors: ["#fff"],
+    },
+    title: {
+      text: "",
+    },
+    xaxis: {
+      categories: ["P", "J"],
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + "K";
+        },
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      offsetX: 40,
+    },
+  };
+
+  // Wait for the document to load
+  document.addEventListener("DOMContentLoaded", function (event) {
+    setTimeout(function() {
+       var chart = new ApexCharts(
+      document.querySelector("#PJmbtiChartanalysis"),
+      PJoptionsanalysis
+    );
+    chart.render();
+    const PJmbtiChart = document.getElementById("PJmbtiChartanalysis");
+    PJmbtiChart.style.opacity = "1" 
+  }, 3500);
+    });
+   
+</script>
+
+
+{% endblock %}

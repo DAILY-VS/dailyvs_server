@@ -1,0 +1,147 @@
+{% load static %} {% block content %}
+<div class="result-chart-category">
+  <div class="result-category-title">카테고리</div>
+  <div class="result-category-box">
+    <div
+      class="result-category-name"
+      id="genderToggle"
+      onclick="toggleRotation1()"
+    >
+      <img
+        src="{% static 'img/icon/chevron_up.png'%}"
+        style="width: 30px; transform: rotate(180deg);"
+        class="chevron1"
+      />
+      성별
+    </div>
+    <div class="result-category-chart" id="genderChart">
+      <div class="gender-result">
+        <div class="result-man-chart">
+          <div class="small-choice-title">남</div>
+          <div id="manChart"></div>
+          <div>
+            <span class="small-choice-title"
+              >{{ poll.choice_set.all.0.choice_text }} : </span
+            ><span>{{choice1_man_percentage}}%</span>
+          </div>
+          <div>
+            <span class="small-choice-title"
+              >{{ poll.choice_set.all.1.choice_text }} : </span
+            ><span>{{choice2_man_percentage}}%</span>
+          </div>
+        </div>
+        <div class="result-woman-chart">
+          <div class="small-choice-title">여</div>
+          <div id="womanChart"></div>
+          <div>
+            <span class="small-choice-title"
+              >{{ poll.choice_set.all.0.choice_text }} : </span
+            ><span>{{choice1_woman_percentage}}%</span>
+          </div>
+          <div>
+            <span class="small-choice-title"
+              >{{ poll.choice_set.all.1.choice_text }} : </span
+            ><span>{{choice2_woman_percentage}}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var manChart = new ApexCharts(document.querySelector("#manChart"), {
+    series: [
+      {{choice1_man_percentage}},
+      {{choice2_man_percentage}}
+    ],
+    labels: [
+      "{{ poll.choice_set.all.0.choice_text }}",
+      "{{ poll.choice_set.all.1.choice_text }}"
+    ],
+    colors: ["#a7dcdd", "#457c9e"],
+    chart: {
+      type: "pie",
+      height: 350
+    },
+    legend: {
+      position: "bottom"
+    },
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          chart: {
+            width: 300
+          },
+          legend: {
+            position: "bottom"
+          }
+        }
+      }
+    ]
+  });
+  manChart.render();
+
+  var womanChart = new ApexCharts(document.querySelector("#womanChart"), {
+    series: [
+      {{choice1_woman_percentage}},
+      {{choice2_woman_percentage}}
+    ],
+    labels: [
+      "{{ poll.choice_set.all.0.choice_text }}",
+      "{{ poll.choice_set.all.1.choice_text }}"
+    ],
+    colors: ["#a7dcdd", "#457c9e"],
+    chart: {
+      type: "pie",
+      height: 350
+    },
+    legend: {
+      position: "bottom"
+    },
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          chart: {
+            width: 300
+          },
+          legend: {
+            position: "bottom"
+          }
+        }
+      }
+    ]
+  });
+  womanChart.render();
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const genderToggle = document.getElementById("genderToggle");
+    const genderChart = document.getElementById("genderChart");
+
+    genderToggle.addEventListener("click", function () {
+      genderChart.style.display =
+        genderChart.style.display === "none" ? "block" : "none";
+    });
+  });
+</script>
+
+<script>
+  let isRotated1 = false;
+
+  function toggleRotation1() {
+    const chevron1 = document.querySelector(".chevron1");
+
+    if (isRotated1) {
+      chevron1.style.transform = "rotate(180deg)";
+    } else {
+      chevron1.style.transform = "rotate(0deg)";
+    }
+
+    isRotated1 = !isRotated1;
+  }
+</script>
+
+{% endblock %}

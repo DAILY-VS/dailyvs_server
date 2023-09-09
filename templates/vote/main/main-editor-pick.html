@@ -1,0 +1,30 @@
+{% load static %} {% block content %}
+<div id="editor-pick">
+  <div class="editor-pick-title">📊오늘의 투표</div>
+  <div class="editor-card-section">
+    {% if today_poll.id %}
+    <a href="{% url 'vote:detail' today_poll.id %}">
+    {% endif %}      
+      <div class="editor-card">
+        <div class="card-img">
+          <img src="../../../media/{{today_poll.thumbnail}}" />
+        </div>
+
+        <div class="card-content">
+          <div class="card-content-title">{{today_poll.title}}</div>
+          <div class="card-content-paragraph" id="card-content-container">{{today_poll.content}}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+<script>
+var textContainer = document.getElementById("card-content-container");
+var maxLength = 70; // 최대 길이
+var ellipsis = "..."; // 생략 부호
+
+if (textContainer.textContent.length > maxLength) {
+  textContainer.textContent = textContainer.textContent.substring(0, maxLength) + ellipsis;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% load static %} {% block content %}
+<div class="mbti-category-box">
+  <div
+    class="result-category-name"
+    id="EImbtiToggle"
+    onclick="toggleRotation3()"
+  >
+    <img
+      src="{% static 'img/icon/chevron_up.png'%}"
+      style="width: 30px; transform: rotate(180deg);"
+      class="chevron3"
+    />
+    E / I
+  </div>
+</div>
+<div id="EImbtiChart"></div>
+
+<script>
+  var EIoptions = {
+    series: [
+      {
+        name: "{{ poll.choice_set.all.0.choice_text }}",
+        data: [{{e_choice1_percentage}}, {{i_choice1_percentage}}],
+      },
+      {
+        name: "{{ poll.choice_set.all.1.choice_text }}",
+        data: [{{e_choice2_percentage}}, {{i_choice2_percentage}}],
+      },
+    ],
+    colors: ["#17355a", "#ff495a"],
+    chart: {
+      type: "bar",
+      height: 200,
+      stacked: true,
+      stackType: "100%",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+      },
+    },
+    stroke: {
+      width: 1,
+      colors: ["#fff"],
+    },
+    title: {
+      text: "",
+    },
+    xaxis: {
+      categories: ["E", "I"],
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + "K";
+        },
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      offsetX: 40,
+    },
+  };
+
+  // Wait for the document to load
+  document.addEventListener("DOMContentLoaded", function (event) {
+    var chart = new ApexCharts(
+      document.querySelector("#EImbtiChart"),
+      EIoptions
+    );
+    chart.render();
+  });
+</script>
+<script>
+  let isRotated3 = false;
+  let isGraphVisible = false;
+  function toggleRotation3() {
+    const chevron3 = document.querySelector(".chevron3");
+    console.log("click3");
+
+    if (isRotated3) {
+      chevron3.style.transform = "rotate(0deg)";
+    } else {
+      chevron3.style.transform = "rotate(180deg)";
+    }
+
+    isGraphVisible = !isGraphVisible;
+    const EImbtiChart = document.getElementById("EImbtiChart");
+    EImbtiChart.style.display = isGraphVisible ? "block" : "none";
+    isRotated3 = !isRotated3;
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,127 @@
+.chart-analysis-container .apexcharts-toolbar {
+  display: none;
+}
+
+.result-chart-category .apexcharts-toolbar {
+  display: none; }
+
+.chart-analysis-container .apexcharts-align-left {
+  display: none;
+}
+
+#SNmbtiChartanalysis {
+  display:flex;
+  justify-content: center;
+}
+
+#TFmbtiChartanalysis {
+  display:flex;
+  justify-content: center;
+}
+
+#EImbtiChartanalysis {
+  display:flex;
+  justify-content: center;
+}
+
+#PJmbtiChartanalysis {
+  display:flex;
+  justify-content: center;
+}
+
+#GenderChart {
+  display:flex;
+  justify-content: center;
+}
+
+.darkblue-choice {
+  color: var(--darkblue-primary-color);
+  font-family: "GongGothicMedium";
+}
+
+.redpink-choice {
+  color: var(--redpink-primary-color);
+  font-family: "GongGothicMedium";
+}
+
+.water-mark {
+  display: none;
+  margin-right: 10px;
+  margin-bottom: 20px;
+}
+
+
+
+
+.capture-container.capture-logo-visible .water-mark {
+  display: block;
+}
+
+.capture-container.capture-logo-visible .water-mark2 {
+  display: block;
+}
+
+.capture-container.capture-logo-visible .water-mark3 {
+  display: block;
+}
+
+.capture-container.capture-logo-visible .result-graph-content {
+ display: none;
+}
+
+.capture-container.capture-logo-visible .result-title {
+  white-space: nowrap;
+}
+
+#EImbtiToggle,
+#SNmbtiToggle,
+#TFmbtiToggle,
+#PJmbtiToggle {
+  display: flex;
+  margin-right: 50px;
+}
+
+.result-like-section {
+  margin-top: 20px;
+  display:flex;
+  flex-direction: row;
+}
+
+#mbtiToggle,
+#genderToggle {
+  margin-left: 20px;
+}
+
+.result-title-row {
+  display:flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.pink-background {
+  background-color: #fff9f9;
+}
+
+.pink-background2 {
+  background-color: var(--blue-bg-color);
+
+}
+
+.pink-background2 .fortune-text{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.pink-background2 img {
+  margin-right: 20px;
+}
+
+.pink-background2 #fortune-result {
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 20px;
+}

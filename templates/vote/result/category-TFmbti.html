@@ -1,0 +1,99 @@
+{% load static %} {% block content %}
+<div class="mbti-category-box">
+  <div
+    class="result-category-name"
+    id="TFmbtiToggle"
+    onclick="toggleRotation5()"
+  >
+    <img
+      src="{% static 'img/icon/chevron_up.png'%}"
+      style="width: 30px"
+      class="chevron5"
+    />
+    T / F
+  </div>
+</div>
+<div class="result-chart-category">
+  <div id="TFmbtiChart" style="display: none"></div>
+</div>
+
+<script>
+  var TFoptions = {
+    series: [
+      {
+        name: "{{ poll.choice_set.all.0.choice_text }}",
+        data: [{{t_choice1_percentage}}, {{f_choice1_percentage}}],
+      },
+      {
+        name: "{{ poll.choice_set.all.1.choice_text }}",
+        data: [{{t_choice2_percentage}}, {{f_choice2_percentage}}],
+      },
+    ],
+    colors: ["#17355a", "#ff495a"],
+    chart: {
+      type: "bar",
+      height: 200,
+      stacked: true,
+      stackType: "100%",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+      },
+    },
+    stroke: {
+      width: 1,
+      colors: ["#fff"],
+    },
+    title: {
+      text: "",
+    },
+    xaxis: {
+      categories: ["T", "F"],
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + "K";
+        },
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      offsetX: 40,
+    },
+  };
+
+  document.addEventListener("DOMContentLoaded", function (event) {
+    var chart = new ApexCharts(
+      document.querySelector("#TFmbtiChart"),
+      TFoptions
+    );
+    chart.render();
+  });
+</script>
+<script>
+  let isRotated5 = false;
+  let isGraphVisible3 = false;
+
+  function toggleRotation5() {
+    const chevron5 = document.querySelector(".chevron5");
+
+    if (isRotated5) {
+      chevron5.style.transform = "rotate(0deg)";
+    } else {
+      chevron5.style.transform = "rotate(180deg)";
+    }
+    isGraphVisible3 = !isGraphVisible3;
+    const TFmbtiChart = document.getElementById("TFmbtiChart");
+    TFmbtiChart.style.display = isGraphVisible3 ? "block" : "none";
+
+    isRotated5 = !isRotated5;
+  }
+</script>
+
+{% endblock %}

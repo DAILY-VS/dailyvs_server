@@ -1,0 +1,32 @@
+{% load static %}{% block content %}
+<div class="result-total-count">
+  총 투표수 : <strong>{{total_count}}</strong> <span>건</span>
+</div>
+<div class="result-chart-container">
+  <canvas id="myChart" width="320" height="320"></canvas>
+  <script>
+    var ctx = document.getElementById("myChart").getContext("2d");
+    var myChart = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: [
+          {% for choice in poll.choice_set.all %}
+          "{{ choice.choice_text }}",
+          {% endfor %}],
+        datasets: [
+          {
+            data: [{{choice1_percentage}}, {{choice2_percentage}}],
+            backgroundColor: ["#17355a", "#ff495a"]
+          }
+        ]
+      },
+      options: {
+        responsive: false,
+        legend: {
+          position: "bottom"
+        }
+      }
+    });
+  </script>
+</div>
+{% endblock %}

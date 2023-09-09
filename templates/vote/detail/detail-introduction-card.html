@@ -1,0 +1,33 @@
+{% load static %} {% block content %}
+
+<div class="vote-detail-card">
+  <div class="thumbnail-container">
+    <img src="../../../media/{{poll.thumbnail}}" style="width: 100%" />
+  </div>
+  <div class="detail-card-content">
+    <div class="detail-card-first">
+      <div class="detail-card-title">{{ poll.title }}</div>
+      <div class="detail-like-container">
+        <span class="like-word">좋아요 : </span>
+        <span id="like-count"> {{ poll.poll_like.count }} </span>
+        <span class="like-word"> 명</span>
+        <span
+          id="like-button"
+          data-poll-id="{{ poll.id }}"
+          data-user-likes="{{ user_likes_poll }}"
+        >
+          <img
+            src="{% static 'img/icon/blank_heart.png'%}"
+            style="width: 30px"
+          />
+        </span>
+      </div>
+    </div>
+    <div class="detail-card-paragraph">{{poll.content}}</div>
+  </div>
+</div>
+<script>
+  const isAuthenticated = {{ request.user.is_authenticated|yesno:"true,false" }};
+</script>
+<script src="{% static 'js/likebtn.js' %}"></script>
+{% endblock %}

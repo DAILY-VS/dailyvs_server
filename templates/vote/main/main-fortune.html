@@ -1,0 +1,141 @@
+{% extends 'vote/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="fortune-container">
+    <p class="fortune-title">🥠 오늘의 포춘 쿠키 🥠</p>
+    <img src="{% static 'img/Cookie.png' %}" style="width: 350px"/>
+    <button id="fortune-modal-open">포춘 쿠키 열어보기</button>
+    <div class="fortune-modal">
+        <div id="capture" class="fortune-modal-content">
+          <span class="modal-close-icon" id="fortune-modal-close">&times;</span>
+            <img class="modal-logo-pic" src="{% static 'img/Only_Text.png' %}" alt="logo">
+            <img class="fortune-open-img" src="{% static 'img/slide/BrokenCookie.png' %}" alt="fortune-cookie-open">
+            <div class="fortune-text">
+              <span id="fortune-result typing-line2">
+                {% if user.is_authenticated %}
+                    <span class="fortune-reload"><span class="fortune-mbti">{{ user.mbti }}</span><span class="typing-text3"></span></span>
+                {% else %}
+                    <span class="fortune-reload"><span class="typing-text4"></span></span>
+                {% endif %}
+                </div>
+          <div class="fortune-btns">
+            <button id="capBtn" style="border: none">캡처하기</button> 
+            <button id="fortune-retry">다시뽑기</button>
+          </div>
+          </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  function typeFortuneCookie(text, typingTextElement) {
+    if (!typingTextElement) {
+      return;
+    }
+
+    let charIndex = 0;
+    const typingInterval = setInterval(() => {
+      typingTextElement.textContent += text[charIndex];
+      charIndex++;
+      if (charIndex === text.length) {
+        clearInterval(typingInterval);
+      }
+    }, 150);
+  }
+
+  const text3 = "인 당신은 " + "{{ random_fortune }}";
+  const typingText3 = document.querySelector(".typing-text3");
+  typeFortuneCookie(text3, typingText3);
+
+  const text4 = "{{ random_fortune }}";
+  const typingText4 = document.querySelector(".typing-text4");
+  typeFortuneCookie(text4, typingText4);
+});
+
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.querySelector(".fortune-modal");
+  const modalOpen = document.querySelector("#fortune-modal-open");
+  const modalRetry = document.querySelector("#fortune-retry");
+  const fortuneResult = document.querySelector("#fortune-result");
+  const fortuneReload = document.querySelector('.fortune-reload')
+
+  modalOpen.addEventListener("click", () => {
+    modal.style.display = "block";
+  });
+
+  const modalClose = document.querySelector("#fortune-modal-close");
+  modalClose.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  modalRetry.addEventListener("click", () => {
+    if (fortuneResult) {
+      fortuneResult.textContent = "포춘 쿠키 다시 뽑는 중...";
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+       // 페이지 새로고침
+    }
+    else {
+    const retryMessageElement = document.createElement("p");
+    retryMessageElement.textContent = "포춘 쿠키 다시 뽑는 중...";
+    fortuneReload.classList.add("fortune-hidden");
+    document.querySelector(".fortune-text").appendChild(retryMessageElement);
+
+    setTimeout(() => {
+      location.reload();
+    }, 1500); // 페이지 새로고침
+  }
+});
+});
+
+</script>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<!-- <script src="../../static/js/html2canvas.js"></script> -->
+<!-- <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/dist/dom-to-image.min.js"></script>
+<script>
+  const captureBtnF = document.getElementById("capBtn");
+  captureBtnF.addEventListener("click", captureElementF);
+
+  function captureElementF() {
+    const fortuneContainer = document.querySelector(".fortune-modal-content");
+    fortuneContainer.classList.add("capture-btn-invisible"); // 캡처 시작 시 클래스 추가
+    fortuneContainer.classList.add("pink-background2");
+
+    domtoimage.toPng(fortuneContainer)
+      .then(dataUrl => {
+        const link = document.createElement('a');
+        link.download = 'dailyfortune.png';
+        link.href = dataUrl;
+        link.click();
+        fortuneContainer.classList.remove("capture-btn-invisible");
+        fortuneContainer.classList.remove("pink-background2"); // 캡처 끝난 후 클래스 제거
+      });
+  }
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const capBtn = document.getElementById("capBtn");
+    const fortuneRetryBtn = document.getElementById("fortune-retry");
+    capBtn.disabled = true;
+    fortuneRetryBtn.disabled = true;
+
+    capBtn.style.backgroundColor = "#d4d4d4";
+    fortuneRetryBtn.style.backgroundColor = "#d4d4d4";
+
+    setTimeout(function() {
+      capBtn.disabled = false;
+      fortuneRetryBtn.disabled = false;
+
+      capBtn.style.backgroundColor = "";
+      fortuneRetryBtn.style.backgroundColor = "";
+    }, 3500);
+  });
+</script>
+{% endblock %}

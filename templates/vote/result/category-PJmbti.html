@@ -1,0 +1,101 @@
+{% load static %} {% block content %}
+<div class="mbti-category-box">
+  <div
+    class="result-category-name"
+    id="PJmbtiToggle"
+    onclick="toggleRotation6()"
+  >
+    <img
+      src="{% static 'img/icon/chevron_up.png'%}"
+      style="width: 30px"
+      class="chevron6"
+    />
+    P / J
+  </div>
+</div>
+<div class="result-chart-category">
+  <div id="PJmbtiChart" style="display: none"></div>
+</div>
+
+<script>
+  var PJoptions = {
+    series: [
+      {
+        name: "{{ poll.choice_set.all.0.choice_text }}",
+        data: [{{p_choice1_percentage}}, {{j_choice1_percentage}}],
+      },
+      {
+        name: "{{ poll.choice_set.all.1.choice_text }}",
+        data: [{{p_choice2_percentage}}, {{j_choice2_percentage}}],
+      },
+    ],
+    colors: ["#17355a", "#ff495a"],
+    chart: {
+      type: "bar",
+      height: 200,
+      stacked: true,
+      stackType: "100%",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+      },
+    },
+    stroke: {
+      width: 1,
+      colors: ["#fff"],
+    },
+    title: {
+      text: "",
+    },
+    xaxis: {
+      categories: ["P", "J"],
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + "K";
+        },
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      offsetX: 40,
+    },
+  };
+
+  // Wait for the document to load
+  document.addEventListener("DOMContentLoaded", function (event) {
+    var chart = new ApexCharts(
+      document.querySelector("#PJmbtiChart"),
+      PJoptions
+    );
+    chart.render();
+  });
+</script>
+<script>
+  let isRotated6 = false;
+  let isGraphVisible4 = false;
+
+  function toggleRotation6() {
+    const chevron6 = document.querySelector(".chevron6");
+
+    if (isRotated6) {
+      chevron6.style.transform = "rotate(0deg)";
+    } else {
+      chevron6.style.transform = "rotate(180deg)";
+    }
+
+    isGraphVisible4 = !isGraphVisible4;
+    const PJmbtiChart = document.getElementById("PJmbtiChart");
+    PJmbtiChart.style.display = isGraphVisible4 ? "block" : "none";
+
+    isRotated6 = !isRotated6;
+  }
+</script>
+
+{% endblock %}

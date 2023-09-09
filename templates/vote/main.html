@@ -1,0 +1,35 @@
+{% extends 'vote/base.html' %} {% load static %} {% block content %}
+<section class="main-section-container">
+  {% if user.is_authenticated %}
+  <div class="main-greeting">
+    <strong>오늘도 소중한 <i>한표!</i> </strong>
+    <div class="greeting-start"><span class="user-nickname">{{user.nickname}}</span> 님!!</div>
+  </div>
+    {% else %}
+    <div class="main-section-phrase">
+      <div class="main-text-phrase">
+        <h1 id="main-title-phrase">매일 매일</h1>
+        <h2 id="sub-title-phrase">{{random_phrase}}</h2>
+      </div>
+    </div>
+  {% endif %}
+  <div class="carousel-container">
+    {% include 'vote/main/main-carousel.html' %}
+  </div>
+  <div class="editor-pick-container">
+    {% include 'vote/main/main-editor-pick.html' %}
+  </div>
+  <div class="vote-list-container">{% include 'vote/main/main-grid.html'%}</div>
+</section>
+<div class="ham-footer">
+  <div class="redpink-word">made by</div>
+  <div><img src="{% static 'img/icon/TeamLogo.png' %}" style="width:80px"/></div>
+  <div>김정곤 | 곽민경 | 조성민 | 송우진 | 왕한솔</div>
+  <div class="redpink-word">social community</div>
+  <div class="footer-social-row">
+    <a href = "https://open.kakao.com/o/syls6sCf"><img src="{% static 'img/icon/kakao-talk!.png' %}" style="width:30px"/></a> |
+    <a href = "https://www.instagram.com/dailyvs_official/"><img src="{% static 'img/icon/instagram!.png' %}" style="width:30px"/></a> |
+    <a href = "https://github.com/DAILY-VS"><img src="{% static 'img/icon/github!.png' %}" style="width:30px"/></a>
+  </div>
+</div>
+{% endblock %}

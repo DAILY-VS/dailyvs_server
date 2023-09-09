@@ -1,0 +1,54 @@
+{% extends 'vote/base.html' %} {% load static %} {% block content %}
+
+<div class="vote-gender-detail-container">
+  <div class="detail-top">
+    <a href="{% url 'vote:main' %}" role="button" class="back-button"
+      ><img src="{% static 'img/icon/left_page.png'%}" style="width: 30px" />
+      이전 페이지로
+    </a>
+    <div class="detail-views">
+      <span
+        ><img src="{% static 'img/icon/view.png'%}" style="width: 20px"
+      /></span>
+      <span> {{ poll.views_count }} </span>
+      <span> views</span>
+    </div>
+  </div>
+  <div class="detail2-title">당신의 성별은 ?</div>
+  <div class="option-container">
+    <div>
+      <form
+        action="{% url 'vote:nonusermbti' poll.id nonuservote_id %}"
+        method="POST"
+      >
+        {% csrf_token %} {% for choice in gender %}
+        <div
+          class="gender-detail-option"
+          style="background-image: url(../../{{ choice.image }});"
+        >
+          <input
+            type="radio"
+            name="choice"
+            id="choice{{ forloop.counter }}"
+            value="{{ choice }}"
+            class="gender-choice-input"
+          />
+          <label for="choice{{ forloop.counter }}">
+            {% if choice == 'M' %} 남성 {% elif choice == 'W' %} 여성 {% endif%}
+          </label>
+        </div>
+        {% endfor %}
+        <input
+          type="submit"
+          value="등록하기"
+          class="vote-submit-btn"
+          disabled
+        />
+      </form>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="{% static 'js/detail2.js' %}"></script>
+
+  {% endblock %}
+</div>

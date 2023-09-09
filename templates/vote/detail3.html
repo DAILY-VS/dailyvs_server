@@ -1,0 +1,85 @@
+{% extends 'vote/base.html' %} {% load static %} {% block content %}
+
+<div class="vote-detail-container">
+  <div class="detail-top">
+    <a href="{% url 'vote:main' %}" role="button" class="back-button"
+      ><img src="{% static 'img/icon/left_page.png'%}" style="width: 30px" />
+      이전 페이지로
+
+    </a>
+    <div class="detail-views">
+      <span
+        ><img src="{% static 'img/icon/view.png'%}" style="width: 20px"
+      /></span>
+      <span> {{ poll.views_count }} </span>
+      <span> views</span>
+    </div>
+  </div>
+  <div class="detail2-title">당신의 MBTI는 ?</div>
+  <div class="option-container">
+    <form id="loginmodal" action="{% url 'vote:nonuserfinal' poll.id nonuservote_id %}" method="POST">
+      {% csrf_token %}
+      <div class="mbti-every-options">
+        <div class="mbti-two-options">
+          <div class="mbti-detail-option">
+            <label><input type="radio" name="choice_EI" value="E" class="mbti-choice-input"/> E</label>
+          </div>
+          <div class="mbti-detail-option">
+            <label><input type="radio" name="choice_EI" value="I" class="mbti-choice-input"/> I</label>
+          </div>
+        </div>
+        <div class="mbti-two-options">
+          <div class="mbti-detail-option">
+            <label><input type="radio" name="choice_SN" value="S" class="mbti-choice-input"/> S</label>
+          </div>
+          <div class="mbti-detail-option">
+            <label><input type="radio" name="choice_SN" value="N" class="mbti-choice-input"/> N</label>
+          </div>
+        </div>
+        <div class="mbti-two-options">
+          <div class="mbti-detail-option">
+            <label><input type="radio" name="choice_FT" value="F" class="mbti-choice-input"/> F</label>
+          </div>
+          <div class="mbti-detail-option">
+            <label><input type="radio" name="choice_FT" value="T" class="mbti-choice-input"/> T</label>
+          </div>
+        </div>
+        <div class="mbti-two-options">
+          <div class="mbti-detail-option">
+            <label><input type="radio" name="choice_JP" value="J" class="mbti-choice-input"/> J</label>
+          </div>
+          <div class="mbti-detail-option">
+            <label><input type="radio" name="choice_JP" value="P" class="mbti-choice-input"/> P</label>
+          </div>
+        </div>
+      </div>
+      <div class="what-is-my-mbti"> 내가 선택한 mbti : <span id="selected-mbti"></span></div>
+      <input type="hidden" id="selected-mbti-input" name="selected_mbti" value="" />
+      <input type="button" data-bs-toggle="modal" href="#exampleModal" value="등록하기" class="vote-submit-btn" disabled />
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="exampleModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="justify-content:center; font-size: 18px; padding-top: 25px;">
+        <p> 로그인을 하시면 <span class="modal-logo">Daily VS</span>에서 </br> 더 많은 기능을 사용하실 수 있어요!</p>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content: space-around;">
+        <button type="button" class="btn" style="background-color: #457c9e; color:white" id="submitForm">그냥 투표하기</button>
+        <a type="button" class="btn" href="{% url 'vs_account:login' %}" style="background-color:#ff495a; text-decoration:none; color:white;"> 로그인 하기 </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/detail3.js' %}"></script>
+<script>
+  // 진행 버튼 클릭 시 폼 제출
+  document.getElementById("submitForm").addEventListener("click", function () {
+      console.log('33')
+      document.getElementById("loginmodal").submit();
+  });
+</script>
+{% endblock %}

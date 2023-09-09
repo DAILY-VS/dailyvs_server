@@ -1,0 +1,346 @@
+{% extends 'vote/base.html' %} {% load static %} {% block content %}
+<section class="result-container" data-color="pink">
+  <div id="capture2" class="capture-container">
+      <div class="result-title-row">
+        <div class="result-title">{{poll.title}}</div>
+      </div>
+      <div class="result-graph-content">{{poll.content}}</div>
+      <div class="graph-information-container">
+        {% include 'vote/result/graph-information.html' %}
+      </div>
+      <div class="graph-container" data-color="skyblue">
+        {% include 'vote/result/result-chart.html' %}
+      </div>
+      <div class="result-loading">
+        <div class="spinner-border text-secondary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <div id="loading-text">당신의 성향 분석중..</div>
+      </div>
+    <div class="result-investigation" >
+      {% if minimum_value >= maximum_value %}
+      <div class="typing-line">
+        <span class="typing-key">당신은</span>
+        <span class="typing-bold">{{ minimum_key }}</span>
+        <span class="typing-key">이지만</span>
+        <span class="typing-bold">{{ minimum_key }}</span>
+        <span class="typing-key">의</span>
+        <span class="typing-value1"><span class="typing-percent">0</span></span>
+        <span class="typing-text1"><span class="typing-cursor"></span></span>
+      </div>
+      {% else %}
+      <div class="typing-line">
+        <span class="typing-key">당신은</span>
+        <span class="typing-bold">{{ maximum_key }}</span>
+        <span class="typing-key">이며</span>
+        <span class="typing-value2"><span class="typing-percent">0</span></span>
+        <span class="typing-key">의</span>
+        <span class="typing-bold">{{maximum_key}} </span>
+        <span class="typing-text2"><span class="typing-cursor"></span></span>
+      </div>
+      {% endif %}
+    </div>
+    {% if key == "남성" or key == "여성" %}
+    {% include 'vote/result/category-genderanalysis.html' %}
+    {% endif %}
+    {% if key == "I" or key == "E" %}
+    {% include 'vote/result/category-EImbtianalysis.html' %}
+    {% endif %}
+    {% if key == "N" or key == "S" %}
+    {% include 'vote/result/category-SNmbtianalysis.html' %}
+    {% endif %}
+    {% if key == "T" or key == "F" %}
+    {% include 'vote/result/category-TFmbtianalysis.html' %}
+    {% endif %}
+    {% if key == "J" or key == "P" %}
+    {% include 'vote/result/category-PJmbtianalysis.html' %}
+    {% endif %}
+    <div class="water-mark">
+      <img src="{% static 'img/icon/Red_logo.png' %}" style="width: 220px"/>
+    </div>
+  </div>
+    <div class="btns-not-bts">
+      <button id="capBtn2" style="border: none">캡처하기<span
+          ><img src="{% static 'img/capture.png'%}" style="width: 30px"
+        /></span></button>
+      <button class="result-share-btn" id="copy-url-btn">
+        URL 복사<span
+          ><img src="{% static 'img/icon/share.png'%}" style="width: 30px"
+        /></span>
+      </button>
+    </div>
+
+  
+  <div class="graph-category-container" id="fake-capture">
+    <div>{% include 'vote/result/category-gender.html' %}</div>
+    <div class="result-category-box">
+      <div
+        class="result-category-name"
+        id="mbtiToggle"
+        onclick="toggleRotation2()"
+      >
+        <img
+          src="{% static 'img/icon/chevron_up.png'%}"
+          style="width: 30px; transform: rotate(180deg);"
+          class="chevron"
+        />
+        MBTI
+      </div>
+    </div>
+    <div id="mbtiChart">
+      <div class="panel" data-color="pink">
+        {% include 'vote/result/category-EImbti.html' %}
+      </div>
+      <div class="panel" data-color="purple">
+        {% include 'vote/result/category-SNmbti.html' %}
+      </div>
+      <div class="panel" data-color="skyblue">
+        {% include 'vote/result/category-TFmbti.html' %}
+      </div>
+      <div class="panel" data-color="purple">
+        {% include 'vote/result/category-PJmbti.html' %}
+      </div>
+    </div>
+  </div>
+  <div class="result-like-section"> 
+    <div class="result-like-recommend">
+      투표 좋아요 눌러주기 <img src="{% static 'img/icon/right-arrow.png' %}" style="width: 50px"/>
+    </div>
+    <div class="detail-like-container">{% include 'vote/result/like.html' %}</div></div>
+  <div class="comment-container">{% include 'vote/result/comment.html' %}
+    <div>
+      <div class="another-vote-container">
+        <a href="/"><div class="to-main-page">
+          <span><img src="{% static 'img/icon/left_page.png' %}" style="width: 50px"/></span>
+          <span class="to-mp-word">메인 페이지로 돌아가기</span></div></a>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="{% static 'js/result.js' %}"></script>
+<script>
+  let isRotated2 = false;
+
+  function toggleRotation2() {
+    const chevron = document.querySelector(".chevron");
+    if (isRotated2) {
+      chevron.style.transform = "rotate(180deg)";
+    } else {
+      chevron.style.transform = "rotate(0deg)";
+    }
+
+    isRotated2 = !isRotated2;
+  }
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.8/dist/clipboard.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/dist/dom-to-image.min.js"></script>
+<script src="{% static 'js/scroll.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log('hello')
+    const mbtiToggle = document.getElementById("mbtiToggle");
+    const mbtiChart = document.getElementById("mbtiChart");
+
+    mbtiToggle.addEventListener("click", function () {
+      mbtiChart.style.display =
+        mbtiChart.style.display === "none" ? "block" : "none";
+    });
+  });
+
+  //공유하기 버튼
+  // 버튼 요소 가져오기
+  const copyUrlBtn = document.getElementById("copy-url-btn");
+  // 버튼을 클릭했을 때 이벤트 리스너 등록
+  copyUrlBtn.addEventListener("click", () => {
+    // 현재 페이지의 URL 가져오기
+    const currentUrl = window.location.href;
+    // 클립보드 복사 객체 생성
+    const clipboard = new ClipboardJS(copyUrlBtn, {
+      text: function () {
+        return currentUrl; // 복사할 텍스트 설정
+      },
+    });
+    // 클립보드 복사 성공 시 처리
+    clipboard.on("success", () => {
+      alert("URL이 복사되었습니다.");
+      clipboard.destroy(); // 클립보드 객체 해제
+    });
+    // 클립보드 복사 실패 시 처리
+    clipboard.on("error", () => {
+      alert("URL 복사에 실패하였습니다.");
+      clipboard.destroy(); // 클립보드 객체 해제
+    });
+    // 클릭 이벤트 트리거로 클립보드 복사 실행
+    clipboard.onClick();
+  });
+</script>
+
+<script>
+function typeTextWithCursor(text, typingTextElement) {
+  if (!typingTextElement) {
+    return;
+  }
+
+  let charIndex = 0;
+  const typingInterval = setInterval(() => {
+    typingTextElement.textContent += text[charIndex];
+    charIndex++;
+    if (charIndex === text.length) {
+      clearInterval(typingInterval);
+    }
+  }, 200);
+}
+
+const text1 = "와 다른 선택을 했습니다.";
+const typingText1 = document.querySelector(".typing-text1");
+typeTextWithCursor(text1, typingText1);
+
+const text2 = "(과)와 동일한 선택을 했습니다.";
+const typingText2 = document.querySelector(".typing-text2");
+typeTextWithCursor(text2, typingText2);
+
+</script>
+<script>
+const typingPercent1 = document.querySelector(".typing-value1 .typing-percent");
+const typingPercent2 = document.querySelector(".typing-value2 .typing-percent");
+const minimumValue = {{ minimum_value }}; 
+const maximumValue = {{ maximum_value }};
+
+let currentNumber1 = 0;
+let currentNumber2 = 0;
+
+const incrementInterval1 = setInterval(() => {
+  currentNumber1++;
+  if (typingPercent1) {
+    typingPercent1.textContent = currentNumber1 + "%";
+  }
+  if (currentNumber1 >= minimumValue) {
+    clearInterval(incrementInterval1);
+    if (typingPercent1) {
+      typingPercent1.style.color = "#ff495a";
+    }
+  }
+}, 50); 
+
+const incrementInterval2 = setInterval(() => {
+  currentNumber2++;
+  if (typingPercent2) {
+    typingPercent2.textContent = currentNumber2 + "%";
+  }
+  if (currentNumber2 >= maximumValue) {
+    clearInterval(incrementInterval2);
+    if (typingPercent2) {
+      typingPercent2.style.color = "#ff495a";
+    }
+  }
+}, 50);
+
+
+</script>
+<script>
+   document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+                var loadingicon = document.querySelector('.spinner-border');
+                var loadingElement = document.querySelector('.result-loading');
+                var loadingTextElement = document.getElementById('loading-text');
+                 if (loadingTextElement) {
+                    loadingTextElement.textContent = '분석완료!';
+                    loadingicon.style.display = 'none';
+                }
+            }, 4500);
+        });
+</script>
+<!-- <script>
+$(function(){
+  const html2canvas = require('html2canvas');
+  $("#capBtn2").on("click", function(){
+    var captureContainer = document.querySelector("#capture2");
+    captureContainer.classList.add("capture-logo-visible"); // 캡처 시작 시 클래스 추가
+    captureContainer.classList.add("pink-background");
+
+    html2canvas(document.querySelector("#capture2")).then(canvas => {
+      saveImg(canvas.toDataURL('image/png'), "dailyVS-chart.png");
+      captureContainer.classList.remove("capture-logo-visible"); // 캡처 끝난 후 클래스 제거
+    });
+  });
+
+  function saveImg(uri, filename) { 
+    var link = document.createElement('a'); 
+    if (typeof link.download === 'string') { 
+      link.href = uri; 
+      link.download = filename; 
+      document.body.appendChild(link); 
+      link.click(); 
+      document.body.removeChild(link); 
+    } else { 
+      window.open(uri); 
+    } 
+  }
+});
+
+</script> -->
+<script>
+var scrollPosition = localStorage.getItem('scrollPosition') || 0;
+window.onload = function() {
+
+  var capBtn2 = document.getElementById("capBtn2");
+  var copyUrlBtn = document.getElementById("copy-url-btn");
+
+  capBtn2.style.backgroundColor = '#d4d4d4';
+
+  capBtn2.disabled = true;
+  copyUrlBtn.disabled = true;
+
+  setTimeout(function() {
+    capBtn2.disabled = false;
+    copyUrlBtn.disabled = false;
+    capBtn2.style.backgroundColor = '#17355a';
+  }, 4800);
+
+
+  document.getElementById('selectSort').addEventListener('change', function () {
+    localStorage.setItem('scrollPosition', window.scrollY);
+  });
+
+  document.getElementById('selectChoice').addEventListener('change', function () {
+    localStorage.setItem('scrollPosition', window.scrollY);
+    console.log("Scroll position:", scrollPosition);
+  });
+
+  window.scrollTo(0, scrollPosition);
+  localStorage.setItem('scrollPosition', 0);
+  scrollPosition = 0;
+};
+
+document.getElementById('selectSort').addEventListener('change', function () {
+      localStorage.setItem('scrollPosition', window.scrollY);
+  });
+  
+  document.getElementById('selectChoice').addEventListener('change', function () {
+      localStorage.setItem('scrollPosition', window.scrollY);
+  });
+
+</script>
+<script>
+  const captureBtn = document.getElementById("capBtn2");
+  captureBtn.addEventListener("click", captureElement);
+
+  function captureElement() {
+    const captureContainer = document.getElementById("capture2");
+    captureContainer.classList.add("capture-logo-visible"); // 캡처 시작 시 클래스 추가
+    captureContainer.classList.add("pink-background");
+
+    domtoimage.toPng(captureContainer)
+      .then(dataUrl => {
+        const link = document.createElement('a');
+        link.download = 'dailyvs.png';
+        link.href = dataUrl;
+        link.click();
+        captureContainer.classList.remove("capture-logo-visible"); // 캡처 끝난 후 클래스 제거
+      });
+  }
+</>
+{% endblock %}

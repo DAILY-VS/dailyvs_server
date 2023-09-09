@@ -1,0 +1,275 @@
+.login-box {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+}
+
+.login-container {
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+}
+
+.login-container form {
+  width: 400px;
+  margin: 10px auto;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-container input {
+  width: 300px;
+  height: 50px;
+  margin-bottom: 10px;
+  font-family: "NEXON Lv1 Gothic OTF";
+  font-size: 20px;
+  border: 1px rgba(128, 128, 128, 0.2) solid;
+  background-color: #f4faff;
+  padding-left: 20px;
+}
+
+.login-btn {
+  margin-top: 20px;
+  height: 50px;
+  font-family: "NEXON Lv1 Gothic OTF";
+  font-size: 24px;
+  color: white;
+  background-color: #ff495a;
+  border: none;
+  border-radius: 5px;
+  cursor:pointer;
+}
+
+.login__signup {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.login__signup a {
+  border: none;
+  text-decoration: none;
+  color: #ff495a;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.login__signup span{
+  margin-left:5px;
+  margin-left:5px;
+}
+
+.login__signup a:hover {
+  border-bottom: solid #ff495a 1px;
+}
+
+.login-nav {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #f0f0f0;
+}
+
+@media (min-width: 501px) {
+  .login-nav {
+    width: 500px;
+  }
+}
+
+
+.login-nav img {
+  margin-right: auto;
+}
+
+.login-name {
+  margin: 0 auto;
+  text-align: center;
+  font-size: 24px;
+}
+
+/*비밀번호 오류 알림 모달*/
+#modal.modal-overlay {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+#modal .modal-window {
+  background: var(--darkblue-primary-color);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(13.5px);
+  -webkit-backdrop-filter: blur(13.5px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  max-width: 300px; /* 수정된 부분 */
+  position: relative;
+  padding: 10px;
+}
+
+#modal .title {
+  padding-left: 10px;
+  display: inline;
+  text-shadow: 1px 1px 2px gray;
+  color: white;
+}
+
+#modal .title h2 {
+  display: inline;
+}
+
+#modal .close-area {
+  display: inline;
+  float: right;
+  padding-right: 10px;
+  cursor: pointer;
+  text-shadow: 1px 1px 2px gray;
+  color: white;
+}
+
+#modal .content {
+  margin-top: 20px;
+  padding: 0px 10px;
+  text-shadow: 1px 1px 2px gray;
+  color: white;
+}
+
+#modal .title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#modal .title h2 {
+  margin: 0;
+}
+
+
+.email-container{
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.email-container form p{
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: left;
+}
+
+.email-container form p label{
+  margin-right: auto;
+}
+
+.email-container p input {
+  width: 300px;
+  height: 50px;
+  font-family: "NEXON Lv1 Gothic OTF";
+  font-size: 20px;
+  border: 1px rgba(128, 128, 128, 0.2) solid;
+  background-color: #f4faff;
+  padding-left: 20px;
+  margin-bottom: 10px;
+}
+
+.email-container ul {
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.email-container button {
+  margin-top: 20px;
+  width: 300px;
+  height: 50px;
+  font-family: "NEXON Lv1 Gothic OTF";
+  font-size: 24px;
+  color: white;
+  background-color: #ff495a;
+  border: none;
+  border-radius: 5px;
+  cursor:pointer;
+}
+
+.do-not-delete {
+  font-size: 18px;
+  margin-top: 200px;
+  text-align: center;
+}
+
+.delete-btns {
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+}
+
+.go-back-mypage {
+  display: flex;
+  width: 200px;
+  height: 40px;
+  border-radius: 5px;
+  background-color: var(--darkblue-primary-color);
+  color: white;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.yes-delete {
+  display: flex;
+  width: 200px;
+  height: 40px;
+  border-radius: 5px;
+  background-color: var(--redpink-primary-color);
+  color: white;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  border: none;
+  margin-top: 5px;
+  cursor:pointer;
+}
+
+.kakao-login-btn {
+  margin-top: 10px;
+  display:flex;
+  width: 300px;
+  height: 50px;
+  font-size: 24px;
+  background-color: #F7E600;
+  color: #3A1D1D;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-radius: 5px;
+}
+
+.kakao-login-btn img {
+  margin-right: 10px;
+}

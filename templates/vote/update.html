@@ -1,0 +1,19 @@
+{% extends 'vote/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="mypage-update-container">
+  <div><img src="{% static 'img/Only_Text.png' %}" style="width: 250px" /></div>
+    <form action="{% url 'vote:update' %}" method="POST" class="mypage-update-form">
+        {% csrf_token %}
+        {{form}}
+        <button type="submit">회원정보 수정하기</button>
+    </form>
+    <div class="modify-btns">
+    {% if request.user == user %}
+    <a href="{% url 'vs_account:change_password' %}" class="change" id="modify-pw">비밀번호 변경</a>
+    <a id="mypage-user-delete" href="{% url 'vs_account:delete' %}">회원 탈퇴하기</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} 

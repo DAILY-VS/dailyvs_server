@@ -1,0 +1,99 @@
+{% load static %} {% block content %}
+<div class="mbti-category-box">
+  <div
+    class="result-category-name"
+    id="SNmbtiToggle"
+    onclick="toggleRotation4()"
+  >
+    <img
+      src="{% static 'img/icon/chevron_up.png'%}"
+      style="width: 30px"
+      class="chevron4"
+    />
+    S / N
+  </div>
+</div>
+<div class="result-chart-category">
+  <div id="SNmbtiChart" style="display: none"></div>
+</div>
+
+<script>
+  var SNoptions = {
+    series: [
+      {
+        name: "{{ poll.choice_set.all.0.choice_text }}",
+        data: [{{s_choice1_percentage}}, {{n_choice1_percentage}}],
+      },
+      {
+        name: "{{ poll.choice_set.all.1.choice_text }}",
+        data: [{{s_choice2_percentage}}, {{n_choice2_percentage}}],
+      },
+    ],
+    colors: ["#17355a", "#ff495a"],
+    chart: {
+      type: "bar",
+      height: 200,
+      stacked: true,
+      stackType: "100%",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+      },
+    },
+    stroke: {
+      width: 1,
+      colors: ["#fff"],
+    },
+    title: {
+      text: "",
+    },
+    xaxis: {
+      categories: ["S", "N"],
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + "K";
+        },
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      offsetX: 40,
+    },
+  };
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var chart = new ApexCharts(
+      document.querySelector("#SNmbtiChart"),
+      SNoptions
+    );
+    chart.render();
+  });
+
+  let isRotated4 = false;
+  let isGraphVisible2 = false;
+
+  function toggleRotation4() {
+    const chevron4 = document.querySelector(".chevron4");
+
+    if (isRotated4) {
+      chevron4.style.transform = "rotate(0deg)";
+    } else {
+      chevron4.style.transform = "rotate(180deg)";
+    }
+
+    isGraphVisible2 = !isGraphVisible2;
+    const SNmbtiChart = document.getElementById("SNmbtiChart");
+    SNmbtiChart.style.display = isGraphVisible2 ? "block" : "none";
+
+    isRotated4 = !isRotated4;
+  }
+</script>
+
+{% endblock %}

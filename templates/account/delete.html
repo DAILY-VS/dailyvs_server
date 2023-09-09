@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="{%static 'css/style.css'%}" />
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>회원 탈퇴</title>
+  </head>
+  <body>
+    <div class="signup-box">
+      <div class="login-box">
+        <div class="login-nav">
+          <span
+            ><a href="/"
+              ><img
+                src="{% static 'img/icon/left_page.png'%}"
+                style="width: 30px" /></a
+          ></span>
+          <div class="login-name">회원 탈퇴</div>
+        </div>
+        <div class="do-not-delete">
+          <div>정말로 계정을 삭제하시겠습니까?</div>
+          <div><span class="logo-font-design">DailyVS</span>와 함께한 추억이 사라집니다.. ;ㅅ;</div>
+        </div>
+        <div class="delete-btns">
+            <a href="{% url 'vote:mypage' %}" class="go-back-mypage">마이페이지로 돌아가기</a>
+            <form method="post">
+                {% csrf_token %}
+                <input type="submit" value="예, 삭제합니다" class="yes-delete">
+            </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

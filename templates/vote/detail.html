@@ -1,0 +1,53 @@
+{% extends 'vote/base.html' %} {% load static %} {% block content %}
+
+<div class="vote-detail-container">
+  <div class="detail-top">
+    <a href="{% url 'vote:main' %}" role="button" class="back-button"
+      ><img src="{% static 'img/icon/left_page.png'%}" style="width: 30px" />
+      이전 페이지로
+    </a>
+    <div class="detail-views">
+      <span
+        ><img src="{% static 'img/icon/view.png'%}" style="width: 20px"
+      /></span>
+      <span> {{ poll.views_count }} </span>
+      <span> views</span>
+    </div>
+  </div>
+  <div class="vote-introduction">
+    {% include 'vote/detail/detail-introduction-card.html' %}
+  </div>
+  <div class="option-container">
+    <div>
+      <form action="{% url 'vote:classifyuser' poll.id %}" method="POST">
+        {% csrf_token %} {% for choice in poll.choice_set.all %}
+        <div
+          class="detail-option"
+          style="background-image: url(../../media/{{choice.image}});"
+        >
+          <input
+            type="radio"
+            name="choice"
+            id="choice{{ forloop.counter }}"
+            value="{{ choice.id }}"
+            class="choice-input"
+          />
+          <label for="choice{{ forloop.counter }}"
+            >{{ choice.choice_text }}</label
+          >
+        </div>
+        <strong class="vs-font"><span>V</span><span>S</span></strong>
+        {% endfor %}
+        <input
+          type="submit"
+          value="투표하기"
+          class="vote-submit-btn"
+          disabled
+        />
+      </form>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="{% static 'js/detail.js' %}"></script>
+  {% endblock %}
+</div>

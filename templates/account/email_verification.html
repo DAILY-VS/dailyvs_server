@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{%static 'css/style.css'%}" />
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+    <title>이메일 인증</title>
+  </head>
+  <body>
+    <div class="signup-box">
+      <div class="login-box">
+        <div class="login-nav">
+          <span
+            ><a href="/"
+              ><img
+                src="{% static 'img/icon/left_page.png'%}"
+                style="width: 30px" /></a
+          ></span>
+          <div class="login-name">이메일 인증</div>
+        </div>
+        <div>
+          <img src="{% static 'img/Only_Text.png' %}" style="width: 250px" />
+        </div>
+          <div class="email-container"><div class="email-name-row"><span style="font-family: GongGothicMedium;">{{ user.username }}</span><span>님,</span></div> 이메일 주소를 확인하고 <br/>아래의 인증 코드를 입력하세요.</div>
+        <div class="change-pw-container">
+          <form method="POST" action="/account/call/">
+              {% csrf_token %}
+              <input type="hidden" name="code" value="{{ code }}">
+              <div class="form-group">
+                <label for="token">인증 코드</label>
+                <input type="text" id="token" name="token" class="form-control" style="height:50px">
+              </div>
+              <button type="submit" class="btn btn-primary">인증하기</button>
+            </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

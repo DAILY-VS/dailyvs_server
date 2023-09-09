@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+    <a href="{% url 'vs_account:login' %}"> 로그인 </a>
+    <a href="{% url 'vs_account:logout' %}"> 로그아웃 </a>
+    <a href="{% url 'vs_account:signup' %}"> 회원가입 </a>
+
+    <ul>
+    {% for poll in polls %}
+    <li>
+        <a href="{% url 'vote:detail' poll.id %}">
+        {{poll.title}}
+        {% if not poll.active%} 
+        {% endif %}
+        </a>
+    </li>
+    </ul>
+    {% endfor %} 
+     <ul>
+    {% for page in page_obj %}
+    <li>
+        <a href="{% url 'vote:detail' page.id %}">
+        {{ page.title}}
+        {% if not page.active%} 
+        {% endif %}
+        </a>
+    </li>
+    </ul>
+    {% endfor %}
+    <br/>
+    {% for page in paginator.page_range %}
+    <ul>
+        <li>
+        <a href="?page={{ page}}">{{page}}</a>
+        </li>
+        {% endfor %}
+    </ul> 
+</body>
+</html>

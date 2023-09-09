@@ -1,0 +1,84 @@
+@charset "UTF-8";
+@import url("./base.css");
+@import url("./main.css");
+@import url("./detail.css");
+@import url("./result.css");
+@import url("./login.css");
+@import url("./mypage.css");
+@import url("./signup.css");
+@import url("./comment.css");
+@import url("./chart.css");
+@font-face {
+  font-family: "GongGothicMedium";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/GongGothicMedium.woff")
+    format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "NEXON Lv1 Gothic OTF";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@2.1/NEXON Lv1 Gothic OTF.woff")
+    format("woff");
+  /* font-weight: normal; */
+  font-style: normal;
+}
+@font-face {
+  font-family: "TheJamsil5Bold";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302_01@1.0/TheJamsil5Bold.woff2")
+    format("woff2");
+  font-weight: 700;
+  font-style: normal;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "NEXON Lv1 Gothic OTF";
+  white-space: normal; /* 공백과 줄바꿈 처리 */
+  margin: 0px;
+  padding: 0px;
+}
+
+textarea {
+  outline: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+body {
+  width: 100vw;
+  display: flex;
+  background-color: white;
+  transition: background-color 1s ease;
+}
+
+:root {
+  --blue-bg-color: #f9fcff;
+  --purple-bg-color: #f8f8ff;
+  --pink-bg-color: #fff9f9;
+
+  --darkblue-primary-color: #17355a;
+  --redpink-primary-color: #ff495a;
+
+  --mint-secondary-color: #a7dcdd;
+  --turquois-secondary-color: #457c9e;
+}
+
+.color-skyblue {
+  background-color: var(--blue-bg-color);
+}
+
+.color-purple {
+  background-color: var(--purple-bg-color);
+}
+
+.pink-bg-color {
+  background-color: var(--pink-bg-color);
+}
