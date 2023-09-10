@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from vote.views import *
+from rest_framework.urlpatterns import format_suffix_patterns #추가
 
 app_name = "vote"
 
@@ -47,4 +49,6 @@ urlpatterns = [
         views.fortune,
         name="fortune",
     ),
+    
+    path('api/', PollList.as_view(), name='api'),
 ]
