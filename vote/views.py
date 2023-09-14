@@ -393,6 +393,7 @@ def calculate_nested_count(request, comment_id):
 
 
 # 투표 시 회원, 비회원 구분 (비회원일시 성별 기입)
+@api_view(['GET'])
 def classifyuser(request, poll_id):
     user= request.user
     if user.is_authenticated and user.custom_active==False:
@@ -495,13 +496,14 @@ def classifyuser(request, poll_id):
                 vote.save()
                 nonuservote_id = vote.id
                 poll = get_object_or_404(Poll, pk=poll_id)
+                serialized_poll = PollSerializer(poll).data
                 context = {
-                    "poll": poll,
+                    "poll": serialized_poll,
                     "gender": ["M", "W"],
                     "nonuservote_id": nonuservote_id,
-                    "loop_time": range(0, 2),
+                    "loop_time": [0,1],
                 }
-                return render(request, "vote/detail2.html", context)
+                return Response(context)
     else:
         return redirect("/")
 
