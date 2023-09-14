@@ -957,6 +957,7 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
 
 
 # 비회원 투표시 MBTI 기입
+@api_view(['GET'])
 def poll_nonusermbti(request, poll_id, nonuservote_id):
     if request.method == "POST":
         choice_id = request.POST.get("choice")
@@ -972,14 +973,15 @@ def poll_nonusermbti(request, poll_id, nonuservote_id):
         if choice_id == "W":
             NonUserVote.objects.filter(pk=nonuservote_id).update(gender="W")
 
-        poll = get_object_or_404(Poll, id=poll_id)
+        poll = get_object_or_404(Poll, pk=poll_id)
+        serialized_poll = PollSerializer(poll).data
         context = {
-            "poll": poll,
-            "mbti": [],  # 여기에 MBTI 리스트 추가
+            "poll": serialized_poll,
+            "gender": ["M", "W"],
             "nonuservote_id": nonuservote_id,
-            "loop_time": range(0, 2),
+            "loop_time": [0,1],
         }
-        return render(request, "vote/detail3.html", context)
+        return Response(context)
     else:
         return redirect("/")
 
