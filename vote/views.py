@@ -509,6 +509,7 @@ def classifyuser(request, poll_id):
 
 
 # 회원/비회원 투표 통계 계산 및 결과 페이지
+@api_view(['GET'])
 def calcstat(request, poll_id, uservote_id, nonuservote_id):
     user= request.user
     if user.is_authenticated and user.custom_active==False:
@@ -898,7 +899,8 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
     else : 
         key = maximum_key
     #key="남성"
-
+    serialized_poll = PollSerializer(poll).data
+    serialized_choices=ChoiceSerializer(choices, many=True).data
     ctx = {
         "total_count": total_count,
         # "choice1_count": total_choice1_count,
@@ -934,7 +936,7 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         "p_choice2_percentage": p_choice2_percentage,
         "j_choice1_percentage": j_choice1_percentage,
         "j_choice2_percentage": j_choice2_percentage,
-        "poll": poll,
+        "poll": serialized_poll,
         "comments": comments,
         "comments_count":comments.count(),
         "uservotes": uservotes,
@@ -944,13 +946,13 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         "maximum_value": maximum_value,
         "sort": sort,
         "key": key,
-        "choices": choices,
+        "choices": serialized_choices,
         "choice_filter":choice_filter,
         "new_comment_count": poll.comments,
     }
+    #poll, comments, uservotes, choices, poll.comments,
     ##################################################################################
-
-    return render(request, template_name="vote/result.html", context=ctx)
+    return Response(ctx)
 
 
 # 비회원 투표시 MBTI 기입
