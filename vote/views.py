@@ -900,6 +900,7 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         key = maximum_key
     #key="남성"
     serialized_poll = PollSerializer(poll).data
+    serialized_comments= CommentSerializer(comments, many=True).data
     serialized_choices=ChoiceSerializer(choices, many=True).data
     ctx = {
         "total_count": total_count,
@@ -937,7 +938,7 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         "j_choice1_percentage": j_choice1_percentage,
         "j_choice2_percentage": j_choice2_percentage,
         "poll": serialized_poll,
-        "comments": comments,
+        "comments": serialized_comments,
         "comments_count":comments.count(),
         "uservotes": uservotes,
         "minimum_key": minimum_key,
@@ -1074,7 +1075,8 @@ def get_random_fortune(mbti):
 
     selected_fortunes = fortunes.get(mbti, [])
     return random.choice(selected_fortunes) if selected_fortunes else default_fortune
-    
+
+@api_view(['GET'])    
 def fortune(request):
     user = request.user
     if user.is_authenticated:
@@ -1082,7 +1084,7 @@ def fortune(request):
     else:
         random_fortune = get_random_fortune('nonuser')
 
-    return render(request, "vote/main/main-fortune.html", {"random_fortune": random_fortune})
+    return Response({"random_fortune": random_fortune})
 
 
 # class PollList(APIView):
