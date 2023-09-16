@@ -88,7 +88,7 @@ class MainView(APIView):
             # "page_obj": page_obj,
             # "paginator": paginator,
             # "promotion_polls": promotion_polls,
-            # "today_poll": today_poll,
+            #"today_poll": today_poll,
             #"random_phrase": random_phrase
         }
 
