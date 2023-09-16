@@ -38,3 +38,10 @@ class PollSerializer(serializers.ModelSerializer):
     class Meta:
         model = Poll
         fields = '__all__'
+        
+class PollLikeSerializer(serializers.Serializer):
+    poll_id = serializers.IntegerField()
+    
+class CommentLikeSerializer(serializers.Serializer):
+    comment_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()

@@ -117,10 +117,8 @@ class PollDetailView(APIView):
             poll.increase_views()  # 게시글 조회 수 증가
             loop_count = poll.choice_set.count()
             loop_time = list(range(0, loop_count))
-
             # Serialize the Poll object using PollSerializer
             serialized_poll = PollSerializer(poll).data
-
             context = {
                 "poll": serialized_poll,
                 "loop_time": loop_time,
@@ -146,44 +144,38 @@ def get_like_status(request, poll_id):
     return JsonResponse(context)
 
 
-# 투표 게시글 좋아요
+@api_view(['GET', 'POST'])
+# @permission_classes([IsAuthenticated])
 def poll_like(request):
-    user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
-    if request.method == "POST":
-        req = json.loads(request.body)
-        poll_id = req["poll_id"]
+    serializer = PollLikeSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        poll_id = serializer.validated_data['poll_id']
         try:
             poll = Poll.objects.get(id=poll_id)
         except Poll.DoesNotExist:
-            return JsonResponse({"error": "해당 투표가 존재하지 않습니다."}, status=404)
+            return Response({"error": "해당 투표가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
 
-        
-        if request.user.is_authenticated:
-            user = request.user
-            if poll.poll_like.filter(id=user.id).exists():
-                poll.poll_like.remove(user)
-                message = "좋아요 취소"
-                user_likes_poll = False
-            else:
-                poll.poll_like.add(user)
-                message = "좋아요"
-                user_likes_poll = True
+        user = request.user
 
-            like_count = poll.poll_like.count()
-            context = {
-                "like_count": like_count,
-                "message": message,
-                "user_likes_poll": user_likes_poll,
-            }
-            return JsonResponse(context)
+        if poll.poll_like.filter(id=user.id).exists():
+            poll.poll_like.remove(user)
+            message = "좋아요 취소"
+            user_likes_poll = False
         else:
-            return JsonResponse({"error": "로그인이 필요합니다."}, status=401)
+            poll.poll_like.add(user)
+            message = "좋아요"
+            user_likes_poll = True
+
+        like_count = poll.poll_like.count()
+        context = {
+            "like_count": like_count,
+            "message": message,
+            "user_likes_poll": user_likes_poll,
+        }
+        return Response(context)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 댓글 좋아요
 @login_required
