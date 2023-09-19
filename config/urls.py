@@ -5,10 +5,10 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls), 
-    path("", include("vote.urls")), #vote app 
-    path("account/", include("vs_account.urls")), #account app
+    # path("", include("vote.urls")), #vote app 
+    path("account/", include("accounts.urls")),
+    # path("account/", include("vs_account.urls")), #account app
     path('accounts/', include('allauth.urls')),
-
 ]
 
 if settings.DEBUG:
