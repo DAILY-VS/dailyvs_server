@@ -25,19 +25,20 @@ from rest_framework import status
 from django.http import Http404
 from .serializers import *
 
-
 # 메인페이지
 class MainView(APIView):
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         user = request.user
-        if user.is_authenticated and user.custom_active==False:
+        if user.is_authenticated and user.custom_active == False:
             authentication_url = reverse("vs_account:email_verification", args=[user.id])
             return redirect(authentication_url)
-        if user.is_authenticated :
-            if user.gender== "" or user.mbti=="":
+        if user.is_authenticated:
+            if user.gender == "" or user.mbti == "":
                 return redirect("vote:update")
+        
         polls = Poll.objects.all()
         polls = polls.order_by("-id")
         sort = request.GET.get("sort")
@@ -66,7 +67,6 @@ class MainView(APIView):
         polls = Poll.objects.all()
 
         if polls:
-            
             today_poll = polls.last()
         else:
             today_poll = None
@@ -85,15 +85,17 @@ class MainView(APIView):
 
         response_data = {
             "polls": serialized_polls,
-            # "page_obj": page_obj,
-            # "paginator": paginator,
-            # "promotion_polls": promotion_polls,
-            #"today_poll": today_poll,
-            #"random_phrase": random_phrase
+            "page_obj": page_obj.number,
+            "paginator": {
+                "num_pages": paginator.num_pages,
+                "count": paginator.count,
+            },
+            "promotion_polls": PollSerializer(promotion_polls, many=True).data,
+            "today_poll": PollSerializer(today_poll).data if today_poll else None,
+            "random_phrase": random_phrase
         }
 
         return Response(response_data)
-
 
 # 투표 디테일 페이지
 class PollDetailView(APIView):
@@ -219,57 +221,65 @@ def comment_like(request):
             return JsonResponse(context)
         return redirect("/")
 
-@login_required(login_url="/account/login/")  # 비로그인시 /mypage 막음
-def mypage(request):
-    user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
-    polls = Poll.objects.all()
-    page = request.GET.get("page")
-    uservotes = UserVote.objects.filter(user=request.user)
-    paginator = Paginator(uservotes, 4)
-    polls_like = Poll.objects.filter(poll_like=request.user)
-    length_polls_like = len(polls_like)
-    try:
-        page_obj = paginator.page(page)
-    except PageNotAnInteger:
-        page = 1
-        page_obj = paginator.page(page)
-    except EmptyPage:
-        page = paginator.num_pages
-        page_obj = paginator.page(page)
-    context = {
-        "polls": polls,
-        "uservotes": uservotes,
-        "polls_like": polls_like,
-        "page_obj": page_obj,
-        "paginator": paginator,
-        "length_polls_like": length_polls_like,
-    }
-    return render(request, "vote/mypage.html", context)
 
+class MypageView(APIView):
+    def get(self, request):
+        user = request.user
 
-# 마이페이지 정보 수정
-@login_required(login_url="/account/login/")  # 비로그인시 mypage/update 막음
-def mypage_update(request):
-    user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if request.method == "POST":
-        form = UserChangeForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect("/")
-    else:
-        form = UserChangeForm(instance=request.user)
-    context = {"form": form}
-    return render(request, "vote/update.html", context)
+        if not user.is_authenticated:
+            return Response({"error": "인증되지 않은 사용자입니다."}, status=401)
 
+        if user.is_authenticated and user.custom_active == False:
+            authentication_url = reverse("vs_account:email_verification", args=[user.id])
+            return redirect(authentication_url)
+
+        if user.is_authenticated:
+            if user.gender == "" or user.mbti == "":
+                return redirect("vote:update")
+
+        # 사용자의 투표 목록 가져오기
+        uservotes = UserVote.objects.filter(user=request.user)
+
+        # 투표 목록을 페이지별로 페이징
+        paginator = Paginator(uservotes, 4)
+        page = request.GET.get("page")
+
+        try:
+            page_obj = paginator.page(page)
+        except PageNotAnInteger:
+            page = 1
+            page_obj = paginator.page(page)
+        except EmptyPage:
+            page = paginator.num_pages
+            page_obj = paginator.page(page)
+
+        # 사용자가 좋아하는 투표 목록 가져오기
+        polls_like = Poll.objects.filter(poll_like=request.user)
+        length_polls_like = len(polls_like)
+
+        # 페이지 객체를 시리얼라이즈
+        serializer = PollSerializer(page_obj, many=True)
+
+        context = {
+            "uservotes": serializer.data,
+            "polls_like": length_polls_like,
+            "page_obj": page_obj.number,
+            "num_pages": paginator.num_pages,
+        }
+
+        return Response(context)
+
+    def put(self, request):
+        user = request.user
+        if user.is_authenticated and not user.custom_active:
+            authentication_url = reverse("vs_account:email_verification", args=[user.id])
+            return redirect(authentication_url)
+
+        serializer = UserUpdateSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 댓글 쓰기
 @login_required

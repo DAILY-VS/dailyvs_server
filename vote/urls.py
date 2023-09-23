@@ -21,8 +21,7 @@ urlpatterns = [
     path(
         "get-like-status/<int:poll_id>/", views.get_like_status, name="get_like_status"
     ),
-    path("mypage/", views.mypage, name="mypage"),
-    path("mypage/update/", views.mypage_update, name="update"),
+    path("mypage/", views.MypageView.as_view(), name="mypage"),
     path(
         "<int:poll_id>/comment/write/", views.comment_write_view, name="comment_write"
     ),
