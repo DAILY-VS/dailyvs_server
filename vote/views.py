@@ -27,8 +27,8 @@ from .serializers import *
 
 # 메인페이지
 class MainView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
