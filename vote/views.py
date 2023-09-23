@@ -2,8 +2,7 @@ import json
 import random
 import numpy as np
 from .models import *
-from vs_account.forms import *
-from vs_account.models import *
+from accounts.models import *
 from .fortunes import fortunes
 from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
