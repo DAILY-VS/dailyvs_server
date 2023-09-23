@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.kakao',
-    
+
     "rest_framework", #추가 코드
     "corsheaders", # cors 추가 코드
 ]
@@ -78,6 +78,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     'django.contrib.auth.middleware.AuthenticationMiddleware', #
     'django.contrib.auth.middleware.RemoteUserMiddleware', #
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 # CORS 추가
