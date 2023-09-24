@@ -1,14 +1,14 @@
 from django.urls import path
 from . import views
-from vote.views import *
+
 from rest_framework.urlpatterns import format_suffix_patterns #추가
 
 app_name = "vote"
 
 urlpatterns = [
     # 공통
-    path("", views.main, name="main"),
-    path("<int:poll_id>/", views.poll_detail, name="detail"),
+    path("", views.MainView.as_view(), name="main"),
+    path("<int:poll_id>/", views.PollDetailView.as_view(), name="detail"),
     path("<int:poll_id>/gender", views.classifyuser, name="classifyuser"),
     path(
         "<int:poll_id>/calcstat/<int:uservote_id>/<int:nonuservote_id>",
@@ -21,8 +21,7 @@ urlpatterns = [
     path(
         "get-like-status/<int:poll_id>/", views.get_like_status, name="get_like_status"
     ),
-    path("mypage/", views.mypage, name="mypage"),
-    path("mypage/update/", views.mypage_update, name="update"),
+    path("mypage/", views.MypageView.as_view(), name="mypage"),
     path(
         "<int:poll_id>/comment/write/", views.comment_write_view, name="comment_write"
     ),
@@ -50,5 +49,5 @@ urlpatterns = [
         name="fortune",
     ),
     
-    path('api/', PollList.as_view(), name='api'),
+    #path('api/', views.PollList.as_view(), name='api'),
 ]

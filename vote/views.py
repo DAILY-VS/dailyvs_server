@@ -2,7 +2,6 @@ import json
 import random
 import numpy as np
 from .models import *
-# from accounts.forms import *
 from accounts.models import *
 from .fortunes import fortunes
 from django.urls import reverse
@@ -16,100 +15,116 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
 
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 from .serializers import *
 
-
 # 메인페이지
-def main(request):
-    user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
-    polls = Poll.objects.all()
-    polls = polls.order_by("-id")
-    sort = request.GET.get("sort")
-    promotion_polls = Poll.objects.filter(active=True).order_by("-views_count")[:3]
+class MainView(APIView):
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
 
-    if sort == "popular":
-        polls = polls.order_by("-views_count")  # 인기순
-    elif sort == "latest":
-        polls = polls.order_by("-id")  # 최신순
-    elif sort == "oldest":
-        polls = polls.order_by("id")  # 등록순
-
-    page = request.GET.get("page")
-    random_poll = random.choice(polls) if polls.exists() else None
-    paginator = Paginator(polls, 4)
-
-    try:
-        page_obj = paginator.page(page)
-    except PageNotAnInteger:
-        page = 1
-        page_obj = paginator.page(page)
-    except EmptyPage:
-        page = paginator.num_pages
-        page_obj = paginator.page(page)
-
-    polls = Poll.objects.all()
-
-    if polls:
+    def get(self, request):
+        user = request.user
+        if user.is_authenticated and user.custom_active == False:
+            authentication_url = reverse("vs_account:email_verification", args=[user.id])
+            return redirect(authentication_url)
+        if user.is_authenticated:
+            if user.gender == "" or user.mbti == "":
+                return redirect("vote:update")
         
-        today_poll = polls.last()
-    else:
-        today_poll = None
-    
-    phrases = [
-        "투표하는 즐거움",
-        "나의 투표를 가치있게",
-        "나의 취향을 분석적으로",
-        "mbti와 통계를 통한 투표 겨루기"
-    ]
+        polls = Poll.objects.all()
+        polls = polls.order_by("-id")
+        sort = request.GET.get("sort")
+        promotion_polls = Poll.objects.filter(active=True).order_by("-views_count")[:3]
 
-    random_phrase = random.choice(phrases)
-    context = {
-        "polls": polls,
-        "page_obj": page_obj,
-        "paginator": paginator,
-        "promotion_polls": promotion_polls,
-        "today_poll": today_poll,
-        "random_phrase": random_phrase
-    }
+        if sort == "popular":
+            polls = polls.order_by("-views_count")  # 인기순
+        elif sort == "latest":
+            polls = polls.order_by("-id")  # 최신순
+        elif sort == "oldest":
+            polls = polls.order_by("id")  # 등록순
 
-    return render(request, "vote/main.html", context)
+        page = request.GET.get("page")
+        random_poll = random.choice(polls) if polls.exists() else None
+        paginator = Paginator(polls, 4)
 
+        try:
+            page_obj = paginator.page(page)
+        except PageNotAnInteger:
+            page = 1
+            page_obj = paginator.page(page)
+        except EmptyPage:
+            page = paginator.num_pages
+            page_obj = paginator.page(page)
+
+        polls = Poll.objects.all()
+
+        if polls:
+            today_poll = polls.last()
+        else:
+            today_poll = None
+        
+        phrases = [
+            "투표하는 즐거움",
+            "나의 투표를 가치있게",
+            "나의 취향을 분석적으로",
+            "mbti와 통계를 통한 투표 겨루기"
+        ]
+
+        random_phrase = random.choice(phrases)
+
+        # Serialize the data
+        serialized_polls = PollSerializer(polls, many=True).data
+
+        response_data = {
+            "polls": serialized_polls,
+            "page_obj": page_obj.number,
+            "paginator": {
+                "num_pages": paginator.num_pages,
+                "count": paginator.count,
+            },
+            "promotion_polls": PollSerializer(promotion_polls, many=True).data,
+            "today_poll": PollSerializer(today_poll).data if today_poll else None,
+            "random_phrase": random_phrase
+        }
+
+        return Response(response_data)
 
 # 투표 디테일 페이지
-def poll_detail(request, poll_id):
-    user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
-    user = request.user
-    poll = get_object_or_404(Poll, id=poll_id)
+class PollDetailView(APIView):
+    def get(self, request, poll_id):
+        user = request.user
 
-    if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
-        uservote = UserVote.objects.filter(poll_id=poll_id).get(user=user)
-        calcstat_url = reverse("vote:calcstat", args=[poll_id, uservote.id, 0])
-        return redirect(calcstat_url)
-    else:
-        poll.increase_views()  # 게시글 조회 수 증가
-        loop_count = poll.choice_set.count()
-        context = {
-            "poll": poll,
-            "loop_time": range(0, loop_count),
-        }
-        response = render(request, "vote/detail.html", context)
-        return response
+        if user.is_authenticated and user.custom_active == False:
+            authentication_url = reverse("vs_account:email_verification", args=[user.id])
+            return redirect(authentication_url)
+
+        if user.is_authenticated and (user.gender == "" or user.mbti == ""):
+            return redirect("vote:update")
+
+        poll = get_object_or_404(Poll, id=poll_id)
+
+        if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
+            uservote = UserVote.objects.filter(poll_id=poll_id).get(user=user)
+            calcstat_url = reverse("vote:calcstat", args=[poll_id, uservote.id, 0])
+            return redirect(calcstat_url)
+        else:
+            poll.increase_views()  # 게시글 조회 수 증가
+            loop_count = poll.choice_set.count()
+            loop_time = list(range(0, loop_count))
+            # Serialize the Poll object using PollSerializer
+            serialized_poll = PollSerializer(poll).data
+            context = {
+                "poll": serialized_poll,
+                "loop_time": loop_time,
+            }
+            return Response(context)
 
 
 # 투표 게시글 좋아요 초기 검사
@@ -130,44 +145,38 @@ def get_like_status(request, poll_id):
     return JsonResponse(context)
 
 
-# 투표 게시글 좋아요
+@api_view(['GET', 'POST'])
+# @permission_classes([IsAuthenticated])
 def poll_like(request):
-    user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
-    if request.method == "POST":
-        req = json.loads(request.body)
-        poll_id = req["poll_id"]
+    serializer = PollLikeSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        poll_id = serializer.validated_data['poll_id']
         try:
             poll = Poll.objects.get(id=poll_id)
         except Poll.DoesNotExist:
-            return JsonResponse({"error": "해당 투표가 존재하지 않습니다."}, status=404)
+            return Response({"error": "해당 투표가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
 
-        
-        if request.user.is_authenticated:
-            user = request.user
-            if poll.poll_like.filter(id=user.id).exists():
-                poll.poll_like.remove(user)
-                message = "좋아요 취소"
-                user_likes_poll = False
-            else:
-                poll.poll_like.add(user)
-                message = "좋아요"
-                user_likes_poll = True
+        user = request.user
 
-            like_count = poll.poll_like.count()
-            context = {
-                "like_count": like_count,
-                "message": message,
-                "user_likes_poll": user_likes_poll,
-            }
-            return JsonResponse(context)
+        if poll.poll_like.filter(id=user.id).exists():
+            poll.poll_like.remove(user)
+            message = "좋아요 취소"
+            user_likes_poll = False
         else:
-            return JsonResponse({"error": "로그인이 필요합니다."}, status=401)
+            poll.poll_like.add(user)
+            message = "좋아요"
+            user_likes_poll = True
+
+        like_count = poll.poll_like.count()
+        context = {
+            "like_count": like_count,
+            "message": message,
+            "user_likes_poll": user_likes_poll,
+        }
+        return Response(context)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 댓글 좋아요
 @login_required
@@ -211,57 +220,65 @@ def comment_like(request):
             return JsonResponse(context)
         return redirect("/")
 
-@login_required(login_url="/account/login/")  # 비로그인시 /mypage 막음
-def mypage(request):
-    user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
-    polls = Poll.objects.all()
-    page = request.GET.get("page")
-    uservotes = UserVote.objects.filter(user=request.user)
-    paginator = Paginator(uservotes, 4)
-    polls_like = Poll.objects.filter(poll_like=request.user)
-    length_polls_like = len(polls_like)
-    try:
-        page_obj = paginator.page(page)
-    except PageNotAnInteger:
-        page = 1
-        page_obj = paginator.page(page)
-    except EmptyPage:
-        page = paginator.num_pages
-        page_obj = paginator.page(page)
-    context = {
-        "polls": polls,
-        "uservotes": uservotes,
-        "polls_like": polls_like,
-        "page_obj": page_obj,
-        "paginator": paginator,
-        "length_polls_like": length_polls_like,
-    }
-    return render(request, "vote/mypage.html", context)
 
+class MypageView(APIView):
+    def get(self, request):
+        user = request.user
 
-# 마이페이지 정보 수정
-# @login_required(login_url="/account/login/")  # 비로그인시 mypage/update 막음
-# def mypage_update(request):
-#     user= request.user
-#     if user.is_authenticated and user.custom_active==False:
-#         authentication_url = reverse("vs_account:email_verification", args=[user.id])
-#         return redirect(authentication_url)
-#     if request.method == "POST":
-#         form = UserChangeForm(request.POST, instance=request.user)
-#         if form.is_valid():
-#             form.save()
-#             return redirect("/")
-#     else:
-#         form = UserChangeForm(instance=request.user)
-#     context = {"form": form}
-#     return render(request, "vote/update.html", context)
+        if not user.is_authenticated:
+            return Response({"error": "인증되지 않은 사용자입니다."}, status=401)
 
+        if user.is_authenticated and user.custom_active == False:
+            authentication_url = reverse("vs_account:email_verification", args=[user.id])
+            return redirect(authentication_url)
+
+        if user.is_authenticated:
+            if user.gender == "" or user.mbti == "":
+                return redirect("vote:update")
+
+        # 사용자의 투표 목록 가져오기
+        uservotes = UserVote.objects.filter(user=request.user)
+
+        # 투표 목록을 페이지별로 페이징
+        paginator = Paginator(uservotes, 4)
+        page = request.GET.get("page")
+
+        try:
+            page_obj = paginator.page(page)
+        except PageNotAnInteger:
+            page = 1
+            page_obj = paginator.page(page)
+        except EmptyPage:
+            page = paginator.num_pages
+            page_obj = paginator.page(page)
+
+        # 사용자가 좋아하는 투표 목록 가져오기
+        polls_like = Poll.objects.filter(poll_like=request.user)
+        length_polls_like = len(polls_like)
+
+        # 페이지 객체를 시리얼라이즈
+        serializer = PollSerializer(page_obj, many=True)
+
+        context = {
+            "uservotes": serializer.data,
+            "polls_like": length_polls_like,
+            "page_obj": page_obj.number,
+            "num_pages": paginator.num_pages,
+        }
+
+        return Response(context)
+
+    def put(self, request):
+        user = request.user
+        if user.is_authenticated and not user.custom_active:
+            authentication_url = reverse("vs_account:email_verification", args=[user.id])
+            return redirect(authentication_url)
+
+        serializer = UserUpdateSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 댓글 쓰기
 @login_required
@@ -377,6 +394,7 @@ def calculate_nested_count(request, comment_id):
 
 
 # 투표 시 회원, 비회원 구분 (비회원일시 성별 기입)
+@api_view(['GET'])
 def classifyuser(request, poll_id):
     user= request.user
     if user.is_authenticated and user.custom_active==False:
@@ -479,18 +497,20 @@ def classifyuser(request, poll_id):
                 vote.save()
                 nonuservote_id = vote.id
                 poll = get_object_or_404(Poll, pk=poll_id)
+                serialized_poll = PollSerializer(poll).data
                 context = {
-                    "poll": poll,
+                    "poll": serialized_poll,
                     "gender": ["M", "W"],
                     "nonuservote_id": nonuservote_id,
-                    "loop_time": range(0, 2),
+                    "loop_time": [0,1],
                 }
-                return render(request, "vote/detail2.html", context)
+                return Response(context)
     else:
         return redirect("/")
 
 
 # 회원/비회원 투표 통계 계산 및 결과 페이지
+@api_view(['GET'])
 def calcstat(request, poll_id, uservote_id, nonuservote_id):
     user= request.user
     if user.is_authenticated and user.custom_active==False:
@@ -880,7 +900,9 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
     else : 
         key = maximum_key
     #key="남성"
-
+    serialized_poll = PollSerializer(poll).data
+    serialized_comments= CommentSerializer(comments, many=True).data
+    serialized_choices=ChoiceSerializer(choices, many=True).data
     ctx = {
         "total_count": total_count,
         # "choice1_count": total_choice1_count,
@@ -916,8 +938,8 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         "p_choice2_percentage": p_choice2_percentage,
         "j_choice1_percentage": j_choice1_percentage,
         "j_choice2_percentage": j_choice2_percentage,
-        "poll": poll,
-        "comments": comments,
+        "poll": serialized_poll,
+        "comments": serialized_comments,
         "comments_count":comments.count(),
         "uservotes": uservotes,
         "minimum_key": minimum_key,
@@ -926,16 +948,17 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         "maximum_value": maximum_value,
         "sort": sort,
         "key": key,
-        "choices": choices,
+        "choices": serialized_choices,
         "choice_filter":choice_filter,
         "new_comment_count": poll.comments,
     }
+    #poll, comments, uservotes, choices, poll.comments,
     ##################################################################################
-
-    return render(request, template_name="vote/result.html", context=ctx)
+    return Response(ctx)
 
 
 # 비회원 투표시 MBTI 기입
+@api_view(['GET'])
 def poll_nonusermbti(request, poll_id, nonuservote_id):
     if request.method == "POST":
         choice_id = request.POST.get("choice")
@@ -951,14 +974,15 @@ def poll_nonusermbti(request, poll_id, nonuservote_id):
         if choice_id == "W":
             NonUserVote.objects.filter(pk=nonuservote_id).update(gender="W")
 
-        poll = get_object_or_404(Poll, id=poll_id)
+        poll = get_object_or_404(Poll, pk=poll_id)
+        serialized_poll = PollSerializer(poll).data
         context = {
-            "poll": poll,
-            "mbti": [],  # 여기에 MBTI 리스트 추가
+            "poll": serialized_poll,
+            "gender": ["M", "W"],
             "nonuservote_id": nonuservote_id,
-            "loop_time": range(0, 2),
+            "loop_time": [0,1],
         }
-        return render(request, "vote/detail3.html", context)
+        return Response(context)
     else:
         return redirect("/")
 
@@ -1054,7 +1078,8 @@ def get_random_fortune(mbti):
 
     selected_fortunes = fortunes.get(mbti, [])
     return random.choice(selected_fortunes) if selected_fortunes else default_fortune
-    
+
+@api_view(['GET'])    
 def fortune(request):
     user = request.user
     if user.is_authenticated:
@@ -1062,12 +1087,13 @@ def fortune(request):
     else:
         random_fortune = get_random_fortune('nonuser')
 
-    return render(request, "vote/main/main-fortune.html", {"random_fortune": random_fortune})
+    return Response({"random_fortune": random_fortune})
 
 
-class PollList(APIView):
-     def get(self, request): #리스트 보여줄 때
-        polls = Poll.objects.all()
+# class PollList(APIView):
+    
+#      def get(self, request): #리스트 보여줄 때
+#         polls = Poll.objects.all()
         
-        serializer = PollSerializer(polls, many=True) #여러개의 객체
-        return Response(serializer.data)
+#         serializer = PollSerializer(polls, many=True) #여러개의 객체
+#         return Response(serializer.data)

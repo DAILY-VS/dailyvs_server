@@ -65,7 +65,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.kakao',
 
     "rest_framework", #추가 코드
-    "djoser",
     "corsheaders", # cors 추가 코드
 ]
 
@@ -151,6 +150,8 @@ USE_I18N = True
 
 USE_TZ = False
 
+AUTH_USER_MODEL = "vs_account.User"
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
@@ -182,12 +183,12 @@ DJOSER = {
 }
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES':{
-        'rest_framework.permissions.IsAuthenticated',
-    },
-    'DEFAULT_AUTHENTICATION_CLASSES': [
+    'DEFAULT_PERMISSION_CLASSES':(
+        'rest_framework.permissions.AllowAny',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
+    ),
 }
 
 SIMPLE_JWT = {
