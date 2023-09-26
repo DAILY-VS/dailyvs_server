@@ -1,6 +1,12 @@
 import os, environ
 from pathlib import Path
 from datetime import timedelta
+import pymysql 
+from . import local_settings
+
+pymysql.install_as_MySQLdb()
+SECRET_KEY = local_settings.SECRET_KEY
+DATABASES = local_settings.DATABASES
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
@@ -13,28 +19,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 environ.Env.read_env(BASE_DIR / '../.env')
 
-SECRET_KEY=env('SECRET_KEY')
 
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 
-MYSQL_DBNAME=env('MYSQL_DBNAME')
-MYSQL_USERNAME=env('MYSQL_USERNAME')
-MYSQL_PASSWD=env('MYSQL_PASSWD')
-MYSQL_HOST=env('MYSQL_HOST')
-MYSQL_PORT=env('MYSQL_PORT')
 
-DATABASES = {
-    "default": {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': MYSQL_DBNAME,
-        'USER': MYSQL_USERNAME,
-        'PASSWORD': MYSQL_PASSWD,
-        'HOST': MYSQL_HOST,
-        'PORT': MYSQL_PORT,
-    }
-}
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -112,12 +103,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+
 
 
 # Password validation
