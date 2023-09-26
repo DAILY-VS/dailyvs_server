@@ -899,7 +899,13 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         key = minimum_key
     else : 
         key = maximum_key
-    #key="남성"
+
+    if key == minimum_key: 
+        analysis= "당신은 " + key + "이지만 " + key + "의 " + str(100 - minimum_value) + "%와 다른 선택을 했습니다."
+    elif key == maximum_key:
+        analysis= "당신은 " + key + "이며 " + key + "의 " + str(maximum_value) + "%와 같은 선택을 했습니다."
+    
+    
     serialized_poll = PollSerializer(poll).data
     serialized_comments= CommentSerializer(comments, many=True).data
     serialized_choices=ChoiceSerializer(choices, many=True).data
@@ -942,12 +948,13 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         "comments": serialized_comments,
         "comments_count":comments.count(),
         "uservotes": uservotes,
-        "minimum_key": minimum_key,
-        "minimum_value": 100 - minimum_value,
-        "maximum_key": maximum_key,
-        "maximum_value": maximum_value,
+        # "minimum_key": minimum_key,
+        # "minimum_value": 100 - minimum_value,
+        # "maximum_key": maximum_key,
+        # "maximum_value": maximum_value,
         "sort": sort,
         "key": key,
+        "analysis" : analysis,
         "choices": serialized_choices,
         "choice_filter":choice_filter,
         "new_comment_count": poll.comments,
