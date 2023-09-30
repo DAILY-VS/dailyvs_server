@@ -396,115 +396,114 @@ def calculate_nested_count(request, comment_id):
 # 투표 시 회원, 비회원 구분 (비회원일시 성별 기입)
 @api_view(['GET'])
 def classifyuser(request, poll_id):
-    user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
+    user = request.user
+    # if user.is_authenticated and user.custom_active==False:
+    #     authentication_url = reverse("vs_account:email_verification", args=[user.id])
+    #     return redirect(authentication_url)
+    # if user.is_authenticated :
+    #     if user.gender== "" or user.mbti=="":
+    #         return redirect("vote:update")
     if request.method == "POST":
         poll = get_object_or_404(Poll, pk=poll_id)
-        choice_id = request.POST.get("choice")  # 뷰에서 선택 불러옴
-        user = request.user
-        if choice_id:
-            choice = Choice.objects.get(id=choice_id)
-            try:
-                vote = UserVote(user=request.user, poll=poll, choice=choice)
-                vote.save()
-                user.voted_polls.add(poll_id)
-                poll_result, created = Poll_Result.objects.get_or_create(
-                    poll_id=poll_id
-                )   
-                poll_result.total += 1
-                if user.gender == "M":
-                    poll_result.choice1_man += (
+        choice_id = request.POST.get("choice")
+        choice = Choice.objects.get(id=choice_id)
+        try: 
+            vote = UserVote(user=request.user, poll=poll, choice=choice) 
+                # dasf
+            vote.save()
+            user.voted_polls.add(poll_id)
+            poll_result = Poll_Result.objects.get_or_create(
+                poll_id=poll_id
+            )   
+            poll_result.total += 1
+            if user.gender == "M":
+                poll_result.choice1_man += (
+                    1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+                )
+                poll_result.choice2_man += (
+                    1 if int(choice_id) == 2 * (poll_id) else 0
+                )
+                print(str(poll_result.choice1_man))
+            elif user.gender == "W":
+                poll_result.choice1_woman += (
+                    1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+                )
+                poll_result.choice2_woman += (
+                    1 if int(choice_id) == 2 * (poll_id) else 0
+                )
+            for letter in user.mbti:
+                if letter == "E":
+                    poll_result.choice1_E += (
                         1 if int(choice_id) == 2 * (poll_id) - 1 else 0
                     )
-                    poll_result.choice2_man += (
+                    poll_result.choice2_E += (
                         1 if int(choice_id) == 2 * (poll_id) else 0
                     )
-                    print(str(poll_result.choice1_man))
-                elif user.gender == "W":
-                    poll_result.choice1_woman += (
+                elif letter == "I":
+                    poll_result.choice1_I += (
                         1 if int(choice_id) == 2 * (poll_id) - 1 else 0
                     )
-                    poll_result.choice2_woman += (
+                    poll_result.choice2_I += (
                         1 if int(choice_id) == 2 * (poll_id) else 0
                     )
-                for letter in user.mbti:
-                    if letter == "E":
-                        poll_result.choice1_E += (
-                            1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                        )
-                        poll_result.choice2_E += (
-                            1 if int(choice_id) == 2 * (poll_id) else 0
-                        )
-                    elif letter == "I":
-                        poll_result.choice1_I += (
-                            1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                        )
-                        poll_result.choice2_I += (
-                            1 if int(choice_id) == 2 * (poll_id) else 0
-                        )
-                    elif letter == "S":
-                        poll_result.choice1_S += (
-                            1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                        )
-                        poll_result.choice2_S += (
-                            1 if int(choice_id) == 2 * (poll_id) else 0
-                        )
-                    elif letter == "N":
-                        poll_result.choice1_N += (
-                            1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                        )
-                        poll_result.choice2_N += (
-                            1 if int(choice_id) == 2 * (poll_id) else 0
-                        )
-                    elif letter == "T":
-                        poll_result.choice1_T += (
-                            1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                        )
-                        poll_result.choice2_T += (
-                            1 if int(choice_id) == 2 * (poll_id) else 0
-                        )
-                    elif letter == "F":
-                        poll_result.choice1_F += (
-                            1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                        )
-                        poll_result.choice2_F += (
-                            1 if int(choice_id) == 2 * (poll_id) else 0
-                        )
-                    elif letter == "J":
-                        poll_result.choice1_J += (
-                            1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                        )
-                        poll_result.choice2_J += (
-                            1 if int(choice_id) == 2 * (poll_id) else 0
-                        )
-                    elif letter == "P":
-                        poll_result.choice1_P += (
-                            1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                        )
-                        poll_result.choice2_P += (
-                            1 if int(choice_id) == 2 * (poll_id) else 0
-                        )
-                poll_result.save()
-                calcstat_url = reverse("vote:calcstat", args=[poll_id, vote.id, 0])
-                return redirect(calcstat_url)
-            except ValueError:
-                vote = NonUserVote(poll=poll, choice=choice)
-                vote.save()
-                nonuservote_id = vote.id
-                poll = get_object_or_404(Poll, pk=poll_id)
-                serialized_poll = PollSerializer(poll).data
-                context = {
-                    "poll": serialized_poll,
-                    "gender": ["M", "W"],
-                    "nonuservote_id": nonuservote_id,
-                    "loop_time": [0,1],
-                }
-                return Response(context)
+                elif letter == "S":
+                    poll_result.choice1_S += (
+                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+                    )
+                    poll_result.choice2_S += (
+                        1 if int(choice_id) == 2 * (poll_id) else 0
+                    )
+                elif letter == "N":
+                    poll_result.choice1_N += (
+                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+                    )
+                    poll_result.choice2_N += (
+                        1 if int(choice_id) == 2 * (poll_id) else 0
+                    )
+                elif letter == "T":
+                    poll_result.choice1_T += (
+                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+                    )
+                    poll_result.choice2_T += (
+                        1 if int(choice_id) == 2 * (poll_id) else 0
+                    )
+                elif letter == "F":
+                    poll_result.choice1_F += (
+                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+                    )
+                    poll_result.choice2_F += (
+                        1 if int(choice_id) == 2 * (poll_id) else 0
+                    )
+                elif letter == "J":
+                    poll_result.choice1_J += (
+                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+                    )
+                    poll_result.choice2_J += (
+                        1 if int(choice_id) == 2 * (poll_id) else 0
+                    )
+                elif letter == "P":
+                    poll_result.choice1_P += (
+                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+                    )
+                    poll_result.choice2_P += (
+                        1 if int(choice_id) == 2 * (poll_id) else 0
+                    )
+            poll_result.save()
+            calcstat_url = reverse("vote:calcstat", args=[poll_id, vote.id, 0])
+            return redirect(calcstat_url)
+        except ValueError:
+            vote = NonUserVote(poll=poll, choice=choice)
+            vote.save()
+            nonuservote_id = vote.id
+            poll = get_object_or_404(Poll, pk=poll_id)
+            serialized_poll = PollSerializer(poll).data
+            context = {
+                "poll": serialized_poll,
+                "gender": ["M", "W"],
+                "nonuservote_id": nonuservote_id,
+                "loop_time": [0,1],
+            }
+            return Response(context)
     else:
         return redirect("/")
 
