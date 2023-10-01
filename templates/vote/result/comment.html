@@ -24,18 +24,17 @@
       <span class="comment-quantity">{{comments_count}}</span>
     </div>
   <!-- 정렬 영역 -->
-      <form action="#" method="get" class="comment-sort-area">
-        <select name="sort" class="option_select" id="selectSort" onchange="this.form.submit()">
-            <option value="latest" {% if sort == 'latest' %}selected{% endif %}>최신순</option>
-            <option value="likes" {% if sort == 'likes' and not choice_filter %}selected{% endif %}>좋아요순</option>
-        </select>
-
-        <select name="choice_filter" class="option_select_choice" id="selectChoice" onchange="this.form.submit()">
-            <option value="" {% if not choice_filter %}selected{% endif %}>--전체--</option>
-            {% for choice in choices %}
-                <option value="{{ choice.choice_text }}" {% if choice_filter == choice.choice_text %}selected{% endif %}>{{ choice.choice_text }} </option>
-            {% endfor %}
-        </select>
+    <form action="#" method="get" class="comment-sort-area">
+      <select name="sort" class="option_select" id="selectSort" onchange="this.form.submit()">
+          <option value="latest" {% if sort == 'latest' %}selected{% endif %}>최신순</option>
+          <option value="likes" {% if sort == 'likes' and not choice_filter %}selected{% endif %}>좋아요순</option>
+      </select>
+      <select name="choice_filter" class="option_select_choice" id="selectChoice" onchange="this.form.submit()">
+          <option value="" {% if not choice_filter %}selected{% endif %}>--전체--</option>
+          {% for choice in choices %}
+              <option value="{{ choice.choice_text }}" {% if choice_filter == choice.choice_text %}selected{% endif %}>{{ choice.choice_text }} </option>
+          {% endfor %}
+      </select>
     </form>
   </div>
   <div class="replyTable" id="comment-list">
@@ -116,7 +115,7 @@
                               <div class="user-sub-info">{{ child_comment.user_info.mbti}}</div>
                               <div class="user-sub-info">{{ child_comment.user_info.gender}}</div>
                               <div class="user-sub-info choice-color">                                              
-                                  {% for uservote in uservotes %}
+                                {% for uservote in uservotes %}
                                   {%if uservote.user == comment.user_info %}
                                     {{uservote.choice.choice_text}}
                                   {% endif %}
