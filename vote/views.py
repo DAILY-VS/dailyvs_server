@@ -394,7 +394,7 @@ def calculate_nested_count(request, comment_id):
 
 
 # 투표 시 회원, 비회원 구분 (비회원일시 성별 기입)
-@api_view(['GET'])
+@api_view(['POST'])
 def classifyuser(request, poll_id):
     user = request.user
     # if user.is_authenticated and user.custom_active==False:
@@ -424,7 +424,6 @@ def classifyuser(request, poll_id):
                 poll_result.choice2_man += (
                     1 if int(choice_id) == 2 * (poll_id) else 0
                 )
-                print(str(poll_result.choice1_man))
             elif user.gender == "W":
                 poll_result.choice1_woman += (
                     1 if int(choice_id) == 2 * (poll_id) - 1 else 0
@@ -493,15 +492,15 @@ def classifyuser(request, poll_id):
             calcstat_url = reverse("vote:calcstat", args=[poll_id, vote.id, 0])
             return redirect(calcstat_url)
         except ValueError:
+            #nonuservote 
             vote = NonUserVote(poll=poll, choice=choice)
+            #nonuservote 생성 mbti와 성별은 아직 받지 않았음.
             vote.save()
-            nonuservote_id = vote.id
-            poll = get_object_or_404(Poll, pk=poll_id)
             serialized_poll = PollSerializer(poll).data
             context = {
                 "poll": serialized_poll,
                 "gender": ["M", "W"],
-                "nonuservote_id": nonuservote_id,
+                "nonuservote_id": vote.id,
                 "loop_time": [0,1],
             }
             return Response(context)
