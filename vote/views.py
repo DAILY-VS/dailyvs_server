@@ -409,9 +409,10 @@ def classifyuser(request, poll_id):
         choice = Choice.objects.get(id=choice_id)
         try: 
             vote = UserVote(user=request.user, poll=poll, choice=choice) 
-                # dasf
+                # user = requqest.user에서 성공시 uservote, error 시 nonuservote
             vote.save()
             user.voted_polls.add(poll_id)
+                #user의 투표 리스트에 추가 
             poll_result = Poll_Result.objects.get_or_create(
                 poll_id=poll_id
             )   
