@@ -501,7 +501,7 @@ def classifyuser(request, poll_id):
                 "poll": serialized_poll,
                 "gender": ["M", "W"],
                 "nonuservote_id": nonuservote.id,
-                "loop_time": [0,1],
+                #"loop_time": [0,1],
             }
             return Response(context)
     else:
@@ -909,29 +909,19 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
 
 
 # 비회원 투표시 MBTI 기입
-@api_view(['GET'])
+@api_view(['POST'])
 def poll_nonusermbti(request, poll_id, nonuservote_id):
     if request.method == "POST":
         choice_id = request.POST.get("choice")
-        selected_mbti = request.POST.get("selected_mbti")
-        mbti_combination = selected_mbti
-
-        nonuser_vote = NonUserVote.objects.get(pk=nonuservote_id)
-        nonuser_vote.MBTI = mbti_combination
-        nonuser_vote.save()
-
         if choice_id == "M":
             NonUserVote.objects.filter(pk=nonuservote_id).update(gender="M")
         if choice_id == "W":
             NonUserVote.objects.filter(pk=nonuservote_id).update(gender="W")
-
         poll = get_object_or_404(Poll, pk=poll_id)
         serialized_poll = PollSerializer(poll).data
         context = {
             "poll": serialized_poll,
-            "gender": ["M", "W"],
             "nonuservote_id": nonuservote_id,
-            "loop_time": [0,1],
         }
         return Response(context)
     else:
@@ -942,9 +932,8 @@ def poll_nonusermbti(request, poll_id, nonuservote_id):
 def poll_nonuserfinal(request, poll_id, nonuservote_id):
     if request.method == "POST":
         selected_mbti = request.POST.get("selected_mbti")
-        NonUserVote.objects.filter(pk=nonuservote_id).update(MBTI=selected_mbti)
-        nonuservote = NonUserVote.objects.get(id=nonuservote_id)
-        poll_result, created = Poll_Result.objects.get_or_create(poll_id=poll_id)
+        nonuservote = NonUserVote.objects.filter(pk=nonuservote_id).update(MBTI=selected_mbti)
+        poll_result = Poll_Result.objects.get_or_create(poll_id=poll_id)
         poll_result.total += 1
         if nonuservote.gender == "M":
             poll_result.choice1_man += (
@@ -1022,7 +1011,6 @@ def poll_nonuserfinal(request, poll_id, nonuservote_id):
         return redirect(calcstat_url)
     else:
         return redirect("/")
-
 
 def get_random_fortune(mbti):
     default_fortune = "일시적인 오류입니다! 다음에 시도해주세요."
