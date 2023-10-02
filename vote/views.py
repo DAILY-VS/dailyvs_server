@@ -413,82 +413,81 @@ def classifyuser(request, poll_id):
             uservote.save()
             user.voted_polls.add(poll_id)
                 #user의 투표 리스트에 추가 
-            poll_result = Poll_Result.objects.get_or_create(
-                poll_id=poll_id
-            )   
-            poll_result.total += 1
-            if user.gender == "M":
-                poll_result.choice1_man += (
-                    1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_man += (
-                    1 if int(choice_id) == 2 * (poll_id) else 0
-                )
-            elif user.gender == "W":
-                poll_result.choice1_woman += (
-                    1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_woman += (
-                    1 if int(choice_id) == 2 * (poll_id) else 0
-                )
-            for letter in user.mbti:
-                if letter == "E":
-                    poll_result.choice1_E += (
-                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                    )
-                    poll_result.choice2_E += (
-                        1 if int(choice_id) == 2 * (poll_id) else 0
-                    )
-                elif letter == "I":
-                    poll_result.choice1_I += (
-                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                    )
-                    poll_result.choice2_I += (
-                        1 if int(choice_id) == 2 * (poll_id) else 0
-                    )
-                elif letter == "S":
-                    poll_result.choice1_S += (
-                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                    )
-                    poll_result.choice2_S += (
-                        1 if int(choice_id) == 2 * (poll_id) else 0
-                    )
-                elif letter == "N":
-                    poll_result.choice1_N += (
-                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                    )
-                    poll_result.choice2_N += (
-                        1 if int(choice_id) == 2 * (poll_id) else 0
-                    )
-                elif letter == "T":
-                    poll_result.choice1_T += (
-                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                    )
-                    poll_result.choice2_T += (
-                        1 if int(choice_id) == 2 * (poll_id) else 0
-                    )
-                elif letter == "F":
-                    poll_result.choice1_F += (
-                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                    )
-                    poll_result.choice2_F += (
-                        1 if int(choice_id) == 2 * (poll_id) else 0
-                    )
-                elif letter == "J":
-                    poll_result.choice1_J += (
-                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                    )
-                    poll_result.choice2_J += (
-                        1 if int(choice_id) == 2 * (poll_id) else 0
-                    )
-                elif letter == "P":
-                    poll_result.choice1_P += (
-                        1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-                    )
-                    poll_result.choice2_P += (
-                        1 if int(choice_id) == 2 * (poll_id) else 0
-                    )
-            poll_result.save()
+            poll_result_update(poll_id,uservote.choice_id, user.gender, user.mbti)
+
+            # poll_result.total += 1
+            # if user.gender == "M":
+            #     poll_result.choice1_man += (
+            #         1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #     )
+            #     poll_result.choice2_man += (
+            #         1 if int(choice_id) == 2 * (poll_id) else 0
+            #     )
+            # elif user.gender == "W":
+            #     poll_result.choice1_woman += (
+            #         1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #     )
+            #     poll_result.choice2_woman += (
+            #         1 if int(choice_id) == 2 * (poll_id) else 0
+            #     )
+            # for letter in user.mbti:
+            #     if letter == "E":
+            #         poll_result.choice1_E += (
+            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #         )
+            #         poll_result.choice2_E += (
+            #             1 if int(choice_id) == 2 * (poll_id) else 0
+            #         )
+            #     elif letter == "I":
+            #         poll_result.choice1_I += (
+            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #         )
+            #         poll_result.choice2_I += (
+            #             1 if int(choice_id) == 2 * (poll_id) else 0
+            #         )
+            #     elif letter == "S":
+            #         poll_result.choice1_S += (
+            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #         )
+            #         poll_result.choice2_S += (
+            #             1 if int(choice_id) == 2 * (poll_id) else 0
+            #         )
+            #     elif letter == "N":
+            #         poll_result.choice1_N += (
+            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #         )
+            #         poll_result.choice2_N += (
+            #             1 if int(choice_id) == 2 * (poll_id) else 0
+            #         )
+            #     elif letter == "T":
+            #         poll_result.choice1_T += (
+            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #         )
+            #         poll_result.choice2_T += (
+            #             1 if int(choice_id) == 2 * (poll_id) else 0
+            #         )
+            #     elif letter == "F":
+            #         poll_result.choice1_F += (
+            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #         )
+            #         poll_result.choice2_F += (
+            #             1 if int(choice_id) == 2 * (poll_id) else 0
+            #         )
+            #     elif letter == "J":
+            #         poll_result.choice1_J += (
+            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #         )
+            #         poll_result.choice2_J += (
+            #             1 if int(choice_id) == 2 * (poll_id) else 0
+            #         )
+            #     elif letter == "P":
+            #         poll_result.choice1_P += (
+            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
+            #         )
+            #         poll_result.choice2_P += (
+            #             1 if int(choice_id) == 2 * (poll_id) else 0
+            #         )
+            # poll_result.save()
             calcstat_url = reverse("vote:calcstat", args=[poll_id, uservote.id, 0])
             return redirect(calcstat_url)
         except ValueError:
@@ -933,90 +932,169 @@ def poll_nonuserfinal(request, poll_id, nonuservote_id):
     if request.method == "POST":
         selected_mbti = request.POST.get("selected_mbti")
         nonuservote = NonUserVote.objects.filter(pk=nonuservote_id).update(MBTI=selected_mbti)
-        poll_result = Poll_Result.objects.get_or_create(poll_id=poll_id)
-        poll_result.total += 1
-        if nonuservote.gender == "M":
-            poll_result.choice1_man += (
-                1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_man += (
-                1 if nonuservote.choice_id == 2 * (poll_id) else 0
-            )
-        elif nonuservote.gender == "W":
-            poll_result.choice1_woman += (
-                1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_woman += (
-                1 if nonuservote.choice_id == 2 * (poll_id) else 0
-            )
-        for letter in selected_mbti:
-            if letter == "E":
-                poll_result.choice1_E += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_E += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) else 0
-                )
-            elif letter == "I":
-                poll_result.choice1_I += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_I += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) else 0
-                )
-            elif letter == "S":
-                poll_result.choice1_S += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_S += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) else 0
-                )
-            elif letter == "N":
-                poll_result.choice1_N += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_N += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) else 0
-                )
-            elif letter == "T":
-                poll_result.choice1_T += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_T += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) else 0
-                )
-            elif letter == "F":
-                poll_result.choice1_F += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_F += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) else 0
-                )
-            elif letter == "J":
-                poll_result.choice1_J += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_J += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) else 0
-                )
-            elif letter == "P":
-                poll_result.choice1_P += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-                )
-                poll_result.choice2_P += (
-                    1 if nonuservote.choice_id == 2 * (poll_id) else 0
-                )
-        poll_result.save()
+        poll_result_update(poll_id,nonuservote.choice_id, nonuservote.gender, nonuservote.MBTI)
+        # poll_result = Poll_Result.objects.get_or_create(poll_id=poll_id)
+        # poll_result.total += 1
+        # if nonuservote.gender == "M":
+        #     poll_result.choice1_man += (
+        #         1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #     )
+        #     poll_result.choice2_man += (
+        #         1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #     )
+        # elif nonuservote.gender == "W":
+        #     poll_result.choice1_woman += (
+        #         1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #     )
+        #     poll_result.choice2_woman += (
+        #         1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #     )
+        # for letter in selected_mbti:
+        #     if letter == "E":
+        #         poll_result.choice1_E += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #         )
+        #         poll_result.choice2_E += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #         )
+        #     elif letter == "I":
+        #         poll_result.choice1_I += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #         )
+        #         poll_result.choice2_I += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #         )
+        #     elif letter == "S":
+        #         poll_result.choice1_S += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #         )
+        #         poll_result.choice2_S += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #         )
+        #     elif letter == "N":
+        #         poll_result.choice1_N += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #         )
+        #         poll_result.choice2_N += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #         )
+        #     elif letter == "T":
+        #         poll_result.choice1_T += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #         )
+        #         poll_result.choice2_T += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #         )
+        #     elif letter == "F":
+        #         poll_result.choice1_F += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #         )
+        #         poll_result.choice2_F += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #         )
+        #     elif letter == "J":
+        #         poll_result.choice1_J += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #         )
+        #         poll_result.choice2_J += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #         )
+        #     elif letter == "P":
+        #         poll_result.choice1_P += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
+        #         )
+        #         poll_result.choice2_P += (
+        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
+        #         )
+        # poll_result.save()
         calcstat_url = reverse("vote:calcstat", args=[poll_id, 0, nonuservote_id])
         return redirect(calcstat_url)
     else:
         return redirect("/")
+
+def poll_result_update(poll_id, choice_id, gender, mbti):
+    poll_result = Poll_Result.objects.get_or_create(poll_id=poll_id)
+    poll_result.total += 1
+    if gender == "M":
+        poll_result.choice1_man += (
+            1 if choice_id == 2 * (poll_id) - 1 else 0
+        )
+        poll_result.choice2_man += (
+            1 if choice_id == 2 * (poll_id) else 0
+        )
+    elif gender == "W":
+        poll_result.choice1_woman += (
+            1 if choice_id == 2 * (poll_id) - 1 else 0
+        )
+        poll_result.choice2_woman += (
+            1 if choice_id == 2 * (poll_id) else 0
+        )
+    for letter in mbti:
+        if letter == "E":
+            poll_result.choice1_E += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_E += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "I":
+            poll_result.choice1_I += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_I += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "S":
+            poll_result.choice1_S += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_S += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "N":
+            poll_result.choice1_N += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_N += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "T":
+            poll_result.choice1_T += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_T += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "F":
+            poll_result.choice1_F += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_F += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "J":
+            poll_result.choice1_J += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_J += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "P":
+            poll_result.choice1_P += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_P += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+    poll_result.save()
+    return None
 
 def get_random_fortune(mbti):
     default_fortune = "일시적인 오류입니다! 다음에 시도해주세요."
 
     selected_fortunes = fortunes.get(mbti, [])
     return random.choice(selected_fortunes) if selected_fortunes else default_fortune
+
 
 @api_view(['GET'])    
 def fortune(request):
