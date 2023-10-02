@@ -1058,12 +1058,14 @@ def analysis(uservote_id, nonuservote_id):
     return key, analysis
 
 
+#포춘 쿠키 뽑기 함수
 def get_random_fortune(mbti):
     default_fortune = "일시적인 오류입니다! 다음에 시도해주세요."
     selected_fortunes = fortunes.get(mbti, [])
     return random.choice(selected_fortunes) if selected_fortunes else default_fortune
 
 
+#포춘 쿠키 페이지 
 @api_view(['GET'])    
 def fortune(request):
     user = request.user
