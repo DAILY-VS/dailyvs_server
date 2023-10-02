@@ -9,7 +9,7 @@ urlpatterns = [
     # 공통
     path("", views.MainView.as_view(), name="main"),
     path("<int:poll_id>/", views.PollDetailView.as_view(), name="detail"),
-    path("<int:poll_id>/gender", views.classifyuser, name="classifyuser"),
+    path("<int:poll_id>/gender", views.poll_classifyuser, name="poll_classifyuser"),
     path(
         "<int:poll_id>/poll_result_page/<int:uservote_id>/<int:nonuservote_id>",
         views.poll_result_page,
