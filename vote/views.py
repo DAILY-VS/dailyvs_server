@@ -393,7 +393,7 @@ def calculate_nested_count(request, comment_id):
     return JsonResponse({"nested_count": nested_count})
 
 
-# 투표 시 회원, 비회원 구분 (비회원일시 성별 기입)
+# 투표 시 회원, 비회원 구분 (회원일시 바로 결과페이지, 비회원일시 성별 페이지)
 @api_view(['POST'])
 def classifyuser(request, poll_id):
     user = request.user
@@ -507,7 +507,7 @@ def classifyuser(request, poll_id):
         return redirect("/")
 
 
-# 비회원 투표시 MBTI 기입
+# 비회원 투표시 Gender update 후 mbti 페이지
 @api_view(['POST'])
 def poll_nonusermbti(request, poll_id, nonuservote_id):
     if request.method == "POST":
@@ -527,7 +527,7 @@ def poll_nonusermbti(request, poll_id, nonuservote_id):
         return redirect("/")
 
 
-# 비회원 투표시 투표 정보 전송
+# 비회원 투표시 투표 정보 전송 페이지
 @api_view(['POST'])
 def poll_nonuserfinal(request, poll_id, nonuservote_id):
     if request.method == "POST":
@@ -539,6 +539,7 @@ def poll_nonuserfinal(request, poll_id, nonuservote_id):
         return redirect(calcstat_url)
     else:
         return redirect("/")
+
 
 # 투표 시 poll_result 업데이트 함수 (uservote, nonuservote 둘 다)
 def poll_result_update(poll_id, choice_id, gender, mbti):
@@ -619,7 +620,7 @@ def poll_result_update(poll_id, choice_id, gender, mbti):
     return None
 
 
-# 회원/비회원 투표 통계 계산 및 결과 페이지
+# 결과 페이지
 @api_view(['GET'])
 def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
     # user= request.user
@@ -683,84 +684,13 @@ def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
     
 
     #통계 분석
-    try:
-        currentvote = UserVote.objects.get(id=uservote_id)
-        currentuser = currentvote.user
-        currentgender = currentuser.gender
-        currentmbti = currentuser.mbti 
-    except ObjectDoesNotExist:
-        currentvote = NonUserVote.objects.get(id=nonuservote_id)
-        currentgender = currentvote.gender
-        currentmbti = currentvote.MBTI
-
-    dict = {}
-    if currentvote.choice.id == 2*poll_id - 1:
-        if currentgender == "M":
-            dict["남성"] = choice1_man_percentage
-        elif currentgender == "W":
-            dict["여성"] = choice1_woman_percentage
-        for letter in currentmbti:
-            if letter == "E":
-                dict["E"] = e_choice1_percentage
-            elif letter == "I":
-                dict["I"] = i_choice1_percentage
-            elif letter == "S":
-                dict["S"] = s_choice1_percentage
-            elif letter == "N":
-                dict["N"] = n_choice1_percentage
-            elif letter == "T":
-                dict["T"] = t_choice1_percentage
-            elif letter == "F":
-                dict["F"] = f_choice1_percentage
-            elif letter == "P":
-                dict["P"] = p_choice1_percentage
-            elif letter == "J":
-                dict["J"] = j_choice1_percentage
-    if currentvote.choice.id == 2*poll_id :
-        if currentgender == "M":
-            dict["남성"] = choice2_man_percentage
-        elif currentgender == "W":
-            dict["여성"] = choice2_woman_percentage
-        for letter in currentmbti:
-            if letter == "E":
-                dict["E"] = e_choice2_percentage
-            elif letter == "I":
-                dict["I"] = i_choice2_percentage
-            elif letter == "S":
-                dict["S"] = s_choice2_percentage
-            elif letter == "N":
-                dict["N"] = n_choice2_percentage
-            elif letter == "T":
-                dict["T"] = t_choice2_percentage
-            elif letter == "F":
-                dict["F"] = f_choice2_percentage
-            elif letter == "P":
-                dict["P"] = p_choice2_percentage
-            elif letter == "J":
-                dict["J"] = j_choice2_percentage
-
-    maximum_key = max(dict, key=dict.get)
-    maximum_value = dict[max(dict, key=dict.get)]
-
-    minimum_key = min(dict, key=dict.get)
-    minimum_value = 100 - dict[min(dict, key=dict.get)]
-
-    if minimum_value >= maximum_value:
-        key = minimum_key
-    else : 
-        key = maximum_key
-
-    if key == minimum_key: 
-        analysis= "당신은 " + key + "이지만 " + key + "의 " + str(minimum_value) + "%와 다른 선택을 했습니다."
-    elif key == maximum_key:
-        analysis= "당신은 " + key + "이며 " + key + "의 " + str(maximum_value) + "%와 같은 선택을 했습니다."
+    key, analysis = analysis(uservote_id, nonuservote_id)
     
     
     #serializer, ctx 
     serialized_poll = PollSerializer(poll).data
     serialized_comments= CommentSerializer(comments, many=True).data
     serialized_choices=ChoiceSerializer(choices, many=True).data
-
     ctx = {
         "total_count": total_count,
         "choice1_percentage": choice1_percentage,
@@ -799,6 +729,7 @@ def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
     return Response(ctx)
 
 
+# 결과페이지 회원/비회원 투표 통계 계산 함수
 def calcstat(poll_id):
     poll_result = Poll_Result.objects.get(poll_id=poll_id)
 
@@ -1048,6 +979,83 @@ def calcstat(poll_id):
         f_choice1_percentage, f_choice2_percentage,
         p_choice1_percentage, p_choice2_percentage,
         j_choice1_percentage, j_choice2_percentage)
+
+
+# 결과페이지 성향 분석 함수 
+def analysis(uservote_id, nonuservote_id):
+    try:
+        currentvote = UserVote.objects.get(id=uservote_id)
+        currentuser = currentvote.user
+        currentgender = currentuser.gender
+        currentmbti = currentuser.mbti 
+    except ObjectDoesNotExist:
+        currentvote = NonUserVote.objects.get(id=nonuservote_id)
+        currentgender = currentvote.gender
+        currentmbti = currentvote.MBTI
+
+    dict = {}
+    if currentvote.choice.id == 2*poll_id - 1:
+        if currentgender == "M":
+            dict["남성"] = choice1_man_percentage
+        elif currentgender == "W":
+            dict["여성"] = choice1_woman_percentage
+        for letter in currentmbti:
+            if letter == "E":
+                dict["E"] = e_choice1_percentage
+            elif letter == "I":
+                dict["I"] = i_choice1_percentage
+            elif letter == "S":
+                dict["S"] = s_choice1_percentage
+            elif letter == "N":
+                dict["N"] = n_choice1_percentage
+            elif letter == "T":
+                dict["T"] = t_choice1_percentage
+            elif letter == "F":
+                dict["F"] = f_choice1_percentage
+            elif letter == "P":
+                dict["P"] = p_choice1_percentage
+            elif letter == "J":
+                dict["J"] = j_choice1_percentage
+    if currentvote.choice.id == 2*poll_id :
+        if currentgender == "M":
+            dict["남성"] = choice2_man_percentage
+        elif currentgender == "W":
+            dict["여성"] = choice2_woman_percentage
+        for letter in currentmbti:
+            if letter == "E":
+                dict["E"] = e_choice2_percentage
+            elif letter == "I":
+                dict["I"] = i_choice2_percentage
+            elif letter == "S":
+                dict["S"] = s_choice2_percentage
+            elif letter == "N":
+                dict["N"] = n_choice2_percentage
+            elif letter == "T":
+                dict["T"] = t_choice2_percentage
+            elif letter == "F":
+                dict["F"] = f_choice2_percentage
+            elif letter == "P":
+                dict["P"] = p_choice2_percentage
+            elif letter == "J":
+                dict["J"] = j_choice2_percentage
+
+    maximum_key = max(dict, key=dict.get)
+    maximum_value = dict[max(dict, key=dict.get)]
+
+    minimum_key = min(dict, key=dict.get)
+    minimum_value = 100 - dict[min(dict, key=dict.get)]
+
+    if minimum_value >= maximum_value:
+        key = minimum_key
+    else : 
+        key = maximum_key
+
+    if key == minimum_key: 
+        analysis= "당신은 " + key + "이지만 " + key + "의 " + str(minimum_value) + "%와 다른 선택을 했습니다."
+    elif key == maximum_key:
+        analysis= "당신은 " + key + "이며 " + key + "의 " + str(maximum_value) + "%와 같은 선택을 했습니다."
+
+    return key, analysis
 
 
 def get_random_fortune(mbti):
