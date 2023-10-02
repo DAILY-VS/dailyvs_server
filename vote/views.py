@@ -488,8 +488,8 @@ def poll_classifyuser(request, poll_id):
             #             1 if int(choice_id) == 2 * (poll_id) else 0
             #         )
             # poll_result.save()
-            calcstat_url = reverse("vote:calcstat", args=[poll_id, uservote.id, 0])
-            return redirect(calcstat_url)
+            poll_result_page__url = reverse("vote:poll_result_page", args=[poll_id, uservote.id, 0])
+            return redirect(poll_result_page__url)
         except ValueError:
             #nonuservote 
             nonuservote = NonUserVote(poll=poll, choice=choice)
@@ -532,18 +532,19 @@ def poll_nonusermbti(request, poll_id, nonuservote_id):
 def poll_nonuserfinal(request, poll_id, nonuservote_id):
     if request.method == "POST":
         selected_mbti = request.POST.get("selected_mbti")
-        nonuservote = NonUserVote.objects.filter(pk=nonuservote_id).update(MBTI=selected_mbti)
+        NonUserVote.objects.filter(pk=nonuservote_id).update(MBTI=selected_mbti)
+        nonuservote = NonUserVote.objects.get(id=nonuservote_id)
         poll_result_update(poll_id,nonuservote.choice_id, nonuservote.gender, nonuservote.MBTI)
        
-        calcstat_url = reverse("vote:calcstat", args=[poll_id, 0, nonuservote_id])
-        return redirect(calcstat_url)
+        poll_result_page_url = reverse("vote:poll_result_page", args=[poll_id, 0, nonuservote_id])
+        return redirect(poll_result_page_url)
     else:
         return redirect("/")
 
 
 # 투표 시 poll_result 업데이트 함수 (uservote, nonuservote 둘 다)
 def poll_result_update(poll_id, choice_id, gender, mbti):
-    poll_result = Poll_Result.objects.get_or_create(poll_id=poll_id)
+    poll_result,created = Poll_Result.objects.get_or_create(poll_id=poll_id)
     poll_result.total += 1
     if gender == "M":
         poll_result.choice1_man += (
@@ -682,9 +683,18 @@ def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
     ) = poll_calcstat(poll_id)
     
     
-
     #통계 분석
-    key, analysis = poll_analysis(uservote_id, nonuservote_id)
+    key, analysis = poll_analysis(uservote_id, nonuservote_id, poll_id,    
+        choice1_man_percentage, choice2_man_percentage,
+        choice1_woman_percentage, choice2_woman_percentage,
+        e_choice1_percentage, e_choice2_percentage,
+        i_choice1_percentage, i_choice2_percentage,
+        n_choice1_percentage, n_choice2_percentage,
+        s_choice1_percentage, s_choice2_percentage,
+        t_choice1_percentage, t_choice2_percentage,
+        f_choice1_percentage, f_choice2_percentage,
+        p_choice1_percentage, p_choice2_percentage,
+        j_choice1_percentage, j_choice2_percentage)
     
     
     #serializer, ctx 
@@ -982,7 +992,17 @@ def poll_calcstat(poll_id):
 
 
 # 결과페이지 성향 분석 함수 
-def poll_analysis(uservote_id, nonuservote_id):
+def poll_analysis(uservote_id, nonuservote_id, poll_id,    
+        choice1_man_percentage, choice2_man_percentage,
+        choice1_woman_percentage, choice2_woman_percentage,
+        e_choice1_percentage, e_choice2_percentage,
+        i_choice1_percentage, i_choice2_percentage,
+        n_choice1_percentage, n_choice2_percentage,
+        s_choice1_percentage, s_choice2_percentage,
+        t_choice1_percentage, t_choice2_percentage,
+        f_choice1_percentage, f_choice2_percentage,
+        p_choice1_percentage, p_choice2_percentage,
+        j_choice1_percentage, j_choice2_percentage):
     try:
         currentvote = UserVote.objects.get(id=uservote_id)
         currentuser = currentvote.user
