@@ -507,9 +507,121 @@ def classifyuser(request, poll_id):
         return redirect("/")
 
 
+# 비회원 투표시 MBTI 기입
+@api_view(['POST'])
+def poll_nonusermbti(request, poll_id, nonuservote_id):
+    if request.method == "POST":
+        choice_id = request.POST.get("choice")
+        if choice_id == "M":
+            NonUserVote.objects.filter(pk=nonuservote_id).update(gender="M")
+        if choice_id == "W":
+            NonUserVote.objects.filter(pk=nonuservote_id).update(gender="W")
+        poll = get_object_or_404(Poll, pk=poll_id)
+        serialized_poll = PollSerializer(poll).data
+        context = {
+            "poll": serialized_poll,
+            "nonuservote_id": nonuservote_id,
+        }
+        return Response(context)
+    else:
+        return redirect("/")
+
+
+# 비회원 투표시 투표 정보 전송
+@api_view(['POST'])
+def poll_nonuserfinal(request, poll_id, nonuservote_id):
+    if request.method == "POST":
+        selected_mbti = request.POST.get("selected_mbti")
+        nonuservote = NonUserVote.objects.filter(pk=nonuservote_id).update(MBTI=selected_mbti)
+        poll_result_update(poll_id,nonuservote.choice_id, nonuservote.gender, nonuservote.MBTI)
+       
+        calcstat_url = reverse("vote:calcstat", args=[poll_id, 0, nonuservote_id])
+        return redirect(calcstat_url)
+    else:
+        return redirect("/")
+
+# 투표 시 poll_result 업데이트 함수 (uservote, nonuservote 둘 다)
+def poll_result_update(poll_id, choice_id, gender, mbti):
+    poll_result = Poll_Result.objects.get_or_create(poll_id=poll_id)
+    poll_result.total += 1
+    if gender == "M":
+        poll_result.choice1_man += (
+            1 if choice_id == 2 * (poll_id) - 1 else 0
+        )
+        poll_result.choice2_man += (
+            1 if choice_id == 2 * (poll_id) else 0
+        )
+    elif gender == "W":
+        poll_result.choice1_woman += (
+            1 if choice_id == 2 * (poll_id) - 1 else 0
+        )
+        poll_result.choice2_woman += (
+            1 if choice_id == 2 * (poll_id) else 0
+        )
+    for letter in mbti:
+        if letter == "E":
+            poll_result.choice1_E += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_E += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "I":
+            poll_result.choice1_I += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_I += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "S":
+            poll_result.choice1_S += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_S += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "N":
+            poll_result.choice1_N += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_N += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "T":
+            poll_result.choice1_T += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_T += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "F":
+            poll_result.choice1_F += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_F += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "J":
+            poll_result.choice1_J += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_J += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+        elif letter == "P":
+            poll_result.choice1_P += (
+                1 if choice_id == 2 * (poll_id) - 1 else 0
+            )
+            poll_result.choice2_P += (
+                1 if choice_id == 2 * (poll_id) else 0
+            )
+    poll_result.save()
+    return None
+
+
 # 회원/비회원 투표 통계 계산 및 결과 페이지
 @api_view(['GET'])
-def calcstat(request, poll_id, uservote_id, nonuservote_id):
+def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
     # user= request.user
     # if user.is_authenticated and user.custom_active==False:
     #     authentication_url = reverse("vs_account:email_verification", args=[user.id])
@@ -553,8 +665,143 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         comments = comments.filter(choice__choice_text=choice2).annotate(like_count=Count('comment_like')).order_by('like_count', 'created_at')
 
 
-    #통계 계산 
+    #통계 계산 (calcstat 함수 사용)
+    (total_count,
+    choice1_percentage, choice2_percentage, 
+    choice1_man_percentage, choice2_man_percentage,
+    choice1_woman_percentage, choice2_woman_percentage,
+    e_choice1_percentage, e_choice2_percentage,
+    i_choice1_percentage, i_choice2_percentage,
+    n_choice1_percentage, n_choice2_percentage,
+    s_choice1_percentage, s_choice2_percentage,
+    t_choice1_percentage, t_choice2_percentage,
+    f_choice1_percentage, f_choice2_percentage,
+    p_choice1_percentage, p_choice2_percentage,
+    j_choice1_percentage, j_choice2_percentage
+    ) = calcstat(poll_id)
+    
+    
+
+    #통계 분석
+    try:
+        currentvote = UserVote.objects.get(id=uservote_id)
+        currentuser = currentvote.user
+        currentgender = currentuser.gender
+        currentmbti = currentuser.mbti 
+    except ObjectDoesNotExist:
+        currentvote = NonUserVote.objects.get(id=nonuservote_id)
+        currentgender = currentvote.gender
+        currentmbti = currentvote.MBTI
+
+    dict = {}
+    if currentvote.choice.id == 2*poll_id - 1:
+        if currentgender == "M":
+            dict["남성"] = choice1_man_percentage
+        elif currentgender == "W":
+            dict["여성"] = choice1_woman_percentage
+        for letter in currentmbti:
+            if letter == "E":
+                dict["E"] = e_choice1_percentage
+            elif letter == "I":
+                dict["I"] = i_choice1_percentage
+            elif letter == "S":
+                dict["S"] = s_choice1_percentage
+            elif letter == "N":
+                dict["N"] = n_choice1_percentage
+            elif letter == "T":
+                dict["T"] = t_choice1_percentage
+            elif letter == "F":
+                dict["F"] = f_choice1_percentage
+            elif letter == "P":
+                dict["P"] = p_choice1_percentage
+            elif letter == "J":
+                dict["J"] = j_choice1_percentage
+    if currentvote.choice.id == 2*poll_id :
+        if currentgender == "M":
+            dict["남성"] = choice2_man_percentage
+        elif currentgender == "W":
+            dict["여성"] = choice2_woman_percentage
+        for letter in currentmbti:
+            if letter == "E":
+                dict["E"] = e_choice2_percentage
+            elif letter == "I":
+                dict["I"] = i_choice2_percentage
+            elif letter == "S":
+                dict["S"] = s_choice2_percentage
+            elif letter == "N":
+                dict["N"] = n_choice2_percentage
+            elif letter == "T":
+                dict["T"] = t_choice2_percentage
+            elif letter == "F":
+                dict["F"] = f_choice2_percentage
+            elif letter == "P":
+                dict["P"] = p_choice2_percentage
+            elif letter == "J":
+                dict["J"] = j_choice2_percentage
+
+    maximum_key = max(dict, key=dict.get)
+    maximum_value = dict[max(dict, key=dict.get)]
+
+    minimum_key = min(dict, key=dict.get)
+    minimum_value = 100 - dict[min(dict, key=dict.get)]
+
+    if minimum_value >= maximum_value:
+        key = minimum_key
+    else : 
+        key = maximum_key
+
+    if key == minimum_key: 
+        analysis= "당신은 " + key + "이지만 " + key + "의 " + str(minimum_value) + "%와 다른 선택을 했습니다."
+    elif key == maximum_key:
+        analysis= "당신은 " + key + "이며 " + key + "의 " + str(maximum_value) + "%와 같은 선택을 했습니다."
+    
+    
+    #serializer, ctx 
+    serialized_poll = PollSerializer(poll).data
+    serialized_comments= CommentSerializer(comments, many=True).data
+    serialized_choices=ChoiceSerializer(choices, many=True).data
+
+    ctx = {
+        "total_count": total_count,
+        "choice1_percentage": choice1_percentage,
+        "choice2_percentage": choice2_percentage,
+        "choice1_man_percentage": choice1_man_percentage,
+        "choice2_man_percentage": choice2_man_percentage,
+        "choice1_woman_percentage": choice1_woman_percentage,
+        "choice2_woman_percentage": choice2_woman_percentage,
+        "e_choice1_percentage": e_choice1_percentage,
+        "e_choice2_percentage": e_choice2_percentage,
+        "i_choice1_percentage": i_choice1_percentage,
+        "i_choice2_percentage": i_choice2_percentage,
+        "s_choice1_percentage": s_choice1_percentage,
+        "s_choice2_percentage": s_choice2_percentage,
+        "n_choice1_percentage": n_choice1_percentage,
+        "n_choice2_percentage": n_choice2_percentage,
+        "t_choice1_percentage": t_choice1_percentage,
+        "t_choice2_percentage": t_choice2_percentage,
+        "f_choice1_percentage": f_choice1_percentage,
+        "f_choice2_percentage": f_choice2_percentage,
+        "p_choice1_percentage": p_choice1_percentage,
+        "p_choice2_percentage": p_choice2_percentage,
+        "j_choice1_percentage": j_choice1_percentage,
+        "j_choice2_percentage": j_choice2_percentage,
+        "poll": serialized_poll,
+        "comments": serialized_comments,
+        "comments_count":comments.count(),
+        "uservotes": uservotes,
+        "sort": sort,
+        "key": key,
+        "analysis" : analysis,
+        "choices": serialized_choices,
+        "choice_filter":choice_filter,
+        "new_comment_count": poll.comments,
+    }
+    return Response(ctx)
+
+
+def calcstat(poll_id):
     poll_result = Poll_Result.objects.get(poll_id=poll_id)
+
     total_count = poll_result.total
 
     choice1_percentage = int(np.round((poll_result.choice1_man + poll_result.choice1_woman) / total_count * 100))
@@ -789,309 +1036,22 @@ def calcstat(request, poll_id, uservote_id, nonuservote_id):
         else 0
     )
 
+    return (total_count,
+        choice1_percentage, choice2_percentage, 
+        choice1_man_percentage, choice2_man_percentage,
+        choice1_woman_percentage, choice2_woman_percentage,
+        e_choice1_percentage, e_choice2_percentage,
+        i_choice1_percentage, i_choice2_percentage,
+        n_choice1_percentage, n_choice2_percentage,
+        s_choice1_percentage, s_choice2_percentage,
+        t_choice1_percentage, t_choice2_percentage,
+        f_choice1_percentage, f_choice2_percentage,
+        p_choice1_percentage, p_choice2_percentage,
+        j_choice1_percentage, j_choice2_percentage)
 
-    #통계 분석
-    try:
-        currentvote = UserVote.objects.get(id=uservote_id)
-        currentuser = currentvote.user
-        currentgender = currentuser.gender
-        currentmbti = currentuser.mbti 
-    except ObjectDoesNotExist:
-        currentvote = NonUserVote.objects.get(id=nonuservote_id)
-        currentgender = currentvote.gender
-        currentmbti = currentvote.MBTI
-
-    dict = {}
-    if currentvote.choice.id == 2*poll_id - 1:
-        if currentgender == "M":
-            dict["남성"] = choice1_man_percentage
-        elif currentgender == "W":
-            dict["여성"] = choice1_woman_percentage
-        for letter in currentmbti:
-            if letter == "E":
-                dict["E"] = e_choice1_percentage
-            elif letter == "I":
-                dict["I"] = i_choice1_percentage
-            elif letter == "S":
-                dict["S"] = s_choice1_percentage
-            elif letter == "N":
-                dict["N"] = n_choice1_percentage
-            elif letter == "T":
-                dict["T"] = t_choice1_percentage
-            elif letter == "F":
-                dict["F"] = f_choice1_percentage
-            elif letter == "P":
-                dict["P"] = p_choice1_percentage
-            elif letter == "J":
-                dict["J"] = j_choice1_percentage
-    if currentvote.choice.id == 2*poll_id :
-        if currentgender == "M":
-            dict["남성"] = choice2_man_percentage
-        elif currentgender == "W":
-            dict["여성"] = choice2_woman_percentage
-        for letter in currentmbti:
-            if letter == "E":
-                dict["E"] = e_choice2_percentage
-            elif letter == "I":
-                dict["I"] = i_choice2_percentage
-            elif letter == "S":
-                dict["S"] = s_choice2_percentage
-            elif letter == "N":
-                dict["N"] = n_choice2_percentage
-            elif letter == "T":
-                dict["T"] = t_choice2_percentage
-            elif letter == "F":
-                dict["F"] = f_choice2_percentage
-            elif letter == "P":
-                dict["P"] = p_choice2_percentage
-            elif letter == "J":
-                dict["J"] = j_choice2_percentage
-
-    maximum_key = max(dict, key=dict.get)
-    maximum_value = dict[max(dict, key=dict.get)]
-
-    minimum_key = min(dict, key=dict.get)
-    minimum_value = 100 - dict[min(dict, key=dict.get)]
-
-    if minimum_value >= maximum_value:
-        key = minimum_key
-    else : 
-        key = maximum_key
-
-    if key == minimum_key: 
-        analysis= "당신은 " + key + "이지만 " + key + "의 " + str(minimum_value) + "%와 다른 선택을 했습니다."
-    elif key == maximum_key:
-        analysis= "당신은 " + key + "이며 " + key + "의 " + str(maximum_value) + "%와 같은 선택을 했습니다."
-    
-    
-    #serializer, ctx 
-    serialized_poll = PollSerializer(poll).data
-    serialized_comments= CommentSerializer(comments, many=True).data
-    serialized_choices=ChoiceSerializer(choices, many=True).data
-
-    ctx = {
-        "total_count": total_count,
-        "choice1_percentage": choice1_percentage,
-        "choice2_percentage": choice2_percentage,
-        "choice1_man_percentage": choice1_man_percentage,
-        "choice2_man_percentage": choice2_man_percentage,
-        "choice1_woman_percentage": choice1_woman_percentage,
-        "choice2_woman_percentage": choice2_woman_percentage,
-        "e_choice1_percentage": e_choice1_percentage,
-        "e_choice2_percentage": e_choice2_percentage,
-        "i_choice1_percentage": i_choice1_percentage,
-        "i_choice2_percentage": i_choice2_percentage,
-        "s_choice1_percentage": s_choice1_percentage,
-        "s_choice2_percentage": s_choice2_percentage,
-        "n_choice1_percentage": n_choice1_percentage,
-        "n_choice2_percentage": n_choice2_percentage,
-        "t_choice1_percentage": t_choice1_percentage,
-        "t_choice2_percentage": t_choice2_percentage,
-        "f_choice1_percentage": f_choice1_percentage,
-        "f_choice2_percentage": f_choice2_percentage,
-        "p_choice1_percentage": p_choice1_percentage,
-        "p_choice2_percentage": p_choice2_percentage,
-        "j_choice1_percentage": j_choice1_percentage,
-        "j_choice2_percentage": j_choice2_percentage,
-        "poll": serialized_poll,
-        "comments": serialized_comments,
-        "comments_count":comments.count(),
-        "uservotes": uservotes,
-        "sort": sort,
-        "key": key,
-        "analysis" : analysis,
-        "choices": serialized_choices,
-        "choice_filter":choice_filter,
-        "new_comment_count": poll.comments,
-    }
-    return Response(ctx)
-
-
-# 비회원 투표시 MBTI 기입
-@api_view(['POST'])
-def poll_nonusermbti(request, poll_id, nonuservote_id):
-    if request.method == "POST":
-        choice_id = request.POST.get("choice")
-        if choice_id == "M":
-            NonUserVote.objects.filter(pk=nonuservote_id).update(gender="M")
-        if choice_id == "W":
-            NonUserVote.objects.filter(pk=nonuservote_id).update(gender="W")
-        poll = get_object_or_404(Poll, pk=poll_id)
-        serialized_poll = PollSerializer(poll).data
-        context = {
-            "poll": serialized_poll,
-            "nonuservote_id": nonuservote_id,
-        }
-        return Response(context)
-    else:
-        return redirect("/")
-
-
-# 비회원 투표시 투표 정보 전송
-def poll_nonuserfinal(request, poll_id, nonuservote_id):
-    if request.method == "POST":
-        selected_mbti = request.POST.get("selected_mbti")
-        nonuservote = NonUserVote.objects.filter(pk=nonuservote_id).update(MBTI=selected_mbti)
-        poll_result_update(poll_id,nonuservote.choice_id, nonuservote.gender, nonuservote.MBTI)
-        # poll_result = Poll_Result.objects.get_or_create(poll_id=poll_id)
-        # poll_result.total += 1
-        # if nonuservote.gender == "M":
-        #     poll_result.choice1_man += (
-        #         1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #     )
-        #     poll_result.choice2_man += (
-        #         1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #     )
-        # elif nonuservote.gender == "W":
-        #     poll_result.choice1_woman += (
-        #         1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #     )
-        #     poll_result.choice2_woman += (
-        #         1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #     )
-        # for letter in selected_mbti:
-        #     if letter == "E":
-        #         poll_result.choice1_E += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #         )
-        #         poll_result.choice2_E += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #         )
-        #     elif letter == "I":
-        #         poll_result.choice1_I += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #         )
-        #         poll_result.choice2_I += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #         )
-        #     elif letter == "S":
-        #         poll_result.choice1_S += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #         )
-        #         poll_result.choice2_S += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #         )
-        #     elif letter == "N":
-        #         poll_result.choice1_N += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #         )
-        #         poll_result.choice2_N += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #         )
-        #     elif letter == "T":
-        #         poll_result.choice1_T += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #         )
-        #         poll_result.choice2_T += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #         )
-        #     elif letter == "F":
-        #         poll_result.choice1_F += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #         )
-        #         poll_result.choice2_F += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #         )
-        #     elif letter == "J":
-        #         poll_result.choice1_J += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #         )
-        #         poll_result.choice2_J += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #         )
-        #     elif letter == "P":
-        #         poll_result.choice1_P += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) - 1 else 0
-        #         )
-        #         poll_result.choice2_P += (
-        #             1 if nonuservote.choice_id == 2 * (poll_id) else 0
-        #         )
-        # poll_result.save()
-        calcstat_url = reverse("vote:calcstat", args=[poll_id, 0, nonuservote_id])
-        return redirect(calcstat_url)
-    else:
-        return redirect("/")
-
-def poll_result_update(poll_id, choice_id, gender, mbti):
-    poll_result = Poll_Result.objects.get_or_create(poll_id=poll_id)
-    poll_result.total += 1
-    if gender == "M":
-        poll_result.choice1_man += (
-            1 if choice_id == 2 * (poll_id) - 1 else 0
-        )
-        poll_result.choice2_man += (
-            1 if choice_id == 2 * (poll_id) else 0
-        )
-    elif gender == "W":
-        poll_result.choice1_woman += (
-            1 if choice_id == 2 * (poll_id) - 1 else 0
-        )
-        poll_result.choice2_woman += (
-            1 if choice_id == 2 * (poll_id) else 0
-        )
-    for letter in mbti:
-        if letter == "E":
-            poll_result.choice1_E += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_E += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "I":
-            poll_result.choice1_I += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_I += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "S":
-            poll_result.choice1_S += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_S += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "N":
-            poll_result.choice1_N += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_N += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "T":
-            poll_result.choice1_T += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_T += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "F":
-            poll_result.choice1_F += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_F += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "J":
-            poll_result.choice1_J += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_J += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "P":
-            poll_result.choice1_P += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_P += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-    poll_result.save()
-    return None
 
 def get_random_fortune(mbti):
     default_fortune = "일시적인 오류입니다! 다음에 시도해주세요."
-
     selected_fortunes = fortunes.get(mbti, [])
     return random.choice(selected_fortunes) if selected_fortunes else default_fortune
 
