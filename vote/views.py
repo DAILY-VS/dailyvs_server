@@ -395,7 +395,7 @@ def calculate_nested_count(request, comment_id):
 
 # 투표 시 회원, 비회원 구분 (회원일시 바로 결과페이지, 비회원일시 성별 페이지)
 @api_view(['POST'])
-def classifyuser(request, poll_id):
+def poll_classifyuser(request, poll_id):
     user = request.user
     # if user.is_authenticated and user.custom_active==False:
     #     authentication_url = reverse("vs_account:email_verification", args=[user.id])
@@ -679,12 +679,12 @@ def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
     f_choice1_percentage, f_choice2_percentage,
     p_choice1_percentage, p_choice2_percentage,
     j_choice1_percentage, j_choice2_percentage
-    ) = calcstat(poll_id)
+    ) = poll_calcstat(poll_id)
     
     
 
     #통계 분석
-    key, analysis = analysis(uservote_id, nonuservote_id)
+    key, analysis = poll_analysis(uservote_id, nonuservote_id)
     
     
     #serializer, ctx 
@@ -730,7 +730,7 @@ def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
 
 
 # 결과페이지 회원/비회원 투표 통계 계산 함수
-def calcstat(poll_id):
+def poll_calcstat(poll_id):
     poll_result = Poll_Result.objects.get(poll_id=poll_id)
 
     total_count = poll_result.total
@@ -982,7 +982,7 @@ def calcstat(poll_id):
 
 
 # 결과페이지 성향 분석 함수 
-def analysis(uservote_id, nonuservote_id):
+def poll_analysis(uservote_id, nonuservote_id):
     try:
         currentvote = UserVote.objects.get(id=uservote_id)
         currentuser = currentvote.user
