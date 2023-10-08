@@ -11,9 +11,9 @@ urlpatterns = [
     path("<int:poll_id>/", views.PollDetailView.as_view(), name="detail"),
     path("<int:poll_id>/gender", views.poll_classifyuser, name="poll_classifyuser"),
     path(
-        "<int:poll_id>/calcstat/<int:uservote_id>/<int:nonuservote_id>",
-        views.calcstat,
-        name="calcstat",
+        "<int:poll_id>/poll_result_page/<int:uservote_id>/<int:nonuservote_id>",
+        views.poll_result_page,
+        name="poll_result_page",
     ),
     # 유저
     path("like/", views.poll_like, name="like"),
