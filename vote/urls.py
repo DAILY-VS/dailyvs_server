@@ -13,7 +13,7 @@ urlpatterns = [
     path(
         "<int:poll_id>/poll_result_page/<int:uservote_id>/<int:nonuservote_id>",
         views.poll_result_page,
-        name="poll_result_page " ,
+        name="poll_result_page" ,
     ),
     # 유저
     path("like/", views.poll_like, name="like"),
