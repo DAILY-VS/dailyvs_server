@@ -38,7 +38,7 @@ class MainView(APIView):
         polls = Poll.objects.all()
         polls = polls.order_by("-id")
         sort = request.GET.get("sort")
-        promotion_polls = Poll.objects.filter(active=True).order_by("-views_count")[:3]
+        promotion_polls = Poll.objects.filter().order_by("-views_count")[:3]
 
         if sort == "popular":
             polls = polls.order_by("-views_count")  # 인기순
