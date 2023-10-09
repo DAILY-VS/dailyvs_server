@@ -31,9 +31,6 @@ class MainView(APIView):
 
     def get(self, request):
         user = request.user
-        if user.is_authenticated and user.custom_active == False:
-            authentication_url = reverse("vs_account:email_verification", args=[user.id])
-            return redirect(authentication_url)
         if user.is_authenticated:
             if user.gender == "" or user.mbti == "":
                 return redirect("vote:update")
@@ -100,11 +97,6 @@ class MainView(APIView):
 class PollDetailView(APIView):
     def get(self, request, poll_id):
         user = request.user
-
-        if user.is_authenticated and user.custom_active == False:
-            authentication_url = reverse("vs_account:email_verification", args=[user.id])
-            return redirect(authentication_url)
-
         if user.is_authenticated and (user.gender == "" or user.mbti == ""):
             return redirect("vote:update")
 
@@ -182,12 +174,9 @@ def poll_like(request):
 @login_required
 def comment_like(request):
     user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
+    # if user.is_authenticated :
+    #     if user.gender== "" or user.mbti=="":
+    #         return redirect("vote:update")
     if request.method == "POST":
         req = json.loads(request.body)
         comment_id = req["comment_id"]
@@ -228,10 +217,6 @@ class MypageView(APIView):
         if not user.is_authenticated:
             return Response({"error": "인증되지 않은 사용자입니다."}, status=401)
 
-        if user.is_authenticated and user.custom_active == False:
-            authentication_url = reverse("vs_account:email_verification", args=[user.id])
-            return redirect(authentication_url)
-
         if user.is_authenticated:
             if user.gender == "" or user.mbti == "":
                 return redirect("vote:update")
@@ -270,9 +255,6 @@ class MypageView(APIView):
 
     def put(self, request):
         user = request.user
-        if user.is_authenticated and not user.custom_active:
-            authentication_url = reverse("vs_account:email_verification", args=[user.id])
-            return redirect(authentication_url)
 
         serializer = UserUpdateSerializer(user, data=request.data)
         if serializer.is_valid():
@@ -284,12 +266,9 @@ class MypageView(APIView):
 @login_required
 def comment_write_view(request, poll_id):
     user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
+    # if user.is_authenticated :
+    #     if user.gender== "" or user.mbti=="":
+    #         return redirect("vote:update")
     poll = get_object_or_404(Poll, id=poll_id)
     user_info = request.user  # 현재 로그인한 사용자
     content = request.POST.get("content")
@@ -357,12 +336,9 @@ def comment_write_view(request, poll_id):
 @login_required
 def comment_delete_view(request, pk):
     user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
+    # if user.is_authenticated :
+    #     if user.gender== "" or user.mbti=="":
+    #         return redirect("vote:update")
     poll = get_object_or_404(Poll, id=pk)
     comment_id = request.POST.get("comment_id")
     target_comment = Comment.objects.get(pk=comment_id)
@@ -383,12 +359,9 @@ def comment_delete_view(request, pk):
 # 대댓글 수 파악
 def calculate_nested_count(request, comment_id):
     user= request.user
-    if user.is_authenticated and user.custom_active==False:
-        authentication_url = reverse("vs_account:email_verification", args=[user.id])
-        return redirect(authentication_url)
-    if user.is_authenticated :
-        if user.gender== "" or user.mbti=="":
-            return redirect("vote:update")
+    # if user.is_authenticated :
+    #     if user.gender== "" or user.mbti=="":
+    #         return redirect("vote:update")
     nested_count = Comment.objects.filter(parent_comment_id=comment_id).count()
     return JsonResponse({"nested_count": nested_count})
 
@@ -397,9 +370,6 @@ def calculate_nested_count(request, comment_id):
 @api_view(['POST'])
 def poll_classifyuser(request, poll_id):
     user = request.user
-    # if user.is_authenticated and user.custom_active==False:
-    #     authentication_url = reverse("vs_account:email_verification", args=[user.id])
-    #     return redirect(authentication_url)
     # if user.is_authenticated :
     #     if user.gender== "" or user.mbti=="":
     #         return redirect("vote:update")
@@ -625,9 +595,6 @@ def poll_result_update(poll_id, choice_id, gender, mbti):
 @api_view(['GET'])
 def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
     # user= request.user
-    # if user.is_authenticated and user.custom_active==False:
-    #     authentication_url = reverse("vs_account:email_verification", args=[user.id])
-    #     return redirect(authentication_url)
     # if user.is_authenticated :
     #     if user.gender== "" or user.mbti=="":
     #         return redirect("vote:update")
