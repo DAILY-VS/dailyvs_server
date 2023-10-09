@@ -30,7 +30,7 @@ class MainView(APIView):
     # permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
+        # user = request.user
         # if user.is_authenticated:
         #     if user.gender == "" or user.mbti == "":
         #         return redirect("vote:update")
@@ -96,7 +96,7 @@ class MainView(APIView):
 # 투표 디테일 페이지
 class PollDetailView(APIView):
     def get(self, request, poll_id):
-        # user = request.user
+        user = request.user
         # if user.is_authenticated and (user.gender == "" or user.mbti == ""):
         #     return redirect("vote:update")
 
@@ -265,7 +265,7 @@ class MypageView(APIView):
 # 댓글 쓰기
 @login_required
 def comment_write_view(request, poll_id):
-    user= request.user
+    # user= request.user
     # if user.is_authenticated :
     #     if user.gender== "" or user.mbti=="":
     #         return redirect("vote:update")
@@ -335,7 +335,7 @@ def comment_write_view(request, poll_id):
 # 댓글 삭제
 @login_required
 def comment_delete_view(request, pk):
-    user= request.user
+    # user= request.user
     # if user.is_authenticated :
     #     if user.gender== "" or user.mbti=="":
     #         return redirect("vote:update")
