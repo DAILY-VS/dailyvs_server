@@ -2,12 +2,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, nickname, gender, mbti, password=None):
+    def create_user(self, email, nickname, gender, mbti, age, password=None):
         if not email:
             raise ValueError('이메일 필수')
         
         email = self.normalize_email(email) # 소문자로 바꿈 + ?
-        user = self.model(email=email, nickname=nickname, gender=gender, mbti=mbti)
+        user = self.model(email=email, nickname=nickname, gender=gender, mbti=mbti, age=age)
 
         user.set_password(password)
         user.save()
@@ -20,6 +20,7 @@ class UserManager(BaseUserManager):
             nickname="",
             gender="",
             mbti="",
+            age="",
             password=password
         )
         user.is_staff = True
@@ -51,23 +52,34 @@ class User(AbstractBaseUser, PermissionsMixin):
         ("ISTJ", "ISTJ"),
         ("ESTJ", "ESTJ"),
     )
+    AGE_CHOICES = (
+		("10", "10대"),
+		("20_1", "20대 초반"),
+		("20_2", "20대 후반"),
+		("30_1", "30대 초반"),
+		("30_2", "30대 후반"),
+		("40", "40대 이상"),
+	)
     
     email = models.EmailField(max_length=255, unique=True)
     nickname = models.CharField(max_length=10)
     gender = models.CharField(verbose_name="성별", max_length=1, choices=GENDERS)
     mbti=models.CharField(verbose_name='MBTI', max_length=4, choices=MBTI_set)
+    age = models.CharField(verbose_name='나이', max_length=4, choices=AGE_CHOICES)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
-    voted_polls = models.ManyToManyField('vote.Poll', blank=True) #투표한 주제 리스트 
-    custom_active = models.BooleanField(default=True)
+    voted_polls = models.ManyToManyField('vote.Poll', blank=True) #투표한 주제 리스트
 
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['nickname', 'gender', 'mbti']
+    REQUIRED_FIELDS = ['nickname', 'gender', 'mbti', 'age']
 
     def __str__(self):
         return self.email
+    
+class Test(models.Model):
+    a = models.BinaryField(editable=True)

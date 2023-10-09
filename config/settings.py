@@ -46,17 +46,22 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "vs_account",
+    
     "vote",
     'accounts',
     'django.contrib.sites',
+    'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.kakao',
 
-    "rest_framework", #추가 코드
-    "corsheaders", # cors 추가 코드
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -71,6 +76,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     'django.contrib.auth.middleware.AuthenticationMiddleware', #
     'django.contrib.auth.middleware.RemoteUserMiddleware', #
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 # CORS 추가
@@ -136,7 +142,7 @@ USE_I18N = True
 
 USE_TZ = False
 
-AUTH_USER_MODEL = "vs_account.User"
+AUTH_USER_MODEL = "accounts.User"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -150,31 +156,31 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 FAVICON_PATH = os.path.join(BASE_DIR, "static", "favicon.ico")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DJOSER = {
-    'LOGIN_FIELD': 'email',
-    'USER_CREATE_PASSWORD_RETYPE': True,
-    'USERNAME_CHANGED_EMAIL_CONFIRMATION': True,
-    'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
-    'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
-    'SEND_CONFIRMATION_EMAIL': True,
-    'SET_PASSWORD_RETYPE': True, 
-    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': 'activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': True,
-    'SERIALIZERS':{
-        'user_create': 'accounts.serializers.UserCreateSerializer',
-        'user': 'accounts.serializers.UserCreateSerializer',
-        'user_delete': 'djoser.serializers.UserDeleteSerializer',
-    },
-}
-
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES':(
-        'rest_framework.permissions.AllowAny',
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
+}
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
+REST_AUTH = {
+    'LOGIN_SERIALIZER': 'accounts.serializers.CustomLoginSerializer',
+    'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'access',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh',
+    'JWT_AUTH_HTTPONLY': True,
+    'JWT_AUTH_COOKIE_USE_CSRF' : True,
+    'SESSION_LOGIN' : False,
 }
 
 SIMPLE_JWT = {
@@ -213,15 +219,29 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',    
 ]
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST=local_settings.EMAIL_HOST
+EMAIL_PORT=local_settings.EMAIL_PORT
+EMAIL_HOST_USER=local_settings.EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD=local_settings.EMAIL_HOST_PASSWORD
+EMAIL_USE_TLS=True
+DEFAULT_FROM_EMAIL=EMAIL_HOST_USER
+URL_FRONT = 'http://127.0.0.1:8000' # 공개적인 웹페이지가 있다면 등록
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True # 유저가 받은 링크를 클릭하면 회원가입 완료되게끔
+ACCOUNT_EMAIL_REQUIRED = True
+
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/' # 사이트와 관련한 자동응답을 받을 이메일 주소,'webmaster@localhost'
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+# 이메일에 자동으로 표시되는 사이트 정보
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[DAILY VS]"
+
 # Provider specific settings
 SOCIALACCOUNT_PROVIDERS = {
     'kakao': {
-        # For each OAuth based provider, either add a ``SocialApp``
-        # (``socialaccount`` app) containing the required client
-        # credentials, or list them here:
         'APP': {
-            'client_id': '6e0b76c3ceeb04bed80541df1eb81445',
-            'secret': '7GHqOVkfQnvOf81TcIxtk91JW2VceNnJ',
+            'client_id': local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID,
+            'secret': local_settings.SOCIAL_AUTH_KAKAO_SECRET,
             'key': ''
         }
     }
@@ -229,15 +249,5 @@ SOCIALACCOUNT_PROVIDERS = {
 
 LOGIN_REDIRECT_URL = '/'   # social login redirect
 ACCOUNT_LOGOUT_REDIRECT_URL = 'https://daily-vs.com/accounts/kakao/login/callback/'
-AUTH_USER_MODEL = "accounts.User"  ##
-
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST=env('EMAIL_HOST')
-EMAIL_PORT=env('EMAIL_PORT')
-EMAIL_HOST_USER=env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD=env('EMAIL_HOST_PASSWORD')
-EMAIL_USE_TLS=True
-DEFAULT_FROM_EMAIL=EMAIL_HOST_USER
 
 SITE_ID = 1 
