@@ -13,11 +13,6 @@ class UserVoteSerializer(serializers.ModelSerializer):
         model = UserVote
         fields = '__all__'
 
-class NonUserVoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NonUserVote
-        fields = '__all__'
-
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
