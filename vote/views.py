@@ -31,9 +31,9 @@ class MainView(APIView):
 
     def get(self, request):
         user = request.user
-        if user.is_authenticated:
-            if user.gender == "" or user.mbti == "":
-                return redirect("vote:update")
+        # if user.is_authenticated:
+        #     if user.gender == "" or user.mbti == "":
+        #         return redirect("vote:update")
         
         polls = Poll.objects.all()
         polls = polls.order_by("-id")
@@ -96,9 +96,9 @@ class MainView(APIView):
 # 투표 디테일 페이지
 class PollDetailView(APIView):
     def get(self, request, poll_id):
-        user = request.user
-        if user.is_authenticated and (user.gender == "" or user.mbti == ""):
-            return redirect("vote:update")
+        # user = request.user
+        # if user.is_authenticated and (user.gender == "" or user.mbti == ""):
+        #     return redirect("vote:update")
 
         poll = get_object_or_404(Poll, id=poll_id)
 
@@ -217,9 +217,9 @@ class MypageView(APIView):
         if not user.is_authenticated:
             return Response({"error": "인증되지 않은 사용자입니다."}, status=401)
 
-        if user.is_authenticated:
-            if user.gender == "" or user.mbti == "":
-                return redirect("vote:update")
+        # if user.is_authenticated:
+        #     if user.gender == "" or user.mbti == "":
+        #         return redirect("vote:update")
 
         # 사용자의 투표 목록 가져오기
         uservotes = UserVote.objects.filter(user=request.user)
