@@ -24,18 +24,13 @@ class PollResultSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PollSerializer(serializers.ModelSerializer):
-    # choices = ChoiceSerializer(many=True)
-    # user_votes = UserVoteSerializer(many=True)
-    # non_user_votes = NonUserVoteSerializer(many=True)
-    # comments = CommentSerializer(many=True)
-    # poll_result = PollResultSerializer()
-
     class Meta:
         model = Poll
         fields = '__all__'
         
 class PollLikeSerializer(serializers.Serializer):
-    poll_id = serializers.IntegerField()
+    class Meta:
+        model = Poll
     
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
