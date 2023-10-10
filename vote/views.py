@@ -104,8 +104,8 @@ class PollDetailView(APIView):
 
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.filter(poll_id=poll_id).get(user=user)
-            calcstat_url = reverse("vote:calcstat", args=[poll_id, uservote.id, 0])
-            return redirect(calcstat_url)
+            poll_result_page_url = reverse("vote:poll_result_page", args=[poll_id, uservote.id, 0])
+            return redirect(poll_result_page_url)
         else: # 유저가 투표를 안했을 때
             serialized_poll = PollSerializer(poll).data
             
@@ -180,7 +180,7 @@ def poll_like(request):
 # 댓글 좋아요
 @login_required
 def comment_like(request):
-    user= request.user
+    # user= request.user
     # if user.is_authenticated :
     #     if user.gender== "" or user.mbti=="":
     #         return redirect("vote:update")
@@ -365,7 +365,7 @@ def comment_delete_view(request, pk):
 
 # 대댓글 수 파악
 def calculate_nested_count(request, comment_id):
-    user= request.user
+    # user= request.user
     # if user.is_authenticated :
     #     if user.gender== "" or user.mbti=="":
     #         return redirect("vote:update")
