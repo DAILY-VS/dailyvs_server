@@ -7,6 +7,7 @@ from django.utils import timezone
 class Poll(models.Model):
     title = models.TextField()
     content = models.TextField()
+    owner = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     poll_like = models.ManyToManyField(
         'accounts.User',
         related_name='poll_like',
@@ -53,7 +54,7 @@ class Poll_Result(models.Model):
 
 # 댓글
 class Comment(models.Model):
-    user_info = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user_info = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     content = models.CharField(max_length=200)
     parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True)  # 대댓글
