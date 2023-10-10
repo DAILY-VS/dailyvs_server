@@ -126,27 +126,8 @@ class PollDetailView(APIView):
             }
             return Response(context)
 
-
-# 투표 게시글 좋아요 초기 검사
-def get_like_status(request, poll_id):
-    try:
-        poll = Poll.objects.get(id=poll_id)
-    except Poll.DoesNotExist:
-        return JsonResponse({"error": "해당 투표가 존재하지 않습니다."}, status=404)
-
-    user = request.user
-    user_likes_poll = False
-
-    if request.user.is_authenticated:
-        if poll.poll_like.filter(id=user.id).exists():
-            user_likes_poll = True
-
-    context = {"user_likes_poll": user_likes_poll}
-    return JsonResponse(context)
-
-
+# 투표 좋아요
 class PollListView(APIView):
-    
     def get(self, request, poll_id):
         poll = get_object_or_404(Poll, id=poll_id)
         serializer = PollLikeSerializer(poll).data
@@ -154,85 +135,55 @@ class PollListView(APIView):
 
     def post(self, request, poll_id):
         poll = get_object_or_404(Poll, id=poll_id)
-        if request.user in poll.poll_like.all():
-            poll.poll_like.remove(request.user)
-            return Response("unlike", status=status.HTTP_200_OK)
+        user = request.user
+
+        if user in poll.poll_like.all():
+            poll.poll_like.remove(user)
+            message = "좋아요 취소"
         else:
-            poll.poll_like.add(request.user)
-            return Response("like", status=status.HTTP_200_OK)
+            poll.poll_like.add(user)
+            message = "좋아요"
 
-# @api_view(['GET', 'POST'])
-# # @permission_classes([IsAuthenticated])
-# def poll_like(request):
-#     serializer = PollLikeSerializer(data=request.data)
-    
-#     if serializer.is_valid():
-#         poll_id = serializer.validated_data['poll_id']
-#         try:
-#             poll = Poll.objects.get(id=poll_id)
-#         except Poll.DoesNotExist:
-#             return Response({"error": "해당 투표가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
-
-#         user = request.user
-
-#         if poll.poll_like.filter(id=user.id).exists():
-#             poll.poll_like.remove(user)
-#             message = "좋아요 취소"
-#             user_likes_poll = False
-#         else:
-#             poll.poll_like.add(user)
-#             message = "좋아요"
-#             user_likes_poll = True
-
-#         like_count = poll.poll_like.count()
-#         context = {
-#             "like_count": like_count,
-#             "message": message,
-#             "user_likes_poll": user_likes_poll,
-#         }
-#         return Response(context)
-#     else:
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        like_count = poll.poll_like.count()
+        
+        context = {
+            "message": message,
+            "like_count": like_count,
+        }
+        return Response(context, status=status.HTTP_200_OK)
 
 # 댓글 좋아요
-@login_required
-def comment_like(request):
+class CommentLikeView(APIView):
+    permission_classes = [IsAuthenticated]
     # user= request.user
     # if user.is_authenticated :
     #     if user.gender== "" or user.mbti=="":
     #         return redirect("vote:update")
-    if request.method == "POST":
-        req = json.loads(request.body)
-        comment_id = req["comment_id"]
+    def post(self, request):
+        comment_id = request.data.get('comment_id')
 
         try:
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
-            return JsonResponse({"error": "해당 댓글이 존재하지 않습니다."}, status=404)
+            return Response({"error": "해당 댓글이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         user = request.user
-        user_likes_comment = False
-        
-        if request.user.is_authenticated:
-            user_id = user.id
-            user_likes_comment = User.objects.get(id=user_id).comment_like.filter(id=comment.id).exists()
+        user_likes_comment = user.comment_like.filter(id=comment.id).exists()
 
-            if user_likes_comment:
-                comment.comment_like.remove(user)
-                message = "좋아요 취소"
-            else:
-                comment.comment_like.add(user)
-                message = "좋아요"
+        if user_likes_comment: #user가 좋아요 누르지 않은 상태 -> 좋아요 취소 누르기
+            comment.comment_like.remove(user)
+            message = "좋아요 취소"
+        else: #user가 좋아요 누르지 않았을 때 -> 좋아요 누르기
+            comment.comment_like.add(user)
+            message = "좋아요"
 
-            like_count = comment.comment_like.count()
-            context = {
-                "like_count": like_count,
-                "message": message,
-                "user_likes_comment": not user_likes_comment,
-            }
-            return JsonResponse(context)
-        return redirect("/")
-
+        like_count = comment.comment_like.count()
+        context = {
+            "like_count": like_count,
+            "message": message,
+            "user_likes_comment": not user_likes_comment, # user_likes_comment가 True일 때 좋아요를 누른거임
+        }
+        return Response(context, status=status.HTTP_200_OK)
 
 class MypageView(APIView):
     def get(self, request):
