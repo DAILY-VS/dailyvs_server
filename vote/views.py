@@ -106,36 +106,25 @@ class PollDetailView(APIView):
             uservote = UserVote.objects.filter(poll_id=poll_id).get(user=user)
             calcstat_url = reverse("vote:calcstat", args=[poll_id, uservote.id, 0])
             return redirect(calcstat_url)
-        else:
-            poll.increase_views()  # 게시글 조회 수 증가
-            loop_count = poll.choice_set.count()
-            loop_time = list(range(0, loop_count))
-            # Serialize the Poll object using PollSerializer
+        else: # 유저가 투표를 안했을 때
             serialized_poll = PollSerializer(poll).data
+            
+            #poll에 맞는 카테고리 불러오기
+            category_id = serialized_poll['category']
+            categories = Category.objects.filter(id__in=category_id)
+            category = [category.name for category in categories]
+
+            #poll에 맞는 선택지 불러오기
+            choice_id = serialized_poll['choices']
+            choices = Choice.objects.filter(id__in=choice_id)
+            choice_text = [choice.choice_text for choice in choices]
+
             context = {
+                "category": category,
+                "choice_text": choice_text,
                 "poll": serialized_poll,
-                "loop_time": loop_time,
             }
             return Response(context)
-
-
-# 투표 게시글 좋아요 초기 검사
-def get_like_status(request, poll_id):
-    try:
-        poll = Poll.objects.get(id=poll_id)
-    except Poll.DoesNotExist:
-        return JsonResponse({"error": "해당 투표가 존재하지 않습니다."}, status=404)
-
-    user = request.user
-    user_likes_poll = False
-
-    if request.user.is_authenticated:
-        if poll.poll_like.filter(id=user.id).exists():
-            user_likes_poll = True
-
-    context = {"user_likes_poll": user_likes_poll}
-    return JsonResponse(context)
-
 
 @api_view(['GET', 'POST'])
 # @permission_classes([IsAuthenticated])
