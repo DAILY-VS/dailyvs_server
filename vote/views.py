@@ -126,6 +126,24 @@ class PollDetailView(APIView):
             }
             return Response(context)
 
+
+# 투표 게시글 좋아요 초기 검사
+def get_like_status(request, poll_id):
+    try:
+        poll = Poll.objects.get(id=poll_id)
+    except Poll.DoesNotExist:
+        return JsonResponse({"error": "해당 투표가 존재하지 않습니다."}, status=404)
+
+    user = request.user
+    user_likes_poll = False
+
+    if request.user.is_authenticated:
+        if poll.poll_like.filter(id=user.id).exists():
+            user_likes_poll = True
+
+    context = {"user_likes_poll": user_likes_poll}
+    return JsonResponse(context)
+
 @api_view(['GET', 'POST'])
 # @permission_classes([IsAuthenticated])
 def poll_like(request):
