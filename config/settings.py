@@ -182,6 +182,7 @@ REST_AUTH = {
     'JWT_AUTH_COOKIE_USE_CSRF' : True,
     'SESSION_LOGIN' : False,
 }
+ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
