@@ -16,8 +16,8 @@ urlpatterns = [
         name="poll_result_page" ,
     ),
     # 유저
-    path("like/", views.poll_like, name="like"),
-     path("comment_like/", views.comment_like, name="comment_like"),
+    path("like/", views.PollListView.as_view(), name="like"),
+    path("comment_like/", views.comment_like, name="comment_like"),
     path(
         "get-like-status/<int:poll_id>/", views.get_like_status, name="get_like_status"
     ),

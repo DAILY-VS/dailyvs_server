@@ -144,38 +144,55 @@ def get_like_status(request, poll_id):
     context = {"user_likes_poll": user_likes_poll}
     return JsonResponse(context)
 
-@api_view(['GET', 'POST'])
-# @permission_classes([IsAuthenticated])
-def poll_like(request):
-    serializer = PollLikeSerializer(data=request.data)
+
+class PollListView(APIView):
     
-    if serializer.is_valid():
-        poll_id = serializer.validated_data['poll_id']
-        try:
-            poll = Poll.objects.get(id=poll_id)
-        except Poll.DoesNotExist:
-            return Response({"error": "해당 투표가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+    def get(self, request, poll_id):
+        poll = get_object_or_404(Poll, id=poll_id)
+        serializer = PollLikeSerializer(poll).data
+        return Response(serializer, status=status.HTTP_200_OK)
 
-        user = request.user
-
-        if poll.poll_like.filter(id=user.id).exists():
-            poll.poll_like.remove(user)
-            message = "좋아요 취소"
-            user_likes_poll = False
+    def post(self, request, poll_id):
+        poll = get_object_or_404(Poll, id=poll_id)
+        if request.user in poll.poll_like.all():
+            poll.poll_like.remove(request.user)
+            return Response("unlike", status=status.HTTP_200_OK)
         else:
-            poll.poll_like.add(user)
-            message = "좋아요"
-            user_likes_poll = True
+            poll.poll_like.add(request.user)
+            return Response("like", status=status.HTTP_200_OK)
 
-        like_count = poll.poll_like.count()
-        context = {
-            "like_count": like_count,
-            "message": message,
-            "user_likes_poll": user_likes_poll,
-        }
-        return Response(context)
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# @api_view(['GET', 'POST'])
+# # @permission_classes([IsAuthenticated])
+# def poll_like(request):
+#     serializer = PollLikeSerializer(data=request.data)
+    
+#     if serializer.is_valid():
+#         poll_id = serializer.validated_data['poll_id']
+#         try:
+#             poll = Poll.objects.get(id=poll_id)
+#         except Poll.DoesNotExist:
+#             return Response({"error": "해당 투표가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+
+#         user = request.user
+
+#         if poll.poll_like.filter(id=user.id).exists():
+#             poll.poll_like.remove(user)
+#             message = "좋아요 취소"
+#             user_likes_poll = False
+#         else:
+#             poll.poll_like.add(user)
+#             message = "좋아요"
+#             user_likes_poll = True
+
+#         like_count = poll.poll_like.count()
+#         context = {
+#             "like_count": like_count,
+#             "message": message,
+#             "user_likes_poll": user_likes_poll,
+#         }
+#         return Response(context)
+#     else:
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 댓글 좋아요
 @login_required
