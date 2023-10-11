@@ -80,6 +80,3 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-    
-class Test(models.Model):
-    a = models.BinaryField(editable=True)
