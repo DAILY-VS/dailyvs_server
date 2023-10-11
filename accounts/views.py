@@ -4,7 +4,7 @@ import requests
 from json import JSONDecodeError
 from django.http import JsonResponse
 from rest_framework import status
-from .models import User, Test
+from .models import User
 from config import local_settings
 
 from dj_rest_auth.registration.views import SocialLoginView
@@ -124,34 +124,3 @@ class ConfirmEmailView(APIView):
         qs = EmailConfirmation.objects.all_valid()
         qs = qs.select_related("email_address__user")
         return qs
-
-
-# import math
-# import time
-# def measure_time(request):
-#     start = time.time()
-#     # 80번 get
-#     for i in range(16*500):
-#         user = Test.objects.get(id=2)
-#     end = time.time()
-#     print(f"{end - start:.5f} sec")
-
-#     # 1번 get, 1번 파싱
-#     res = []
-#     start = time.time()
-#     # test_byte = b'\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10\x00\x00\x00\x10'
-#     # print(test_byte)
-#     # testobject = Test.objects.create(a=test_byte)
-#     # testobject.save()
-#     for j in range(500):
-#         data = Test.objects.get(id=6)
-#         binary = bytes(data.a)
-#         # print(int.from_bytes(binary[0:4], byteorder='big', signed=False))
-#         # print(binary[0:4])
-#         for i in range(16):
-#             tmp = int.from_bytes(binary[0 + 4 * i : 4 + 4 * i], byteorder='big', signed=False)
-#             # print(tmp)
-#             res.append(tmp)
-#     end = time.time()
-#     # print(res)
-#     print(f"{end - start:.5f} sec")

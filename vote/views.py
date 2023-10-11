@@ -486,82 +486,40 @@ def poll_nonuserfinal(request, poll_id, nonuservote_id):
     else:
         return redirect("/")
 
-
 # 투표 시 poll_result 업데이트 함수 (uservote, nonuservote 둘 다)
-def poll_result_update(poll_id, choice_id, gender, mbti):
-    poll_result,created = Poll_Result.objects.get_or_create(poll_id=poll_id)
-    poll_result.total += 1
-    if gender == "M":
-        poll_result.choice1_man += (
-            1 if choice_id == 2 * (poll_id) - 1 else 0
-        )
-        poll_result.choice2_man += (
-            1 if choice_id == 2 * (poll_id) else 0
-        )
-    elif gender == "W":
-        poll_result.choice1_woman += (
-            1 if choice_id == 2 * (poll_id) - 1 else 0
-        )
-        poll_result.choice2_woman += (
-            1 if choice_id == 2 * (poll_id) else 0
-        )
-    for letter in mbti:
-        if letter == "E":
-            poll_result.choice1_E += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_E += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "I":
-            poll_result.choice1_I += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_I += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "S":
-            poll_result.choice1_S += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_S += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "N":
-            poll_result.choice1_N += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_N += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "T":
-            poll_result.choice1_T += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_T += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "F":
-            poll_result.choice1_F += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_F += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "J":
-            poll_result.choice1_J += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_J += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
-        elif letter == "P":
-            poll_result.choice1_P += (
-                1 if choice_id == 2 * (poll_id) - 1 else 0
-            )
-            poll_result.choice2_P += (
-                1 if choice_id == 2 * (poll_id) else 0
-            )
+# 어떤 poll에 choice_id번 선택지를 골랐음. + **extra_fields(Poll의 카테고리)의 정보가 있음.
+import struct
+def poll_result_update(poll_id, choice_id, **extra_fields):
+    # user, nonUser 정보 처리는 위에서 해주면 좋겠다.
+    # M, W \x00\x00\x00\x10 \x00\x00\x00\x10
+    # E I S N T F P J \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 
+    # 10 20_1 20_2 30_1 30_2 40 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10
+    poll_result, created = Poll_Result.objects.get_or_create(id=poll_id)
+    # 기존 값 가져오기 -> 나누고 정수 변환 -> 1 더하기 -> 비트로 변환하고 붙이기 -> 저장
+    # 기존 값 가져오기
+    choice_set = getattr(poll_result, 'choice' + str(choice_id))
+    # 나누고 정수 변환 -> 이 부분이 load 함수 역할. 괜히 함수 호출하면 시간 걸릴까봐 그냥 안에 넣었음. calcstat에서도 그대로 쓰면 됨.
+    tmp_set = {}
+    category_set = ["M", "W", "E", "I", "S", "N", "T", "F", "P", "J", "10", "20_1", "20_2", "30_1", "30_2", "40"]
+    for i, key in enumerate(category_set):
+        tmp_set[key] = int.from_bytes(choice_set[0 + 4 * i : 4 + 4 * i], byteorder='big', signed=False)
+    # 1 더하기
+    gender = extra_fields.get('gender')
+    mbti = extra_fields.get('mbti')
+    age = extra_fields.get('age')
+    if gender:
+        tmp_set[gender] += 1
+    if mbti:
+        for i in range(4):
+            tmp_set[mbti[i]] += 1
+    if age:
+        tmp_set[age] += 1
+    # 비트로 변환하고 붙이기
+    res = bytearray()
+    for i, key in enumerate(category_set):
+        res += struct.pack('>i', tmp_set[key])
+    # 저장
+    setattr(poll_result, 'choice' + str(choice_id), res)
     poll_result.save()
     return None
 
