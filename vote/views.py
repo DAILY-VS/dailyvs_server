@@ -8,7 +8,6 @@ from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers.json import DjangoJSONEncoder
@@ -21,7 +20,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.http import Http404
 from .serializers import *
 
 # 메인페이지
@@ -92,7 +90,16 @@ class MainView(APIView):
         }
 
         return Response(response_data)
-
+    
+    #투표 만들기
+    def post(Self, request):
+        serialized_polls = PollSerializer(data=request.data)
+        if serialized_polls.is_valid():
+            serialized_polls.save()
+            return Response(serialized_polls.data, status=status.HTTP_200_OK)
+        return Response(serialized_polls.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        
 # 투표 디테일 페이지
 class PollDetailView(APIView):
     def get(self, request, poll_id):
@@ -135,20 +142,22 @@ class PollListView(APIView):
 
     def post(self, request, poll_id):
         poll = get_object_or_404(Poll, id=poll_id)
+        
         user = request.user
-
-        if user in poll.poll_like.all():
+        user_likes_poll = user.poll_like.filter(id=poll.id).exists()
+        if user_likes_poll:
             poll.poll_like.remove(user)
-            message = "좋아요 취소"
+            message = "unlike"
         else:
             poll.poll_like.add(user)
-            message = "좋아요"
+            message = "like"
 
         like_count = poll.poll_like.count()
         
         context = {
             "message": message,
             "like_count": like_count,
+            "user_likes_poll": not user_likes_poll #user_likes_comment가 True일 때 좋아요를 누른거임
         }
         return Response(context, status=status.HTTP_200_OK)
 
@@ -172,16 +181,16 @@ class CommentLikeView(APIView):
 
         if user_likes_comment: #user가 좋아요 누르지 않은 상태 -> 좋아요 취소 누르기
             comment.comment_like.remove(user)
-            message = "좋아요 취소"
+            message = "unlike"
         else: #user가 좋아요 누르지 않았을 때 -> 좋아요 누르기
             comment.comment_like.add(user)
-            message = "좋아요"
+            message = "like"
 
         like_count = comment.comment_like.count()
         context = {
             "like_count": like_count,
             "message": message,
-            "user_likes_comment": not user_likes_comment, # user_likes_comment가 True일 때 좋아요를 누른거임
+            "user_likes_comment": not user_likes_comment 
         }
         return Response(context, status=status.HTTP_200_OK)
 

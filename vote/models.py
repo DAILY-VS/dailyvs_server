@@ -11,13 +11,14 @@ class Poll(models.Model):
     poll_like = models.ManyToManyField(
         'accounts.User',
         related_name='poll_like',
+        blank=True
     )
     views_count = models.PositiveIntegerField(default=0, null=True)  # 조회수
-    thumbnail = models.ImageField()
+    thumbnail = models.ImageField(upload_to="%Y/%m/%d")
     comments_count = models.PositiveIntegerField(default=0, null=True, blank=True)  # 댓글 수
     created_at = models.DateTimeField(default=timezone.now)
-    category = models.ManyToManyField('Category', blank=True)
-    choices = models.ManyToManyField('Choice', blank=True)
+    category = models.ManyToManyField('Category')
+    choices = models.ManyToManyField('Choice')
 
     def __str__(self):
         return self.title
@@ -62,6 +63,7 @@ class Comment(models.Model):
     comment_like = models.ManyToManyField(
         'accounts.User',
         related_name='comment_like',
+        blank=True
     )
     created_at = models.DateTimeField(default=timezone.now)
 
