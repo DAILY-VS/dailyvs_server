@@ -3,6 +3,14 @@ from .models import *
 
 #Serializer : DRF가 제공하는 클래스, DB 인스턴스를 JSON 데이터로 생성한다.
 
+class PollSerializer(serializers.ModelSerializer):
+    
+    thumbnail= serializers.ImageField(use_url=True)
+    class Meta:
+        model = Poll
+        fields = ('title', 'content', 'owner', 'poll_like', 'views_count'
+                , 'comments_count', 'created_at','category', 'choices', 'thumbnail')
+
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
@@ -22,21 +30,17 @@ class PollResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Poll_Result
         fields = '__all__'
-
-class PollSerializer(serializers.ModelSerializer):
+        
+class PollLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Poll
         fields = '__all__'
-        
-class PollLikeSerializer(serializers.Serializer):
-    class Meta:
-        model = Poll
     
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'first_name', 'last_name', 'gender', 'mbti']
 
-class CommentLikeSerializer(serializers.Serializer):
+class CommentLikeSerializer(serializers.ModelSerializer):
     comment_id = serializers.IntegerField()
     user_id = serializers.IntegerField()
