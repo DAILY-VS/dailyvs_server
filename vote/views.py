@@ -104,34 +104,39 @@ class MainView(APIView):
 class PollDetailView(APIView):
     def get(self, request, poll_id):
         user = request.user
-        # if user.is_authenticated and (user.gender == "" or user.mbti == ""):
-        #     return redirect("vote:update")
 
-        poll = get_object_or_404(Poll, id=poll_id)
-
+        #이미 투표한 경우 
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.filter(poll_id=poll_id).get(user=user)
             poll_result_page_url = reverse("vote:poll_result_page", args=[poll_id, uservote.id, 0])
             return redirect(poll_result_page_url)
-        else: # 유저가 투표를 안했을 때
-            serialized_poll = PollSerializer(poll).data
+
+        #poll에 맞는 카테고리 불러오기
+        poll = get_object_or_404(Poll, id=poll_id)
+        serialized_poll = PollSerializer(poll).data
+        category_id = serialized_poll['category']
+        categories = Category.objects.filter(id__in=category_id)
+        category_list = [category.name for category in categories]
+        
+        #user인 경우 추가 정보만 받기
+        if user.is_authenticated : 
+            for category_name in category_list:
+                user_category_value = getattr(user, category_name, "")
+                if user_category_value != "":
+                    category_list.remove(category_name)
             
-            #poll에 맞는 카테고리 불러오기
-            category_id = serialized_poll['category']
-            categories = Category.objects.filter(id__in=category_id)
-            category = [category.name for category in categories]
+        #poll에 맞는 선택지 불러오기
+        choice_id = serialized_poll['choices']
+        choices = Choice.objects.filter(id__in=choice_id)
+        choice_text = [choice.choice_text for choice in choices]
 
-            #poll에 맞는 선택지 불러오기
-            choice_id = serialized_poll['choices']
-            choices = Choice.objects.filter(id__in=choice_id)
-            choice_text = [choice.choice_text for choice in choices]
+        context = {
+            "category_list": category_list,
+            "choice_text": choice_text,
+            "poll": serialized_poll,
+        }
+        return Response(context)
 
-            context = {
-                "category": category,
-                "choice_text": choice_text,
-                "poll": serialized_poll,
-            }
-            return Response(context)
 
 # 투표 좋아요
 class PollListView(APIView):
