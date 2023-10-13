@@ -2,7 +2,7 @@ import json
 import random
 import numpy as np
 from .models import *
-from accounts.models import *
+#from accounts.models import *
 from .fortunes import fortunes
 from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
@@ -21,6 +21,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import *
+
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 # 메인페이지
 class MainView(APIView):
@@ -76,7 +79,7 @@ class MainView(APIView):
 
         # Serialize the data
         serialized_polls = PollSerializer(polls, many=True).data
-
+        
         response_data = {
             "polls": serialized_polls,
             "page_obj": page_obj.number,
@@ -111,12 +114,28 @@ class PollDetailView(APIView):
             poll_result_page_url = reverse("vote:poll_result_page", args=[poll_id, uservote.id, 0])
             return redirect(poll_result_page_url)
 
-        #poll에 맞는 카테고리 불러오기
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll).data
-        category_id = serialized_poll['category']
+        
+        category_id = serialized_poll.get('category', [])  # 카테고리 불러오기
+        choice_id = serialized_poll.get('choices', [])  # 선택지 불러오기
+
         categories = Category.objects.filter(id__in=category_id)
         category_list = [category.name for category in categories]
+
+        choices = Choice.objects.filter(id__in=choice_id)
+        choice_text = [choice.choice_text for choice in choices]
+
+        # response_data = []
+
+        # for serialized_poll in serialized_polls:
+        #     user_id = serialized_poll['owner']
+        #     print(user_id)
+        #     user_data = User.objects.get(id=user_id)
+        #     print(user_data.nickname)
+            
+        #     response_data.append(user_data.nickname)
+        #poll에 맞는 카테고리 불러오기
         
         #user인 경우 추가 정보만 받기
         if user.is_authenticated : 
@@ -124,18 +143,21 @@ class PollDetailView(APIView):
                 user_category_value = getattr(user, category_name, "")
                 if user_category_value != "":
                     category_list.remove(category_name)
-            
-        #poll에 맞는 선택지 불러오기
-        choice_id = serialized_poll['choices']
-        choices = Choice.objects.filter(id__in=choice_id)
-        choice_text = [choice.choice_text for choice in choices]
 
         context = {
+            "poll": serialized_poll,
             "category_list": category_list,
             "choice_text": choice_text,
-            "poll": serialized_poll,
         }
         return Response(context)
+    
+    def delete(self, request, poll_id):
+        poll = get_object_or_404(Poll, id=poll_id)
+        if request.user == poll.owner:
+            poll.delete()
+            return Response("삭제되었습니다.", status=status.HTTP_204_NO_CONTENT)
+        else: 
+            return Response("권한이 없습니다.", status=status.HTTP_403_FORBIDDEN)
 
 
 # 투표 좋아요
