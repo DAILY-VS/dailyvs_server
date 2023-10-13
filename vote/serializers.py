@@ -8,8 +8,7 @@ class PollSerializer(serializers.ModelSerializer):
     thumbnail= serializers.ImageField(use_url=True)
     class Meta:
         model = Poll
-        fields = ('title', 'content', 'owner', 'poll_like', 'views_count'
-                , 'comments_count', 'created_at','category', 'choices', 'thumbnail')
+        fields = '__all__'
 
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
