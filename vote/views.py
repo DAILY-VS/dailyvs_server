@@ -29,9 +29,7 @@ User = get_user_model()
 class MainView(APIView):
     # authentication_classes = [SessionAuthentication, BasicAuthentication]
     # permission_classes = [IsAuthenticated]
-
     def get(self, request):
-                
         polls = Poll.objects.all()
         polls = polls.order_by("-id")
         sort = request.GET.get("sort")
@@ -58,7 +56,6 @@ class MainView(APIView):
             page_obj = paginator.page(page)
 
         polls = Poll.objects.all()
-
         if polls:
             today_poll = polls.last()
         else:
@@ -72,7 +69,6 @@ class MainView(APIView):
         ]
 
         random_phrase = random.choice(phrases)
-
         serialized_polls = PollSerializer(polls, many=True).data
         
         response_data = {
@@ -91,11 +87,11 @@ class MainView(APIView):
     
     #투표 만들기
     def post(Self, request):
-        serialized_polls = PollSerializer(data=request.data)
-        if serialized_polls.is_valid():
-            serialized_polls.save()
-            return Response(serialized_polls.data, status=status.HTTP_200_OK)
-        return Response(serialized_polls.errors, status=status.HTTP_400_BAD_REQUEST)
+        serialized_poll = PollSerializer(data=request.data)
+        if serialized_poll.is_valid():
+            serialized_poll.save(owner=request.user)
+            return Response(serialized_poll.data, status=status.HTTP_200_OK)
+        return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
         
         
 # 투표 디테일 페이지
