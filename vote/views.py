@@ -2,7 +2,7 @@ import json
 import random
 import numpy as np
 from .models import *
-from accounts.models import *
+#from accounts.models import *
 from .fortunes import fortunes
 from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
@@ -22,17 +22,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import *
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 # 메인페이지
 class MainView(APIView):
     # authentication_classes = [SessionAuthentication, BasicAuthentication]
     # permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # user = request.user
-        # if user.is_authenticated:
-        #     if user.gender == "" or user.mbti == "":
-        #         return redirect("vote:update")
-        
+                
         polls = Poll.objects.all()
         polls = polls.order_by("-id")
         sort = request.GET.get("sort")
@@ -74,9 +73,8 @@ class MainView(APIView):
 
         random_phrase = random.choice(phrases)
 
-        # Serialize the data
         serialized_polls = PollSerializer(polls, many=True).data
-
+        
         response_data = {
             "polls": serialized_polls,
             "page_obj": page_obj.number,
@@ -111,12 +109,18 @@ class PollDetailView(APIView):
             poll_result_page_url = reverse("vote:poll_result_page", args=[poll_id, uservote.id, 0])
             return redirect(poll_result_page_url)
 
-        #poll에 맞는 카테고리 불러오기
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll).data
-        category_id = serialized_poll['category']
+        
+        category_id = serialized_poll.get('category', [])  #카테고리 불러오기
+        choice_id = serialized_poll.get('choices', [])  #선택지 불러오기
+        user_id = serialized_poll.get('owner', [])  #user 불러오기
+
         categories = Category.objects.filter(id__in=category_id)
         category_list = [category.name for category in categories]
+        choices = Choice.objects.filter(id__in=choice_id)
+        choice_text = [choice.choice_text for choice in choices]
+        user_data = User.objects.get(id=user_id)
         
         #user인 경우 추가 정보만 받기
         if user.is_authenticated : 
@@ -124,18 +128,23 @@ class PollDetailView(APIView):
                 user_category_value = getattr(user, category_name, "")
                 if user_category_value != "":
                     category_list.remove(category_name)
-            
-        #poll에 맞는 선택지 불러오기
-        choice_id = serialized_poll['choices']
-        choices = Choice.objects.filter(id__in=choice_id)
-        choice_text = [choice.choice_text for choice in choices]
 
         context = {
+            "poll": serialized_poll,
             "category_list": category_list,
             "choice_text": choice_text,
-            "poll": serialized_poll,
+            "user_data": user_data.nickname
         }
         return Response(context)
+    
+    # 투표 삭제
+    def delete(self, request, poll_id):
+        poll = get_object_or_404(Poll, id=poll_id)
+        if request.user == poll.owner:
+            poll.delete()
+            return Response("삭제되었습니다.", status=status.HTTP_204_NO_CONTENT)
+        else: 
+            return Response("권한이 없습니다.", status=status.HTTP_403_FORBIDDEN)
 
 
 # 투표 좋아요
@@ -169,10 +178,6 @@ class PollListView(APIView):
 # 댓글 좋아요
 class CommentLikeView(APIView):
     permission_classes = [IsAuthenticated]
-    # user= request.user
-    # if user.is_authenticated :
-    #     if user.gender== "" or user.mbti=="":
-    #         return redirect("vote:update")
     def post(self, request):
         comment_id = request.data.get('comment_id')
 
@@ -241,7 +246,8 @@ class MypageView(APIView):
         }
 
         return Response(context)
-
+    
+    #마이페이지 수정
     def put(self, request):
         user = request.user
 
@@ -343,17 +349,6 @@ def comment_delete_view(request, pk):
     return HttpResponse(
         json.dumps(data, cls=DjangoJSONEncoder), content_type="application/json"
     )
-
-
-# 대댓글 수 파악
-def calculate_nested_count(request, comment_id):
-    # user= request.user
-    # if user.is_authenticated :
-    #     if user.gender== "" or user.mbti=="":
-    #         return redirect("vote:update")
-    nested_count = Comment.objects.filter(parent_comment_id=comment_id).count()
-    return JsonResponse({"nested_count": nested_count})
-
 
 # 투표 시 회원, 비회원 구분 (회원일시 바로 결과페이지, 비회원일시 성별 페이지)
 @api_view(['POST'])
