@@ -17,6 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -27,8 +28,8 @@ User = get_user_model()
 
 # 메인페이지
 class MainView(APIView):
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser,) #API파일업로드
     def get(self, request):
         polls = Poll.objects.all()
         polls = polls.order_by("-id")
@@ -84,15 +85,13 @@ class MainView(APIView):
         }
 
         return Response(response_data)
-    
-    #투표 만들기
+    #투표 create
     def post(Self, request):
         serialized_poll = PollSerializer(data=request.data)
         if serialized_poll.is_valid():
             serialized_poll.save(owner=request.user)
             return Response(serialized_poll.data, status=status.HTTP_200_OK)
         return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
-        
         
 # 투표 디테일 페이지
 class PollDetailView(APIView):
@@ -110,14 +109,14 @@ class PollDetailView(APIView):
         
         category_id = serialized_poll.get('category', [])  #카테고리 불러오기
         choice_id = serialized_poll.get('choices', [])  #선택지 불러오기
-        user_id = serialized_poll.get('owner', [])  #user 불러오기
+        user_id = serialized_poll.get('owner')  #user 불러오기
 
         categories = Category.objects.filter(id__in=category_id)
         category_list = [category.name for category in categories]
         choices = Choice.objects.filter(id__in=choice_id)
         choice_text = [choice.choice_text for choice in choices]
         user_data = User.objects.get(id=user_id)
-        
+
         #user인 경우 추가 정보만 받기
         if user.is_authenticated : 
             for category_name in category_list:
@@ -133,18 +132,41 @@ class PollDetailView(APIView):
         }
         return Response(context)
     
-    # 투표 삭제
+    # 투표 delete
     def delete(self, request, poll_id):
         poll = get_object_or_404(Poll, id=poll_id)
         if request.user == poll.owner:
             poll.delete()
-            return Response("삭제되었습니다.", status=status.HTTP_204_NO_CONTENT)
+            return Response("success", status=status.HTTP_204_NO_CONTENT)
         else: 
-            return Response("권한이 없습니다.", status=status.HTTP_403_FORBIDDEN)
+            return Response("fail", status=status.HTTP_403_FORBIDDEN)
 
+# 댓글 create, read
+class CommentView(APIView):
+    def get(self, request, poll_id): 
+        comments = Comment.objects.filter(poll_id=poll_id)
+        serializer = CommentSerializer(comments, many=True).data
+        return Response(serializer, status=status.HTTP_200_OK)
 
+    def post(self, request, poll_id):
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user_info=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# 댓글 delete
+@api_view(['DELETE'])
+def comment_delete(request, poll_id, comment_id):
+    comment = Comment.objects.get(id=comment_id)
+    if request.user == comment.user_info:
+        comment.delete()
+        return Response("success", status=status.HTTP_204_NO_CONTENT)
+    else:
+        return Response("fail", status=status.HTTP_403_FORBIDDEN)
+    
 # 투표 좋아요
-class PollListView(APIView):
+class PollLikeView(APIView):
     def get(self, request, poll_id):
         poll = get_object_or_404(Poll, id=poll_id)
         serializer = PollLikeSerializer(poll).data
@@ -152,43 +174,46 @@ class PollListView(APIView):
 
     def post(self, request, poll_id):
         poll = get_object_or_404(Poll, id=poll_id)
-        
         user = request.user
-        user_likes_poll = user.poll_like.filter(id=poll.id).exists()
+        user_likes_poll = poll.poll_like.filter(id=user.id).exists()
         if user_likes_poll:
             poll.poll_like.remove(user)
-            message = "unlike"
+            message = "unlike" #좋아요가 있으므로 좋아요 취소
         else:
             poll.poll_like.add(user)
-            message = "like"
+            message = "like" #좋아요가 없으므로 좋아요 
 
         like_count = poll.poll_like.count()
         
         context = {
             "message": message,
             "like_count": like_count,
-            "user_likes_poll": not user_likes_poll #user_likes_comment가 True일 때 좋아요를 누른거임
+            "user_likes_poll": user_likes_poll #user_likes_comment가 True일 때 좋아요를 누르고 있는 상태
         }
         return Response(context, status=status.HTTP_200_OK)
 
 # 댓글 좋아요
 class CommentLikeView(APIView):
     permission_classes = [IsAuthenticated]
+    def get(self, request, poll_id):
+        comment = get_object_or_404(Comment, id=poll_id)
+        serializer = CommentLikeSerializer(comment).data
+        return Response(serializer, status=status.HTTP_200_OK)
+
     def post(self, request):
         comment_id = request.data.get('comment_id')
-
         try:
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response({"error": "해당 댓글이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
-
         user = request.user
-        user_likes_comment = user.comment_like.filter(id=comment.id).exists()
-
-        if user_likes_comment: #user가 좋아요 누르지 않은 상태 -> 좋아요 취소 누르기
+        user_likes_comment = comment.comment_like.filter(id=user.id).exists()
+        print(user_likes_comment)
+        
+        if user_likes_comment: #user가 좋아요를 누른 상태 -> 좋아요 취소 누르기
             comment.comment_like.remove(user)
             message = "unlike"
-        else: #user가 좋아요 누르지 않았을 때 -> 좋아요 누르기
+        else: #user가 좋아요 누르지 않은 상태 -> 좋아요 누르기
             comment.comment_like.add(user)
             message = "like"
 
@@ -196,14 +221,13 @@ class CommentLikeView(APIView):
         context = {
             "like_count": like_count,
             "message": message,
-            "user_likes_comment": not user_likes_comment 
+            "user_likes_comment": user_likes_comment 
         }
         return Response(context, status=status.HTTP_200_OK)
 
 class MypageView(APIView):
     def get(self, request):
         user = request.user
-
         if not user.is_authenticated:
             return Response({"error": "인증되지 않은 사용자입니다."}, status=401)
 
@@ -242,7 +266,6 @@ class MypageView(APIView):
         }
 
         return Response(context)
-    
     #마이페이지 수정
     def put(self, request):
         user = request.user
@@ -252,99 +275,6 @@ class MypageView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# 댓글 쓰기
-@login_required
-def comment_write_view(request, poll_id):
-    # user= request.user
-    # if user.is_authenticated :
-    #     if user.gender== "" or user.mbti=="":
-    #         return redirect("vote:update")
-    poll = get_object_or_404(Poll, id=poll_id)
-    user_info = request.user  # 현재 로그인한 사용자
-    content = request.POST.get("content")
-    parent_comment_id = request.POST.get("parent_comment_id")
-    
-    try:
-        user_vote = UserVote.objects.get(user=request.user, poll=poll)  # uservote에서 선택지 불러옴
-        choice_text = user_vote.choice.choice_text
-
-    except UserVote.DoesNotExist:
-            user_vote = None
-            choice_text = ""  # 또는 다른 기본값 설정
-            
-    if content:
-        if parent_comment_id:  # 대댓글인 경우
-            parent_comment = get_object_or_404(Comment, pk=parent_comment_id)
-            comment = Comment.objects.create(
-                poll=poll,
-                content=content,
-                user_info=user_info,
-                parent_comment=parent_comment,
-                
-            )
-            parent_comment_data = {
-                "nickname": parent_comment.user_info.nickname,
-                "mbti": parent_comment.user_info.mbti,
-                "gender": parent_comment.user_info.gender,
-                "content": parent_comment.content,
-                "created_at": parent_comment.created_at.strftime("%Y년 %m월 %d일"),
-                "comment_id": parent_comment.pk,
-            }
-        else:  # 일반 댓글인 경우
-            comment = Comment.objects.create(
-                poll=poll,
-                content=content,
-                user_info=user_info,
-            )
-            parent_comment_data = None
-        comments = Comment.objects.filter(poll_id=poll_id)
-        poll.comments = comments.count()
-        poll.save()
-        comment_id =Comment.objects.last().pk
-        data = {
-            "nickname": user_info.nickname,
-            "mbti": user_info.mbti,
-            "gender": user_info.gender,
-            "content": content,
-            "created_at": comment.created_at.strftime("%Y년 %m월 %d일"),
-            "comment_id": comment_id,
-            "choice": choice_text,
-            "new_comment_count": poll.comments,
-        }
-        
-        comment.choice = user_vote.choice
-        comment.save()
-        if parent_comment_data:
-            data["parent_comment"] = parent_comment_data
-
-        return HttpResponse(
-            json.dumps(data, cls=DjangoJSONEncoder), content_type="application/json"
-        )
-
-
-# 댓글 삭제
-@login_required
-def comment_delete_view(request, pk):
-    # user= request.user
-    # if user.is_authenticated :
-    #     if user.gender== "" or user.mbti=="":
-    #         return redirect("vote:update")
-    poll = get_object_or_404(Poll, id=pk)
-    comment_id = request.POST.get("comment_id")
-    target_comment = Comment.objects.get(pk=comment_id)
-    if request.user == target_comment.user_info:
-        target_comment.delete()
-        comments = Comment.objects.filter(poll_id=pk)
-        poll.comments = comments.count()
-        poll.save()
-        data = {"comment_id": comment_id, "success": True,
-                "new_comment_count": poll.comments,}
-    else:
-        data = {"success": False, "error": "본인 댓글이 아닙니다."}
-    return HttpResponse(
-        json.dumps(data, cls=DjangoJSONEncoder), content_type="application/json"
-    )
 
 # 투표 시 회원, 비회원 구분 (회원일시 바로 결과페이지, 비회원일시 성별 페이지)
 @api_view(['POST'])
