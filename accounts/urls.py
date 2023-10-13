@@ -16,6 +16,9 @@ urlpatterns = [
     re_path(r'^account-confirm-email/(?P<key>[-:\w]+)/$', ConfirmEmailView.as_view(), name='account_confirm_email'),
     path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
+    path('user_info/', UserInfo),
+    path('mypage_info/', MyPageInfo),
+
     path('allauth/', include('allauth.urls')),
     path('kakao/login/', kakao_login, name='kakao_login'),
     path('kakao/login/callback/', kakao_callback, name='kakao_callback'),
