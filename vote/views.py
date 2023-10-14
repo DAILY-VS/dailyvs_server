@@ -276,6 +276,111 @@ class MypageView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+# 댓글 쓰기
+@login_required
+def comment_write_view(request, poll_id):
+    # user= request.user
+    # if user.is_authenticated :
+    #     if user.gender== "" or user.mbti=="":
+    #         return redirect("vote:update")
+    poll = get_object_or_404(Poll, id=poll_id)
+    user_info = request.user  # 현재 로그인한 사용자
+    content = request.POST.get("content")
+    parent_comment_id = request.POST.get("parent_comment_id")
+    
+    try:
+        user_vote = UserVote.objects.get(user=request.user, poll=poll)  # uservote에서 선택지 불러옴
+        choice_text = user_vote.choice.choice_text
+
+    except UserVote.DoesNotExist:
+            user_vote = None
+            choice_text = ""  # 또는 다른 기본값 설정
+            
+    if content:
+        if parent_comment_id:  # 대댓글인 경우
+            parent_comment = get_object_or_404(Comment, pk=parent_comment_id)
+            comment = Comment.objects.create(
+                poll=poll,
+                content=content,
+                user_info=user_info,
+                parent_comment=parent_comment,
+                
+            )
+            parent_comment_data = {
+                "nickname": parent_comment.user_info.nickname,
+                "mbti": parent_comment.user_info.mbti,
+                "gender": parent_comment.user_info.gender,
+                "content": parent_comment.content,
+                "created_at": parent_comment.created_at.strftime("%Y년 %m월 %d일"),
+                "comment_id": parent_comment.pk,
+            }
+        else:  # 일반 댓글인 경우
+            comment = Comment.objects.create(
+                poll=poll,
+                content=content,
+                user_info=user_info,
+            )
+            parent_comment_data = None
+        comments = Comment.objects.filter(poll_id=poll_id)
+        poll.comments = comments.count()
+        poll.save()
+        comment_id =Comment.objects.last().pk
+        data = {
+            "nickname": user_info.nickname,
+            "mbti": user_info.mbti,
+            "gender": user_info.gender,
+            "content": content,
+            "created_at": comment.created_at.strftime("%Y년 %m월 %d일"),
+            "comment_id": comment_id,
+            "choice": choice_text,
+            "new_comment_count": poll.comments,
+        }
+        
+        comment.choice = user_vote.choice
+        comment.save()
+        if parent_comment_data:
+            data["parent_comment"] = parent_comment_data
+
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder), content_type="application/json"
+        )
+
+
+# 댓글 삭제
+@login_required
+def comment_delete_view(request, pk):
+    # user= request.user
+    # if user.is_authenticated :
+    #     if user.gender== "" or user.mbti=="":
+    #         return redirect("vote:update")
+    poll = get_object_or_404(Poll, id=pk)
+    comment_id = request.POST.get("comment_id")
+    target_comment = Comment.objects.get(pk=comment_id)
+    if request.user == target_comment.user_info:
+        target_comment.delete()
+        comments = Comment.objects.filter(poll_id=pk)
+        poll.comments = comments.count()
+        poll.save()
+        data = {"comment_id": comment_id, "success": True,
+                "new_comment_count": poll.comments,}
+    else:
+        data = {"success": False, "error": "본인 댓글이 아닙니다."}
+    return HttpResponse(
+        json.dumps(data, cls=DjangoJSONEncoder), content_type="application/json"
+    )
+
+
+# 대댓글 수 파악
+def calculate_nested_count(request, comment_id):
+    # user= request.user
+    # if user.is_authenticated :
+    #     if user.gender== "" or user.mbti=="":
+    #         return redirect("vote:update")
+    nested_count = Comment.objects.filter(parent_comment_id=comment_id).count()
+    return JsonResponse({"nested_count": nested_count})
+
+"""
 # 투표 시 회원, 비회원 구분 (회원일시 바로 결과페이지, 비회원일시 성별 페이지)
 @api_view(['POST'])
 def poll_classifyuser(request, poll_id):
@@ -420,6 +525,7 @@ def poll_nonuserfinal(request, poll_id, nonuservote_id):
         return redirect(poll_result_page_url)
     else:
         return redirect("/")
+"""
 
 # 투표 시 poll_result 업데이트 함수 (uservote, nonuservote 둘 다)
 # 어떤 poll에 choice_id번 선택지를 골랐음. + **extra_fields(Poll의 카테고리)의 정보가 있음.
@@ -459,6 +565,88 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     return None
 
 
+class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
+    def get(self, request, poll_id): #새로고침, 링크로 접속 시
+        #기본 투표 정보
+        poll = get_object_or_404(Poll, id=poll_id)
+        choice_dict= {}
+        for idx, choice in enumerate(poll.choices.all()):
+            choice_dict[idx] = str(choice)
+        
+        #statistics
+        #statistics = poll_calcstat(poll_id)
+
+        # 댓글
+        comments = Comment.objects.filter(poll_id=poll_id)
+        comments_count = comments.count()
+        now = datetime.now() 
+        for comment in comments:
+            time_difference = now - comment.created_at
+            comment.time_difference = time_difference.total_seconds() / 3600  # 시간 단위로 변환하여 저장
+
+        #serialize
+        serialized_poll = PollSerializer(poll).data
+        serialized_comments= CommentSerializer(comments, many=True).data
+
+        context = {
+            "get": "get",
+            "poll": serialized_poll,
+            "choices": choice_dict,
+            #"statistics": statistics,
+            "comments": serialized_comments,
+            "comments_count":comments_count,
+            }
+
+
+        return Response(context)
+
+    def post(self, request, poll_id): #투표 완료 버튼 후 
+        #client에서 받은 정보 처리 
+        received_data = request.data
+        #choice = received_data['choice_id']
+        #gender = received_data['gender']
+        #mbti = received_data['mbti']
+        #age = received_data['age']
+
+        #기본 투표 정보
+        poll = get_object_or_404(Poll, id=poll_id)
+        choice_dict= {}
+        for idx, choice in enumerate(poll.choices.all()):
+            choice_dict[idx] = str(choice)
+
+        #poll_result_update
+        #poll_result_update(poll_id, choice, {'gender': gender}, {'mbti': mbti}, {'age': age})
+
+        #statistics, analysis 
+        #statistics = poll_calcstat(poll_id)
+        #analysis = poll_analysis(statistics, gender, mbti, age)
+
+        # 댓글
+        comments = Comment.objects.filter(poll_id=poll_id)
+        comments_count = comments.count()
+        now = datetime.now() 
+        for comment in comments:
+            time_difference = now - comment.created_at
+            comment.time_difference = time_difference.total_seconds() / 3600  # 시간 단위로 변환하여 저장
+
+        #serialize
+        serialized_poll = PollSerializer(poll).data
+        serialized_comments= CommentSerializer(comments, many=True).data
+
+        context = {
+            "post": "post",
+            "poll": serialized_poll,
+            "choices": choice_dict,
+            #"statistics": statistics,
+            #"analysis" : analysis,
+            "comments": serialized_comments,
+            "comments_count":comments_count,
+            }
+        
+        return Response(context)
+
+
+'''
 # 결과 페이지
 @api_view(['GET'])
 def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
@@ -573,7 +761,7 @@ def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
     }
     return Response(ctx)
 
-
+    
 # 결과페이지 회원/비회원 투표 통계 계산 함수
 def poll_calcstat(poll_id):
     poll_result = Poll_Result.objects.get(poll_id=poll_id)
@@ -911,6 +1099,7 @@ def poll_analysis(uservote_id, nonuservote_id, poll_id,
         analysis= "당신은 " + key + "이며 " + key + "의 " + str(maximum_value) + "%와 같은 선택을 했습니다."
 
     return key, analysis
+'''
 
 
 #포춘 쿠키 뽑기 함수
