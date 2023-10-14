@@ -531,6 +531,39 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         return Response(context)
 
 
+# 결과페이지 회원/비회원 투표 통계 계산 함수
+def poll_calcstat(poll_id):
+    poll_result = Poll_Result.objects.get(poll_id=poll_id)
+    
+    category_set = ["M", "W", "E", "I", "S", "N", "T", "F", "P", "J", "10", "20_1", "20_2", "30_1", "30_2", "40"]
+    total_count = poll_result.total_count
+    choice_count = poll_result.choice_count
+    TOLERANCE = 0
+    p = float(10**TOLERANCE)
+    data_set = [[],[],[],[],[]]
+    sum = [0 for i in range(16)]
+    for choice_id in range(choice_count):
+        choice_set = getattr(poll_result, 'choice' + str(choice_id))
+        for i in range(16):
+            n = int.from_bytes(choice_set[0 + 4 * i : 4 + 4 * i], byteorder='big', signed=False)
+            data_set[choice_id][i] = n
+            sum[i] += n
+        result['choice' + str(choice_id) + '_percentage'] = int(((data_set[choice_id][0] + data_set[choice_id][1]) / total_count * 100) * p + 0.5) / p
+
+    result = {}
+    for i in range(16):
+        for choice_id in range(choice_count):
+            value = 0
+            if sum[i] != 0:
+                n = data_set[choice_id][i] / sum[i] * 100
+                value = int(n * p + 0.5)/p
+            result['choice' + str(choice_id) + '_' + category_set[i] + '_percentage'] = value
+
+    result['total_count'] = total_count
+    result['choice_count'] = choice_count
+
+    return result
+
 '''
 # 결과 페이지
 @api_view(['GET'])
