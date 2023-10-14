@@ -354,7 +354,7 @@ def calculate_nested_count(request, comment_id):
     nested_count = Comment.objects.filter(parent_comment_id=comment_id).count()
     return JsonResponse({"nested_count": nested_count})
 
-
+"""
 # 투표 시 회원, 비회원 구분 (회원일시 바로 결과페이지, 비회원일시 성별 페이지)
 @api_view(['POST'])
 def poll_classifyuser(request, poll_id):
@@ -499,6 +499,7 @@ def poll_nonuserfinal(request, poll_id, nonuservote_id):
         return redirect(poll_result_page_url)
     else:
         return redirect("/")
+"""
 
 # 투표 시 poll_result 업데이트 함수 (uservote, nonuservote 둘 다)
 # 어떤 poll에 choice_id번 선택지를 골랐음. + **extra_fields(Poll의 카테고리)의 정보가 있음.
@@ -537,7 +538,102 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     poll_result.save()
     return None
 
+class poll_test(APIView):
+    def get(self, request, poll_id):
+        poll = get_object_or_404(Poll, id=poll_id)
+        print(poll)
+        print(poll.content)
+        print(poll.created_at)
+        print(poll.category.all())
+        choice_dict= {}
+        for idx, choice in enumerate(poll.choices.all()):
+            choice_dict[idx] = str(choice)
+        print(poll.choices.all())
+        context={
+            "choices" : choice_dict
+        }
+        return Response(context)
 
+
+class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
+    def get(self, request, poll_id): #새로고침, 링크로 접속 시
+        #기본 투표 정보
+        poll = get_object_or_404(Poll, id=poll_id)
+        choice_dict= {}
+        for idx, choice in enumerate(poll.choices.all()):
+            choice_dict[idx] = str(choice)
+        
+        #statistics
+        statistics = poll_calcstat(poll_id)
+
+        # 댓글
+        comments = Comment.objects.filter(poll_id=poll_id)
+        comments_count = comments.count()
+        now = datetime.now() 
+        for comment in comments:
+            time_difference = now - comment.created_at
+            comment.time_difference = time_difference.total_seconds() / 3600  # 시간 단위로 변환하여 저장
+
+        #serialize
+        serialized_poll = PollSerializer(poll).data
+        serialized_comments= CommentSerializer(comments, many=True).data
+
+        context = {
+            "get": "get",
+            "poll": serialized_poll,
+            "choices": choice_dict,
+            "statistics": statistics,
+            "comments": serialized_comments,
+            "comments_count":comments_count,
+            }
+
+
+        return Response(context)
+
+    def post(self, request, poll_id): #투표 완료 버튼 후 
+        #client에서 받은 정보 처리 
+        received_data = request.data
+        choices = received_data['choices']
+        choice = received_data['choice_id']
+        gender = received_data['gender']
+        mbti = received_data['mbti']
+        age = received_data['age']
+
+        #poll_result_update
+        poll = get_object_or_404(Poll, id=poll_id)
+        poll_result_update(poll_id, choice, {'gender': gender}, {'mbti': mbti}, {'age': age})
+
+        #statistics, analysis 
+        statistics = poll_calcstat(poll_id)
+        analysis = poll_analysis(statistics, gender, mbti, age)
+
+        # 댓글
+        comments = Comment.objects.filter(poll_id=poll_id)
+        comments_count = comments.count()
+        now = datetime.now() 
+        for comment in comments:
+            time_difference = now - comment.created_at
+            comment.time_difference = time_difference.total_seconds() / 3600  # 시간 단위로 변환하여 저장
+
+        #serialize
+        serialized_poll = PollSerializer(poll).data
+        serialized_comments= CommentSerializer(comments, many=True).data
+        serialized_choices=ChoiceSerializer(choices, many=True).data
+
+        context = {
+            "post": "post",
+            "poll": serialized_poll,
+            "choices": serialized_choices,
+            "statistics": statistics,
+            "analysis" : analysis,
+            "comments": serialized_comments,
+            "comments_count":comments_count,
+            }
+        
+        return Response(context)
+
+
+'''
 # 결과 페이지
 @api_view(['GET'])
 def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
@@ -652,7 +748,7 @@ def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
     }
     return Response(ctx)
 
-
+    
 # 결과페이지 회원/비회원 투표 통계 계산 함수
 def poll_calcstat(poll_id):
     poll_result = Poll_Result.objects.get(poll_id=poll_id)
@@ -990,6 +1086,7 @@ def poll_analysis(uservote_id, nonuservote_id, poll_id,
         analysis= "당신은 " + key + "이며 " + key + "의 " + str(maximum_value) + "%와 같은 선택을 했습니다."
 
     return key, analysis
+'''
 
 
 #포춘 쿠키 뽑기 함수
