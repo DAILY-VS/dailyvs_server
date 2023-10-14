@@ -17,18 +17,12 @@ urlpatterns = [
     #     name="poll_result_page" ,
     # ),
     # 유저
-    path("like/<int:poll_id>", views.PollListView.as_view(), name="poll_like"),
+    path("<int:poll_id>/like", views.PollLikeView.as_view(), name="poll_like"),
     path("comment_like/", views.CommentLikeView.as_view(), name="comment_like"),
+    path("<int:poll_id>/comment", views.CommentView.as_view(), name="comment"),
+    path("<int:poll_id>/comment/<int:comment_id>/delete/", views.comment_delete, name="comment_delete"),
     path("mypage/", views.MypageView.as_view(), name="mypage"),
-    path(
-        "<int:poll_id>/comment/write/", views.comment_write_view, name="comment_write"
-    ),
-    path("<int:pk>/comment/delete/", views.comment_delete_view, name="comment_delete"),
-    path(
-        "calculate-nested-count/<int:comment_id>/",
-        views.calculate_nested_count,
-        name="calculate_nested_count",
-    ),
+
     # path('get_replies/<int:comment_id>/', views.get_replies_view, name='get_replies'),    # 논유저
     # path('<int:poll_id>/<int:nonuservote_id>', views.poll_nonusergender, name='nonusergender'),
     # path(

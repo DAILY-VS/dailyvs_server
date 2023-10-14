@@ -58,8 +58,8 @@ class Comment(models.Model):
     user_info = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     content = models.CharField(max_length=200)
-    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True)  # 대댓글
-    likes_count = models.PositiveIntegerField(default=0)  # 좋아요 수
+    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)  # 대댓글
+    likes_count = models.PositiveIntegerField(default=0, null=True, blank=True)  # 좋아요 수
     comment_like = models.ManyToManyField(
         'accounts.User',
         related_name='comment_like',

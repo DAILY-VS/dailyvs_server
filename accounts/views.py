@@ -4,12 +4,15 @@ import requests
 from json import JSONDecodeError
 from django.http import JsonResponse
 from rest_framework import status
-from .models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from config import local_settings
+from rest_framework.response import Response
 
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from vote.models import Poll, UserVote
 
 # 카카오 로그인 요청 (이건 나중에 프론트에서 할 예정)
 def kakao_login(request):
@@ -124,3 +127,38 @@ class ConfirmEmailView(APIView):
         qs = EmailConfirmation.objects.all_valid()
         qs = qs.select_related("email_address__user")
         return qs
+    
+def MyPageInfo(request):
+    user = request.user
+    voted_polls = []
+    v_app = voted_polls.append
+    for poll_id in user.voted_polls:
+        poll = Poll.objects.get(id=poll_id)
+        v_app({
+            "title": poll.title,
+            "owner": User.objects.get(id=poll.owner).nickname,
+            "thumbnail": poll.thumbnail,
+            "id": poll.id,
+            "choice": UserVote.objects.get(user=user, poll=poll).choice,
+        })
+
+    context = {
+        "email": user.email,
+        "nickname": user.nickname,
+        "gender": user.gender,
+        "mbti": user.mbti,
+        "age": user.age,
+        "voted_polls": voted_polls
+    }
+    return Response(context)
+
+def UserInfo(request):
+    user = request.user
+    context = {
+        "email": user.email,
+        "nickname": user.nickname,
+        "gender": user.gender,
+        "mbti": user.mbti,
+        "age": user.age,
+    }
+    return Response(context)
