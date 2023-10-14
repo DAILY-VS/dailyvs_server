@@ -140,12 +140,14 @@ def MyPageInfo(request):
         v_app({
             "id": poll.id,
             "title": poll.title,
+            "owner_id": poll.owner.id,
             "owner": poll.owner.nickname,
             "thumbnail": poll.thumbnail.url,
             "choice": UserVote.objects.get(user=user, poll=poll.id).choice.choice_text,
         })
 
     context = {
+        "id": user.id,
         "email": user.email,
         "nickname": user.nickname,
         "gender": user.gender,
@@ -159,6 +161,7 @@ def MyPageInfo(request):
 def UserInfo(request):
     user = request.user
     context = {
+        "id": user.id,
         "email": user.email,
         "nickname": user.nickname,
         "gender": user.gender,
