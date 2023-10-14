@@ -487,8 +487,9 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         now = datetime.now() 
         for comment in comments:
             time_difference = now - comment.created_at
+            print(time_difference)
             comment.time_difference = time_difference.total_seconds() / 3600  # 시간 단위로 변환하여 저장
-
+            print(comment.time_difference)
         #serialize
         serialized_poll = PollSerializer(poll).data
         serialized_comments= CommentSerializer(comments, many=True).data
