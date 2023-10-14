@@ -4,10 +4,10 @@ import requests
 from json import JSONDecodeError
 from django.http import JsonResponse
 from rest_framework import status
-from django.contrib.auth import get_user_model
-User = get_user_model()
+from .models import User
 from config import local_settings
 from rest_framework.response import Response
+
 
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao import views as kakao_view
@@ -132,14 +132,15 @@ def MyPageInfo(request):
     user = request.user
     voted_polls = []
     v_app = voted_polls.append
-    for poll_id in user.voted_polls:
-        poll = Poll.objects.get(id=poll_id)
+    print(user.voted_polls)
+    for poll_n in user.voted_polls.all():
+        poll = Poll.objects.get(id=poll_n.id)
         v_app({
             "title": poll.title,
-            "owner": User.objects.get(id=poll.owner).nickname,
-            "thumbnail": poll.thumbnail,
+            "owner": poll.owner.nickname,
+            "thumbnail": poll.thumbnail.url,
             "id": poll.id,
-            "choice": UserVote.objects.get(user=user, poll=poll).choice,
+            "choice": UserVote.objects.get(user=user, poll=poll.id).choice.choice_text,
         })
 
     context = {
@@ -150,7 +151,7 @@ def MyPageInfo(request):
         "age": user.age,
         "voted_polls": voted_polls
     }
-    return Response(context)
+    return JsonResponse(context)
 
 def UserInfo(request):
     user = request.user
