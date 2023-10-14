@@ -1,17 +1,15 @@
 import json
-import random
+import random, math
 import numpy as np
 from .models import *
 #from accounts.models import *
 from .fortunes import fortunes
 from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
-from datetime import datetime, timedelta
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -484,10 +482,6 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         # 댓글
         comments = Comment.objects.filter(poll_id=poll_id)
         comments_count = comments.count()
-        now = datetime.now() 
-        for comment in comments:
-            time_difference = now - comment.created_at
-            comment.time_difference = time_difference.total_seconds() / 3600  # 시간 단위로 변환하여 저장
 
         #serialize
         serialized_poll = PollSerializer(poll).data
@@ -501,8 +495,6 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
             "comments": serialized_comments,
             "comments_count":comments_count,
             }
-
-
         return Response(context)
 
     def post(self, request, poll_id): #투표 완료 버튼 후 
@@ -525,17 +517,8 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         #statistics = poll_calcstat(poll_id)
         #analysis = poll_analysis(statistics, gender, mbti, age)
 
-        # 댓글
-        comments = Comment.objects.filter(poll_id=poll_id)
-        comments_count = comments.count()
-        now = datetime.now() 
-        for comment in comments:
-            time_difference = now - comment.created_at
-            comment.time_difference = time_difference.total_seconds() / 3600  # 시간 단위로 변환하여 저장
-
         #serialize
         serialized_poll = PollSerializer(poll).data
-        serialized_comments= CommentSerializer(comments, many=True).data
 
         context = {
             "post": "post",
@@ -543,8 +526,6 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
             "choices": choice_dict,
             #"statistics": statistics,
             #"analysis" : analysis,
-            "comments": serialized_comments,
-            "comments_count":comments_count,
             }
         
         return Response(context)
