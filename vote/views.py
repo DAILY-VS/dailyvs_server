@@ -28,7 +28,6 @@ User = get_user_model()
 
 # 메인페이지
 class MainView(APIView):
-    permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser,) #API파일업로드
     def get(self, request):
         polls = Poll.objects.all()
@@ -194,7 +193,6 @@ class PollLikeView(APIView):
 
 # 댓글 좋아요
 class CommentLikeView(APIView):
-    permission_classes = [IsAuthenticated]
     def get(self, request, poll_id):
         comment = get_object_or_404(Comment, id=poll_id)
         serializer = CommentLikeSerializer(comment).data
