@@ -538,22 +538,6 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     poll_result.save()
     return None
 
-class poll_test(APIView):
-    def get(self, request, poll_id):
-        poll = get_object_or_404(Poll, id=poll_id)
-        print(poll)
-        print(poll.content)
-        print(poll.created_at)
-        print(poll.category.all())
-        choice_dict= {}
-        for idx, choice in enumerate(poll.choices.all()):
-            choice_dict[idx] = str(choice)
-        print(poll.choices.all())
-        context={
-            "choices" : choice_dict
-        }
-        return Response(context)
-
 
 class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
     def get(self, request, poll_id): #새로고침, 링크로 접속 시
@@ -564,7 +548,7 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
             choice_dict[idx] = str(choice)
         
         #statistics
-        statistics = poll_calcstat(poll_id)
+        #statistics = poll_calcstat(poll_id)
 
         # 댓글
         comments = Comment.objects.filter(poll_id=poll_id)
@@ -582,7 +566,7 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
             "get": "get",
             "poll": serialized_poll,
             "choices": choice_dict,
-            "statistics": statistics,
+            #"statistics": statistics,
             "comments": serialized_comments,
             "comments_count":comments_count,
             }
@@ -593,19 +577,23 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
     def post(self, request, poll_id): #투표 완료 버튼 후 
         #client에서 받은 정보 처리 
         received_data = request.data
-        choices = received_data['choices']
-        choice = received_data['choice_id']
-        gender = received_data['gender']
-        mbti = received_data['mbti']
-        age = received_data['age']
+        #choice = received_data['choice_id']
+        #gender = received_data['gender']
+        #mbti = received_data['mbti']
+        #age = received_data['age']
+
+        #기본 투표 정보
+        poll = get_object_or_404(Poll, id=poll_id)
+        choice_dict= {}
+        for idx, choice in enumerate(poll.choices.all()):
+            choice_dict[idx] = str(choice)
 
         #poll_result_update
-        poll = get_object_or_404(Poll, id=poll_id)
-        poll_result_update(poll_id, choice, {'gender': gender}, {'mbti': mbti}, {'age': age})
+        #poll_result_update(poll_id, choice, {'gender': gender}, {'mbti': mbti}, {'age': age})
 
         #statistics, analysis 
-        statistics = poll_calcstat(poll_id)
-        analysis = poll_analysis(statistics, gender, mbti, age)
+        #statistics = poll_calcstat(poll_id)
+        #analysis = poll_analysis(statistics, gender, mbti, age)
 
         # 댓글
         comments = Comment.objects.filter(poll_id=poll_id)
@@ -618,14 +606,13 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         #serialize
         serialized_poll = PollSerializer(poll).data
         serialized_comments= CommentSerializer(comments, many=True).data
-        serialized_choices=ChoiceSerializer(choices, many=True).data
 
         context = {
             "post": "post",
             "poll": serialized_poll,
-            "choices": serialized_choices,
-            "statistics": statistics,
-            "analysis" : analysis,
+            "choices": choice_dict,
+            #"statistics": statistics,
+            #"analysis" : analysis,
             "comments": serialized_comments,
             "comments_count":comments_count,
             }

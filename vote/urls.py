@@ -10,7 +10,6 @@ urlpatterns = [
     path("", views.MainView.as_view(), name="main"),
     path("<int:poll_id>/", views.PollDetailView.as_view(), name="detail"),
     path("<int:poll_id>/poll_result_page", views.poll_result_page.as_view(), name="poll_result_page"),
-    path("poll_test/<int:poll_id>", views.poll_test.as_view(), name="poll_test"),
     # path("<int:poll_id>/gender", views.poll_classifyuser, name="poll_classifyuser"),
     # path(
     #     "<int:poll_id>/poll_result_page/<int:uservote_id>/<int:nonuservote_id>",
