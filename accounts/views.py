@@ -4,10 +4,11 @@ import requests
 from json import JSONDecodeError
 from django.http import JsonResponse
 from rest_framework import status
-from django.contrib.auth import get_user_model
-User = get_user_model()
+from .models import User
 from config import local_settings
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
+
 
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao import views as kakao_view
@@ -128,18 +129,20 @@ class ConfirmEmailView(APIView):
         qs = qs.select_related("email_address__user")
         return qs
     
+@api_view(['GET'])
 def MyPageInfo(request):
     user = request.user
     voted_polls = []
     v_app = voted_polls.append
-    for poll_id in user.voted_polls:
-        poll = Poll.objects.get(id=poll_id)
+    print(user.voted_polls)
+    for poll_n in user.voted_polls.all():
+        poll = Poll.objects.get(id=poll_n.id)
         v_app({
-            "title": poll.title,
-            "owner": User.objects.get(id=poll.owner).nickname,
-            "thumbnail": poll.thumbnail,
             "id": poll.id,
-            "choice": UserVote.objects.get(user=user, poll=poll).choice,
+            "title": poll.title,
+            "owner": poll.owner.nickname,
+            "thumbnail": poll.thumbnail.url,
+            "choice": UserVote.objects.get(user=user, poll=poll.id).choice.choice_text,
         })
 
     context = {
@@ -152,6 +155,7 @@ def MyPageInfo(request):
     }
     return Response(context)
 
+@api_view(['GET'])
 def UserInfo(request):
     user = request.user
     context = {
