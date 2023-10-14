@@ -7,6 +7,7 @@ from rest_framework import status
 from .models import User
 from config import local_settings
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 
 from dj_rest_auth.registration.views import SocialLoginView
@@ -128,6 +129,7 @@ class ConfirmEmailView(APIView):
         qs = qs.select_related("email_address__user")
         return qs
     
+@api_view(['GET'])
 def MyPageInfo(request):
     user = request.user
     voted_polls = []
@@ -136,10 +138,10 @@ def MyPageInfo(request):
     for poll_n in user.voted_polls.all():
         poll = Poll.objects.get(id=poll_n.id)
         v_app({
+            "id": poll.id,
             "title": poll.title,
             "owner": poll.owner.nickname,
             "thumbnail": poll.thumbnail.url,
-            "id": poll.id,
             "choice": UserVote.objects.get(user=user, poll=poll.id).choice.choice_text,
         })
 
@@ -151,8 +153,9 @@ def MyPageInfo(request):
         "age": user.age,
         "voted_polls": voted_polls
     }
-    return JsonResponse(context)
+    return Response(context)
 
+@api_view(['GET'])
 def UserInfo(request):
     user = request.user
     context = {
