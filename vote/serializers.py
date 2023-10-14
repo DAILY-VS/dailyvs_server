@@ -28,7 +28,23 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_time_difference(self, obj): #클라이언트에게 넘겨줄 시간차이(-전)
         now = datetime.now()
         time_difference = now - obj.created_at
-        return math.trunc(time_difference.total_seconds() / 3600) #시간으로변환, 소수점 버리기
+        seconds = time_difference.total_seconds() #초로변환
+        
+        if seconds < 60: #몇초 전
+            return f"{math.trunc(seconds)}초 전"
+        elif seconds < 3600: #몇분 전
+            return f"{math.trunc(seconds / 60)}분 전"
+        elif seconds < 86400: #몇시간 전 (60*60*24)
+            return f"{math.trunc(seconds / 3600)}시간 전"
+        elif seconds < 604800: #몇일 전 (60*60*24*7)
+            return f"{math.trunc(seconds / 86400)}일 전"
+        elif seconds < 2419200: #몇달 전 (60*60*24*7*30)
+            return f"{math.trunc(seconds / 604800)}주 전"
+        elif seconds < 29030400:  #몇달 전 (60*60*24*7*30)
+            return f"{math.trunc(seconds / 2419200)}달 전"
+        else: #몇년 전
+            return f"{math.trunc(seconds / 29030400)}년 전"
+        
     class Meta:
         model = Comment
         fields = '__all__'
