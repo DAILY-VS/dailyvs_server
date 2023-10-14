@@ -149,11 +149,17 @@ class CommentView(APIView):
         return Response(serializer, status=status.HTTP_200_OK)
 
     def post(self, request, poll_id):
-        serializer = CommentSerializer(data=request.data)
+        choice = UserVote.objects.get(user=request.user, poll=poll_id).choice
+        data= {
+            **request.data,
+            'choice': choice.id,
+        }
+        serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save(user_info=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # 댓글 delete
 @api_view(['DELETE'])
@@ -164,7 +170,8 @@ def comment_delete(request, poll_id, comment_id):
         return Response("success", status=status.HTTP_204_NO_CONTENT)
     else:
         return Response("fail", status=status.HTTP_403_FORBIDDEN)
-    
+
+
 # 투표 좋아요
 class PollLikeView(APIView):
     def get(self, request, poll_id):
@@ -191,6 +198,7 @@ class PollLikeView(APIView):
             "user_likes_poll": user_likes_poll #user_likes_comment가 True일 때 좋아요를 누르고 있는 상태
         }
         return Response(context, status=status.HTTP_200_OK)
+
 
 # 댓글 좋아요
 class CommentLikeView(APIView):
@@ -224,6 +232,7 @@ class CommentLikeView(APIView):
             "user_likes_comment": user_likes_comment 
         }
         return Response(context, status=status.HTTP_200_OK)
+
 
 class MypageView(APIView):
     def get(self, request):
@@ -423,6 +432,7 @@ def poll_nonuserfinal(request, poll_id, nonuservote_id):
     else:
         return redirect("/")
 """
+
 
 # 투표 시 poll_result 업데이트 함수 (uservote, nonuservote 둘 다)
 # 어떤 poll에 choice_id번 선택지를 골랐음. + **extra_fields(Poll의 카테고리)의 정보가 있음.
@@ -997,6 +1007,7 @@ def poll_analysis(uservote_id, nonuservote_id, poll_id,
 
     return key, analysis
 '''
+
 
 
 #포춘 쿠키 뽑기 함수
