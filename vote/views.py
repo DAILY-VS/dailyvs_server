@@ -440,7 +440,7 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     # M, W \x00\x00\x00\x10 \x00\x00\x00\x10
     # E I S N T F P J \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 
     # 10 20_1 20_2 30_1 30_2 40 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10
-    poll_result, created = Poll_Result.objects.get_or_create(id=poll_id)
+    poll_result, created = Poll_Result.objects.get_or_create(poll_id=poll_id)
     # 기존 값 가져오기 -> 나누고 정수 변환 -> 1 더하기 -> 비트로 변환하고 붙이기 -> 저장
     # 기존 값 가져오기
     choice_set = getattr(poll_result, 'choice' + str(choice_id))
@@ -508,11 +508,10 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
     def post(self, request, poll_id): #투표 완료 버튼 후 
         #client에서 받은 정보 처리 
         received_data = request.data
-        #choice = received_data['choice_id']
-        #gender = received_data['gender']
-        #mbti = received_data['mbti']
-        #age = received_data['age']
-
+        choice_id = received_data['choice_id']
+        gender = received_data['gender']
+        mbti = received_data['mbti']
+        age = received_data['age']
         #기본 투표 정보
         poll = get_object_or_404(Poll, id=poll_id)
         choice_dict= {}
@@ -520,7 +519,7 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
             choice_dict[idx] = str(choice)
 
         #poll_result_update
-        #poll_result_update(poll_id, choice, {'gender': gender}, {'mbti': mbti}, {'age': age})
+        poll_result_update(poll_id, choice_id, **{'gender': gender, 'mbti': mbti, 'age': age})
 
         #statistics, analysis 
         #statistics = poll_calcstat(poll_id)
@@ -917,7 +916,6 @@ def poll_calcstat(poll_id):
         f_choice1_percentage, f_choice2_percentage,
         p_choice1_percentage, p_choice2_percentage,
         j_choice1_percentage, j_choice2_percentage)
-
 
 # 결과페이지 성향 분석 함수 
 def poll_analysis(uservote_id, nonuservote_id, poll_id,    
