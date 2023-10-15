@@ -176,6 +176,7 @@ REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'access',
     'JWT_AUTH_REFRESH_COOKIE': 'refresh',
+    'JWT_AUTH_HTTPONLY': False,
 }
 ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
 
