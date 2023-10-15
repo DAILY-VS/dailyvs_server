@@ -26,7 +26,7 @@ User = get_user_model()
 
 # 메인페이지
 class MainView(APIView):
-    parser_classes = (MultiPartParser,) #API파일업로드
+    #parser_classes = (MultiPartParser,) #API파일업로드
     def get(self, request):
         polls = Poll.objects.all()
         polls = polls.order_by("-id")
@@ -97,7 +97,7 @@ class PollDetailView(APIView):
 
         #이미 투표한 경우 
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
-            uservote = UserVote.objects.filter(poll_id=poll_id).get(user=user)
+            uservote = UserVote.objects.filter(poll_id=poll_id, user=user)
             poll_result_page_url = reverse("vote:poll_result_page", args=[poll_id, uservote.id, 0])
             return redirect(poll_result_page_url)
 
@@ -157,7 +157,6 @@ class CommentView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 # 댓글 delete
 @api_view(['DELETE'])
 def comment_delete(request, poll_id, comment_id):
@@ -192,24 +191,25 @@ class PollLikeView(APIView):
         context = {
             "message": message,
             "like_count": like_count,
-            "user_likes_poll": user_likes_poll #user_likes_comment가 True일 때 좋아요를 누르고 있는 상태
+            "user_likes_poll": not user_likes_poll #user_likes_comment가 True일 때 좋아요를 누르고 있는 상태
         }
         return Response(context, status=status.HTTP_200_OK)
 
 
 # 댓글 좋아요
 class CommentLikeView(APIView):
-    def get(self, request, poll_id):
-        comment = get_object_or_404(Comment, id=poll_id)
+    def get(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
         serializer = CommentLikeSerializer(comment).data
         return Response(serializer, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        comment_id = request.data.get('comment_id')
+    def post(self, request, comment_id):
         try:
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response({"error": "해당 댓글이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        comment = get_object_or_404(Comment, id=comment_id)
         user = request.user
         user_likes_comment = comment.comment_like.filter(id=user.id).exists()
         print(user_likes_comment)
@@ -225,7 +225,7 @@ class CommentLikeView(APIView):
         context = {
             "like_count": like_count,
             "message": message,
-            "user_likes_comment": user_likes_comment 
+            "user_likes_comment": not user_likes_comment 
         }
         return Response(context, status=status.HTTP_200_OK)
 
@@ -234,19 +234,20 @@ class MypageView(APIView):
     def get(self, request):
         user = request.user
         if not user.is_authenticated:
-            return Response({"error": "인증되지 않은 사용자입니다."}, status=401)
+            return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
 
-        # if user.is_authenticated:
-        #     if user.gender == "" or user.mbti == "":
-        #         return redirect("vote:update")
-
-        # 사용자의 투표 목록 가져오기
-        uservotes = UserVote.objects.filter(user=request.user)
-
+        #사용자의 투표 목록 가져오기
+        uservote = UserVote.objects.filter(user=request.user)
+        #내가 만든 투표 목목 가져오기
+        my_poll = Poll.objects.filter(owner=request.user)
+        #사용자가 좋아하는 투표 목록 가져오기
+        poll_like = Poll.objects.filter(poll_like=request.user)
+        #유저 정보 불러오기
+        user_info = User.objects.get(email=request.user)
+        
         # 투표 목록을 페이지별로 페이징
-        paginator = Paginator(uservotes, 4)
+        paginator = Paginator(uservote, 4)
         page = request.GET.get("page")
-
         try:
             page_obj = paginator.page(page)
         except PageNotAnInteger:
@@ -256,31 +257,38 @@ class MypageView(APIView):
             page = paginator.num_pages
             page_obj = paginator.page(page)
 
-        # 사용자가 좋아하는 투표 목록 가져오기
-        polls_like = Poll.objects.filter(poll_like=request.user)
-        length_polls_like = len(polls_like)
-
-        # 페이지 객체를 시리얼라이즈
-        serializer = PollSerializer(page_obj, many=True)
+        uservote_serializer = UserVoteSerializer(uservote, many=True).data
+        mypoll_serializer = PollSerializer(my_poll, many=True).data
+        poll_like_serializer = PollSerializer(poll_like, many=True).data
 
         context = {
-            "uservotes": serializer.data,
-            "polls_like": length_polls_like,
+            "uservote": uservote_serializer,
+            "my_poll": mypoll_serializer,
+            "poll_like": poll_like_serializer,
+            "user": {
+                "nickname": user_info.nickname,
+                "age": user_info.age,
+                "mbti": user_info.mbti,
+                "gender": user_info.gender
+            },
             "page_obj": page_obj.number,
-            "num_pages": paginator.num_pages,
+            "paginator": {
+                "num_pages": paginator.num_pages,
+                "count": paginator.count,
+            },
         }
 
         return Response(context)
-    #마이페이지 수정
+    #마이페이지 수정 (account로 옮길 예정)
     def put(self, request):
         user = request.user
-
-        serializer = UserUpdateSerializer(user, data=request.data)
+        serializer = UserSerializer(user, data=request.data)
+        print(serializer)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 """
 # 투표 시 회원, 비회원 구분 (회원일시 바로 결과페이지, 비회원일시 성별 페이지)
