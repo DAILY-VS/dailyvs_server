@@ -7,7 +7,7 @@ import math
 
 class PollSerializer(serializers.ModelSerializer):
     
-    thumbnail= serializers.ImageField(use_url=True)
+    #thumbnail= serializers.ImageField(use_url=True)
     class Meta:
         model = Poll
         fields = '__all__'
@@ -59,11 +59,12 @@ class PollLikeSerializer(serializers.ModelSerializer):
         model = Poll
         fields = '__all__'
     
-class UserUpdateSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'gender', 'mbti']
+        fields = ['nickname', 'age', 'gender', 'mbti']
 
 class CommentLikeSerializer(serializers.ModelSerializer):
-    comment_id = serializers.IntegerField()
-    user_id = serializers.IntegerField()
+    class Meta:
+        model = Comment
+        fields = '__all__'
