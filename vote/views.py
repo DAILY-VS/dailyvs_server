@@ -564,6 +564,82 @@ def poll_calcstat(poll_id):
 
     return result
 
+# 결과페이지 성향 분석 함수 
+def poll_analysis(statistics, gender, mbti, age):
+    try:
+        currentvote = UserVote.objects.get(id=uservote_id)
+        currentuser = currentvote.user
+        currentgender = currentuser.gender
+        currentmbti = currentuser.mbti 
+    except ObjectDoesNotExist:
+        currentvote = NonUserVote.objects.get(id=nonuservote_id)
+        currentgender = currentvote.gender
+        currentmbti = currentvote.MBTI
+
+    dict = {}
+    if currentvote.choice.id == 2*poll_id - 1:
+        if currentgender == "M":
+            dict["남성"] = choice1_man_percentage
+        elif currentgender == "W":
+            dict["여성"] = choice1_woman_percentage
+        for letter in currentmbti:
+            if letter == "E":
+                dict["E"] = e_choice1_percentage
+            elif letter == "I":
+                dict["I"] = i_choice1_percentage
+            elif letter == "S":
+                dict["S"] = s_choice1_percentage
+            elif letter == "N":
+                dict["N"] = n_choice1_percentage
+            elif letter == "T":
+                dict["T"] = t_choice1_percentage
+            elif letter == "F":
+                dict["F"] = f_choice1_percentage
+            elif letter == "P":
+                dict["P"] = p_choice1_percentage
+            elif letter == "J":
+                dict["J"] = j_choice1_percentage
+    if currentvote.choice.id == 2*poll_id :
+        if currentgender == "M":
+            dict["남성"] = choice2_man_percentage
+        elif currentgender == "W":
+            dict["여성"] = choice2_woman_percentage
+        for letter in currentmbti:
+            if letter == "E":
+                dict["E"] = e_choice2_percentage
+            elif letter == "I":
+                dict["I"] = i_choice2_percentage
+            elif letter == "S":
+                dict["S"] = s_choice2_percentage
+            elif letter == "N":
+                dict["N"] = n_choice2_percentage
+            elif letter == "T":
+                dict["T"] = t_choice2_percentage
+            elif letter == "F":
+                dict["F"] = f_choice2_percentage
+            elif letter == "P":
+                dict["P"] = p_choice2_percentage
+            elif letter == "J":
+                dict["J"] = j_choice2_percentage
+
+    maximum_key = max(dict, key=dict.get)
+    maximum_value = dict[max(dict, key=dict.get)]
+
+    minimum_key = min(dict, key=dict.get)
+    minimum_value = 100 - dict[min(dict, key=dict.get)]
+
+    if minimum_value >= maximum_value:
+        key = minimum_key
+    else : 
+        key = maximum_key
+
+    if key == minimum_key: 
+        analysis= "당신은 " + key + "이지만 " + key + "의 " + str(minimum_value) + "%와 다른 선택을 했습니다."
+    elif key == maximum_key:
+        analysis= "당신은 " + key + "이며 " + key + "의 " + str(maximum_value) + "%와 같은 선택을 했습니다."
+
+    return key, analysis
+
 '''
 # 결과 페이지
 @api_view(['GET'])
@@ -678,258 +754,6 @@ def poll_result_page(request, poll_id, uservote_id, nonuservote_id):
         "new_comment_count": poll.comments,
     }
     return Response(ctx)
-
-    
-# 결과페이지 회원/비회원 투표 통계 계산 함수
-def poll_calcstat(poll_id):
-    poll_result = Poll_Result.objects.get(poll_id=poll_id)
-
-    total_count = poll_result.total
-
-    choice1_percentage = int(np.round((poll_result.choice1_man + poll_result.choice1_woman) / total_count * 100))
-    choice2_percentage = int(np.round((poll_result.choice2_man + poll_result.choice2_woman) / total_count * 100))
-
-    choice1_man_percentage = (
-        (
-            np.round(
-                poll_result.choice1_man
-                / (poll_result.choice1_man + poll_result.choice2_man)
-                * 100,
-                1,
-            )
-        )
-        if (poll_result.choice1_man + poll_result.choice2_man) != 0
-        else 0
-    )
-    choice2_man_percentage =  (
-        (
-            np.round(
-                poll_result.choice2_man
-                / (poll_result.choice1_man + poll_result.choice2_man)
-                * 100,
-                1,
-            )
-        )
-        if (poll_result.choice1_man + poll_result.choice2_man) != 0
-        else 0
-    )
-    choice1_woman_percentage = (
-        (
-            np.round(
-                poll_result.choice1_woman
-                / (poll_result.choice1_woman + poll_result.choice2_woman)
-                * 100,
-                1,
-            )
-        )
-        if (poll_result.choice1_woman + poll_result.choice2_woman) != 0
-        else 0
-    )
-    choice2_woman_percentage = (
-        (
-            np.round(
-                poll_result.choice2_woman
-                / (poll_result.choice1_woman + poll_result.choice2_woman)
-                * 100,
-                1,
-            )
-        )
-        if (poll_result.choice1_woman + poll_result.choice2_woman) != 0
-        else 0
-    )
-
-    e_choice1_percentage = (
-        (
-            np.round(
-                poll_result.choice1_E
-                / (poll_result.choice1_E + poll_result.choice2_E)
-                * 100
-            )
-        )
-        if (poll_result.choice1_E + poll_result.choice2_E) != 0
-        else 0
-    )
-    e_choice2_percentage = (
-        (
-            np.round(
-                poll_result.choice2_E
-                / (poll_result.choice1_E + poll_result.choice2_E)
-                * 100
-            )
-        )
-        if (poll_result.choice1_E + poll_result.choice2_E) != 0
-        else 0
-    )
-    i_choice1_percentage = (
-        (
-            np.round(
-                poll_result.choice1_I
-                / (poll_result.choice1_I + poll_result.choice2_I)
-                * 100
-            )
-        )
-        if (poll_result.choice1_I + poll_result.choice2_I) != 0
-        else 0
-    )
-    i_choice2_percentage = (
-        (
-            np.round(
-                poll_result.choice2_I
-                / (poll_result.choice1_I + poll_result.choice2_I)
-                * 100
-            )
-        )
-        if (poll_result.choice1_I + poll_result.choice2_I) != 0
-        else 0
-    )
-
-    n_choice1_percentage = (
-        (
-            np.round(
-                poll_result.choice1_N
-                / (poll_result.choice1_N + poll_result.choice2_N)
-                * 100
-            )
-        )
-        if (poll_result.choice1_N + poll_result.choice2_N) != 0
-        else 0
-    )
-    n_choice2_percentage = (
-        (
-            np.round(
-                poll_result.choice2_N
-                / (poll_result.choice1_N + poll_result.choice2_N)
-                * 100
-            )
-        )
-        if (poll_result.choice1_N + poll_result.choice2_N) != 0
-        else 0
-    )
-    s_choice1_percentage = (
-        (
-            np.round(
-                poll_result.choice1_S
-                / (poll_result.choice1_S + poll_result.choice2_S)
-                * 100
-            )
-        )
-        if (poll_result.choice1_S + poll_result.choice2_S) != 0
-        else 0
-    )
-    s_choice2_percentage = (
-        (
-            np.round(
-                poll_result.choice2_S
-                / (poll_result.choice1_S + poll_result.choice2_S)
-                * 100
-            )
-        )
-        if (poll_result.choice1_S + poll_result.choice2_S) != 0
-        else 0
-    )
-
-    t_choice1_percentage = (
-        (
-            np.round(
-                poll_result.choice1_T
-                / (poll_result.choice1_T + poll_result.choice2_T)
-                * 100
-            )
-        )
-        if (poll_result.choice1_T + poll_result.choice2_T) != 0
-        else 0
-    )
-    t_choice2_percentage = (
-        (
-            np.round(
-                poll_result.choice2_T
-                / (poll_result.choice1_T + poll_result.choice2_T)
-                * 100
-            )
-        )
-        if (poll_result.choice1_T + poll_result.choice2_T) != 0
-        else 0
-    )
-    f_choice1_percentage = (
-        (
-            np.round(
-                poll_result.choice1_F
-                / (poll_result.choice1_F + poll_result.choice2_F)
-                * 100
-            )
-        )
-        if (poll_result.choice1_F + poll_result.choice2_F) != 0
-        else 0
-    )
-    f_choice2_percentage = (
-        (
-            np.round(
-                poll_result.choice2_F
-                / (poll_result.choice1_F + poll_result.choice2_F)
-                * 100
-            )
-        )
-        if (poll_result.choice1_F + poll_result.choice2_F) != 0
-        else 0
-    )
-
-    p_choice1_percentage = (
-        (
-            np.round(
-                poll_result.choice1_P
-                / (poll_result.choice1_P + poll_result.choice2_P)
-                * 100
-            )
-        )
-        if (poll_result.choice1_P + poll_result.choice2_P) != 0
-        else 0
-    )
-    p_choice2_percentage = (
-        (
-            np.round(
-                poll_result.choice2_P
-                / (poll_result.choice1_P + poll_result.choice2_P)
-                * 100
-            )
-        )
-        if (poll_result.choice1_P + poll_result.choice2_P) != 0
-        else 0
-    )
-    j_choice1_percentage = (
-        (
-            np.round(
-                poll_result.choice1_J
-                / (poll_result.choice1_J + poll_result.choice2_J)
-                * 100
-            )
-        )
-        if (poll_result.choice1_J + poll_result.choice2_J) != 0
-        else 0
-    )
-    j_choice2_percentage = (
-        (
-            np.round(
-                poll_result.choice2_J
-                / (poll_result.choice1_J + poll_result.choice2_J)
-                * 100
-            )
-        )
-        if (poll_result.choice1_J + poll_result.choice2_J) != 0
-        else 0
-    )
-
-    return (total_count,
-        choice1_percentage, choice2_percentage, 
-        choice1_man_percentage, choice2_man_percentage,
-        choice1_woman_percentage, choice2_woman_percentage,
-        e_choice1_percentage, e_choice2_percentage,
-        i_choice1_percentage, i_choice2_percentage,
-        n_choice1_percentage, n_choice2_percentage,
-        s_choice1_percentage, s_choice2_percentage,
-        t_choice1_percentage, t_choice2_percentage,
-        f_choice1_percentage, f_choice2_percentage,
-        p_choice1_percentage, p_choice2_percentage,
-        j_choice1_percentage, j_choice2_percentage)
 
 # 결과페이지 성향 분석 함수 
 def poll_analysis(uservote_id, nonuservote_id, poll_id,    
