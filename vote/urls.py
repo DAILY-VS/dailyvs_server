@@ -15,6 +15,7 @@ urlpatterns = [
     #     name="poll_result_page" ,
     # ),
     # 유저
+    path("create", views.poll_create, name="poll_create"), #투표 만들기
     path("<int:poll_id>/like", views.PollLikeView.as_view(), name="poll_like"),
     path("<int:comment_id>/comment_like", views.CommentLikeView.as_view(), name="comment_like"),
     path("<int:poll_id>/comment", views.CommentView.as_view(), name="comment"),

@@ -1,16 +1,3 @@
-{
-"choice_id":1,
-"gender":"M",
-"mbti":"INTP",
-"age":"10",
-"category_list":["age","gender","mbti"]
-}
-
-
-
-
-
-
 import json
 import random, math
 import numpy as np
@@ -39,7 +26,6 @@ User = get_user_model()
 
 # 메인페이지
 class MainView(APIView):
-    #parser_classes = (MultiPartParser,) #API파일업로드
     def get(self, request):
         polls = Poll.objects.all()
         polls = polls.order_by("-id")
@@ -93,16 +79,18 @@ class MainView(APIView):
             "today_poll": PollSerializer(today_poll).data if today_poll else None,
             "random_phrase": random_phrase
         }
-
         return Response(response_data)
-    #투표 create
-    def post(Self, request):
-        serialized_poll = PollSerializer(data=request.data)
-        if serialized_poll.is_valid():
-            serialized_poll.save(owner=request.user)
-            return Response(serialized_poll.data, status=status.HTTP_200_OK)
-        return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
+    
+# 투표 만들기
+@api_view(['POST'])
+def poll_create(request):
+    serialized_poll = PollSerializer(data=request.data)
+    if serialized_poll.is_valid():
+        serialized_poll.save(owner=request.user)
+        return Response(serialized_poll.data, status=status.HTTP_200_OK)
+    return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # 투표 디테일 페이지
 class PollDetailView(APIView):
     def get(self, request, poll_id):
