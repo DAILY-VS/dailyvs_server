@@ -191,6 +191,9 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+URL_FRONT = 'http://localhost:3000/'
+CUSTOM_ACCOUNT_CONFIRM_EMAIL_URL = "http://localhost:3000/accounts/allauth/confirm-email/{0}/"
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST=local_settings.EMAIL_HOST
 EMAIL_PORT=local_settings.EMAIL_PORT
@@ -198,7 +201,6 @@ EMAIL_HOST_USER=local_settings.EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD=local_settings.EMAIL_HOST_PASSWORD
 EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=EMAIL_HOST_USER
-URL_FRONT = 'http://127.0.0.1:8000' # 공개적인 웹페이지가 있다면 등록
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True # 유저가 받은 링크를 클릭하면 회원가입 완료되게끔
 ACCOUNT_EMAIL_REQUIRED = True
 
