@@ -205,6 +205,7 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True # 유저가 받은 링크를 클릭하면 �
 ACCOUNT_EMAIL_REQUIRED = True
 
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = 'http://localhost:3000/login/'
 EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/' # 사이트와 관련한 자동응답을 받을 이메일 주소,'webmaster@localhost'
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 # 이메일에 자동으로 표시되는 사이트 정보
