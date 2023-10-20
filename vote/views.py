@@ -107,15 +107,17 @@ class PollDetailView(APIView):
 
         categorys = serialized_poll.get('category', [])
         category_list = [category.get('name') for category in categorys]
+        category_remove_list = []
 
         if user.is_authenticated : 
             for category_name in category_list:
                 user_category_value = getattr(user, category_name, "")
                 if user_category_value != "":
-                    category_list.remove(category_name)
-                    
+                    category_remove_list.append(category_name)
+        category_list = [category for category in category_list if category not in category_remove_list]
         context = {
             "poll": serialized_poll,
+            "category_list" : category_list,
         }
         return Response(context)
     
@@ -469,9 +471,6 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
     def get(self, request, poll_id): #새로고침, 링크로 접속 시
         #기본 투표 정보
         poll = get_object_or_404(Poll, id=poll_id)
-        choice_dict= {}
-        for idx, choice in enumerate(poll.choices.all()):
-            choice_dict[idx] = str(choice)
             
         #statistics
         #statistics = poll_calcstat(poll_id)
@@ -484,7 +483,6 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
 
         context = {
             "poll": serialized_poll,
-            "choices": choice_dict,
             #"statistics": statistics,
             "comments": serialized_comments,
             "comments_count":comments_count,
