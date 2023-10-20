@@ -160,7 +160,7 @@ class CommentView(APIView):
 
 # 댓글 delete
 @api_view(['DELETE'])
-def comment_delete(request, poll_id, comment_id):
+def comment_delete(request, comment_id):
     comment = Comment.objects.get(id=comment_id)
     if request.user == comment.user_info:
         comment.delete()
@@ -284,7 +284,6 @@ class MypageView(APIView):
     def put(self, request):
         user = request.user
         serializer = UserSerializer(user, data=request.data)
-        print(serializer)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -497,7 +496,6 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         serialized_comments= CommentSerializer(comments, many=True).data
 
         context = {
-            "get": "get",
             "poll": serialized_poll,
             "choices": choice_dict,
             #"statistics": statistics,
@@ -539,7 +537,6 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         serialized_poll = PollSerializer(poll).data
 
         context = {
-            "post": "post",
             "poll": serialized_poll,
             "choices": choice_dict,
             #"statistics": statistics,
