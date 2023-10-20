@@ -1,20 +1,30 @@
 from rest_framework import serializers #추가
 from .models import *
+from accounts.models import User
 from datetime import datetime
 import math
 
 #Serializer : DRF가 제공하는 클래스, DB 인스턴스를 JSON 데이터로 생성한다.
-
-class PollSerializer(serializers.ModelSerializer):
-    
-    #thumbnail= serializers.ImageField(use_url=True)
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Poll
-        fields = '__all__'
-
+        model = User
+        fields = ['nickname', 'age', 'gender', 'mbti']
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
+        fields = '__all__'
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+        
+class PollSerializer(serializers.ModelSerializer):
+    owner = UserSerializer()
+    choices = ChoiceSerializer(many=True)
+    category = CategorySerializer(many=True)
+    class Meta:
+        model = Poll
         fields = '__all__'
 
 class UserVoteSerializer(serializers.ModelSerializer):
@@ -23,6 +33,7 @@ class UserVoteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CommentSerializer(serializers.ModelSerializer):
+    user_info = UserSerializer()
     time_difference = serializers.SerializerMethodField()
     
     def get_time_difference(self, obj): #클라이언트에게 넘겨줄 시간차이(-전)
@@ -58,12 +69,6 @@ class PollLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Poll
         fields = '__all__'
-    
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['nickname', 'age', 'gender', 'mbti']
-
 class CommentLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
