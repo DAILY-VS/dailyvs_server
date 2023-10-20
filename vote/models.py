@@ -32,8 +32,6 @@ class Poll(models.Model):
             img.thumbnail = (output_size)
             img.save(self.thumbnail.path)
 
-
-
 # 투표 선택지
 class Choice(models.Model):
     choice_text = models.CharField(max_length=255)

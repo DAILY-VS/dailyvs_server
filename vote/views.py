@@ -104,29 +104,18 @@ class PollDetailView(APIView):
 
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll).data
-        
-        category_id = serialized_poll.get('category', [])  #카테고리 불러오기
-        choice_id = serialized_poll.get('choices', [])  #선택지 불러오기
-        user_id = serialized_poll.get('owner')  #user 불러오기
 
-        categories = Category.objects.filter(id__in=category_id)
-        category_list = [category.name for category in categories]
-        choices = Choice.objects.filter(id__in=choice_id)
-        choice_text = [choice.choice_text for choice in choices]
-        user_data = User.objects.get(id=user_id)
+        categorys = serialized_poll.get('category', [])
+        category_list = [category.get('name') for category in categorys]
 
-        #user인 경우 추가 정보만 받기
         if user.is_authenticated : 
             for category_name in category_list:
                 user_category_value = getattr(user, category_name, "")
                 if user_category_value != "":
                     category_list.remove(category_name)
-
+                    
         context = {
             "poll": serialized_poll,
-            "category_list": category_list,
-            "choice_text": choice_text,
-            "user_data": user_data.nickname
         }
         return Response(context)
     
@@ -483,16 +472,14 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         choice_dict= {}
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
-        
+            
         #statistics
         #statistics = poll_calcstat(poll_id)
-
+        
+        serialized_poll = PollSerializer(poll).data
         # 댓글
         comments = Comment.objects.filter(poll_id=poll_id)
         comments_count = comments.count()
-
-        #serialize
-        serialized_poll = PollSerializer(poll).data
         serialized_comments= CommentSerializer(comments, many=True).data
 
         context = {
