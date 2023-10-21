@@ -440,6 +440,14 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     poll_result, created = Poll_Result.objects.get_or_create(poll_id=poll_id)
     # 기존 값 가져오기 -> 나누고 정수 변환 -> 1 더하기 -> 비트로 변환하고 붙이기 -> 저장
     # 기존 값 가져오기
+    poll_result.total_count += 1 #total_count 1 더해주기 
+    ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
+    poll = Poll.objects.get(id=poll_id)
+    serialized_poll = PollSerializer(poll).data
+    choices = serialized_poll.get('choices', [])
+    poll_result.choice_count= len(choices)
+    poll_result.save()
+    #########################################################
     choice_set = getattr(poll_result, 'choice' + str(choice_id))
     # 나누고 정수 변환 -> 이 부분이 load 함수 역할. 괜히 함수 호출하면 시간 걸릴까봐 그냥 안에 넣었음. calcstat에서도 그대로 쓰면 됨.
     tmp_set = {}
@@ -473,7 +481,7 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         poll = get_object_or_404(Poll, id=poll_id)
             
         #statistics
-        #statistics = poll_calcstat(poll_id)
+        statistics = poll_calcstat(poll_id)
         
         serialized_poll = PollSerializer(poll).data
         # 댓글
@@ -483,7 +491,7 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
 
         context = {
             "poll": serialized_poll,
-            #"statistics": statistics,
+            "statistics": statistics,
             "comments": serialized_comments,
             "comments_count":comments_count,
             }
@@ -515,7 +523,7 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
             poll_result_update(poll_id, choice_id, **{'gender': received_data['gender'], 'mbti': received_data['mbti'], 'age': received_data['age']})
 
         #statistics, analysis 
-        #statistics = poll_calcstat(poll_id)
+        statistics = poll_calcstat(poll_id)
         #analysis = poll_analysis(statistics, gender, mbti, age)
 
         #serialize
@@ -524,7 +532,7 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         context = {
             "poll": serialized_poll,
             "choices": choice_dict,
-            #"statistics": statistics,
+            "statistics": statistics,
             #"analysis" : analysis,
             }
         
@@ -533,31 +541,32 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
 
 # 결과페이지 회원/비회원 투표 통계 계산 함수
 def poll_calcstat(poll_id):
-    poll_result = Poll_Result.objects.get(poll_id=poll_id)
+    poll_result, created = Poll_Result.objects.get_or_create(poll_id=poll_id)
     
     category_set = ["M", "W", "E", "I", "S", "N", "T", "F", "P", "J", "10", "20_1", "20_2", "30_1", "30_2", "40"]
     total_count = poll_result.total_count
     choice_count = poll_result.choice_count
     TOLERANCE = 0
     p = float(10**TOLERANCE)
-    data_set = [[],[],[],[],[]]
+    data_set = [[0 for _ in range(16)] for _ in range(choice_count)]
     sum = [0 for i in range(16)]
+
+    result = {}
     for choice_id in range(choice_count):
-        choice_set = getattr(poll_result, 'choice' + str(choice_id))
+        choice_set = getattr(poll_result, 'choice' + str(choice_id + 1))
         for i in range(16):
             n = int.from_bytes(choice_set[0 + 4 * i : 4 + 4 * i], byteorder='big', signed=False)
             data_set[choice_id][i] = n
             sum[i] += n
-        result['choice' + str(choice_id) + '_percentage'] = int(((data_set[choice_id][0] + data_set[choice_id][1]) / total_count * 100) * p + 0.5) / p
+        result['choice' + str(choice_id + 1) + '_percentage'] = int(((data_set[choice_id][0] + data_set[choice_id][1]) / total_count * 100) * p + 0.5) / p
 
-    result = {}
     for i in range(16):
         for choice_id in range(choice_count):
             value = 0
             if sum[i] != 0:
                 n = data_set[choice_id][i] / sum[i] * 100
                 value = int(n * p + 0.5)/p
-            result['choice' + str(choice_id) + '_' + category_set[i] + '_percentage'] = value
+            result['choice' + str(choice_id + 1) + '_' + category_set[i] + '_percentage'] = value
 
     result['total_count'] = total_count
     result['choice_count'] = choice_count
