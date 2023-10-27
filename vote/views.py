@@ -566,7 +566,7 @@ def poll_calcstat(poll_id):
             if sum[i] != 0:
                 n = data_set[choice_id][i] / sum[i] * 100
                 value = int(n * p + 0.5)/p
-            result['gender'][category_set(i)]['choice' + str(choice_id + 1)] = value
+            result['gender'][category_set[i]]['choice' + str(choice_id + 1)] = value
 
     for i in range(2, 10):
         for choice_id in range(choice_count):
@@ -574,7 +574,7 @@ def poll_calcstat(poll_id):
             if sum[i] != 0:
                 n = data_set[choice_id][i] / sum[i] * 100
                 value = int(n * p + 0.5)/p
-            result['mbti'][category_set(i)]['choice' + str(choice_id + 1)] = value
+            result['mbti'][category_set[i]]['choice' + str(choice_id + 1)] = value
 
     for i in range(10,16):
         for choice_id in range(choice_count):
@@ -582,7 +582,7 @@ def poll_calcstat(poll_id):
             if sum[i] != 0:
                 n = data_set[choice_id][i] / sum[i] * 100
                 value = int(n * p + 0.5)/p
-            result['age'][category_set(i)]['choice' + str(choice_id + 1)] = value
+            result['age'][category_set[i]]['choice' + str(choice_id + 1)] = value
 
     result['total_count'] = total_count
     result['choice_count'] = choice_count
