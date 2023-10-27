@@ -551,22 +551,38 @@ def poll_calcstat(poll_id):
     data_set = [[0 for _ in range(16)] for _ in range(choice_count)]
     sum = [0 for i in range(16)]
 
-    result = {}
+    result = {"gender":{"M":{}, "W":{}}, "mbti":{"E":{}, "I":{}, "S":{}, "N":{}, "T":{}, "F":{}, "P":{}, "J":{}}, "age":{"10":{}, "20_1":{}, "20_2":{}, "30_1":{}, "30_2":{}, "40":{}}, "choice":{}}
     for choice_id in range(choice_count):
         choice_set = getattr(poll_result, 'choice' + str(choice_id + 1))
         for i in range(16):
             n = int.from_bytes(choice_set[0 + 4 * i : 4 + 4 * i], byteorder='big', signed=False)
             data_set[choice_id][i] = n
             sum[i] += n
-        result['choice' + str(choice_id + 1) + '_percentage'] = int(((data_set[choice_id][0] + data_set[choice_id][1]) / total_count * 100) * p + 0.5) / p
+        result['choice']['choice' + str(choice_id + 1)] = int(((data_set[choice_id][0] + data_set[choice_id][1]) / total_count * 100) * p + 0.5) / p
 
-    for i in range(16):
+    for i in range(2):
         for choice_id in range(choice_count):
             value = 0
             if sum[i] != 0:
                 n = data_set[choice_id][i] / sum[i] * 100
                 value = int(n * p + 0.5)/p
-            result['choice' + str(choice_id + 1) + '_' + category_set[i] + '_percentage'] = value
+            result['gender'][category_set(i)]['choice' + str(choice_id + 1)] = value
+
+    for i in range(2, 10):
+        for choice_id in range(choice_count):
+            value = 0
+            if sum[i] != 0:
+                n = data_set[choice_id][i] / sum[i] * 100
+                value = int(n * p + 0.5)/p
+            result['mbti'][category_set(i)]['choice' + str(choice_id + 1)] = value
+
+    for i in range(10,16):
+        for choice_id in range(choice_count):
+            value = 0
+            if sum[i] != 0:
+                n = data_set[choice_id][i] / sum[i] * 100
+                value = int(n * p + 0.5)/p
+            result['age'][category_set(i)]['choice' + str(choice_id + 1)] = value
 
     result['total_count'] = total_count
     result['choice_count'] = choice_count
