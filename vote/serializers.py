@@ -34,6 +34,13 @@ class UserVoteSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user_info = UserSerializer()
+    reply = serializers.SerializerMethodField()
+    
+    def get_reply(self, instance):
+        serializer = self.__class__(instance.reply, many=True)
+        serializer.bind('', self)
+        return serializer.data
+    
     time_difference = serializers.SerializerMethodField()
     
     def get_time_difference(self, obj): #클라이언트에게 넘겨줄 시간차이(-전)
