@@ -12,10 +12,9 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.exceptions import ObjectDoesNotExist
 
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -84,10 +83,12 @@ class MainView(APIView):
     
 # 투표 만들기
 @api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
 def poll_create(request):
+    thumbnail = request.FILES.get('thumbnail')
     serialized_poll = PollSerializer(data=request.data)
     if serialized_poll.is_valid():
-        serialized_poll.save(owner=request.user)
+        serialized_poll.save(owner=request.user, thumbnail=thumbnail)
         return Response(serialized_poll.data, status=status.HTTP_200_OK)
     return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
 
