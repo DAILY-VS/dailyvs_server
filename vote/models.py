@@ -20,6 +20,7 @@ class Poll(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     category = models.ManyToManyField('Category')
     choices = models.ManyToManyField('Choice')
+    total_count = models.IntegerField(default = 0, null= True) #투표 수
 
     def __str__(self):
         return self.title
