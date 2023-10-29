@@ -27,6 +27,12 @@ class PollSerializer(serializers.ModelSerializer):
         model = Poll
         fields = '__all__'
 
+class TodayPollSerializer(serializers.ModelSerializer):
+    poll = PollSerializer(many=False)
+    class Meta:
+        model = Today_Poll
+        fields = '__all__'
+
 class UserVoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserVote
