@@ -83,9 +83,11 @@ class MainView(APIView):
     
 # 투표 만들기
 @api_view(['POST'])
-@parser_classes([MultiPartParser, FormParser])
+@parser_classes([MultiPartParser])
 def poll_create(request):
+    body = request.POST
     thumbnail = request.FILES.get('thumbnail')
+    print(thumbnail)
     serialized_poll = PollSerializer(data=request.data)
     if serialized_poll.is_valid():
         serialized_poll.save(owner=request.user, thumbnail=thumbnail)
@@ -165,8 +167,20 @@ def comment_delete(request, comment_id):
 class PollLikeView(APIView):
     def get(self, request, poll_id):
         poll = get_object_or_404(Poll, id=poll_id)
-        serializer = PollLikeSerializer(poll).data
-        return Response(serializer, status=status.HTTP_200_OK)
+        user = request.user
+        user_likes_poll = poll.poll_like.filter(id=user.id).exists()
+        
+        if user_likes_poll:
+            message = "like" #좋아요가 있음
+        else:
+            message = "unlike" #좋아요가 없음
+        like_count = poll.poll_like.count()
+        context = {
+            "message": message,
+            "like_count": like_count,
+            "user_likes_poll": user_likes_poll #user_likes_comment가 True일 때 좋아요를 누르고 있는 상태
+        }
+        return Response(context, status=status.HTTP_200_OK)
 
     def post(self, request, poll_id):
         poll = get_object_or_404(Poll, id=poll_id)

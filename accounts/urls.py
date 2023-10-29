@@ -1,4 +1,6 @@
 from django.urls import path, include ,re_path
+from django.conf import settings
+from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from dj_rest_auth.registration.views import VerifyEmailView
 from dj_rest_auth.views import PasswordResetConfirmView, PasswordResetView, PasswordChangeView
@@ -23,4 +25,4 @@ urlpatterns = [
     path('kakao/login/', kakao_login, name='kakao_login'),
     path('kakao/login/callback/', kakao_callback, name='kakao_callback'),
     path('kakao/login/finish/', KakaoLogin.as_view(), name='kakao_login_todjango'),
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
