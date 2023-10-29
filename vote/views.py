@@ -28,10 +28,10 @@ class MainView(APIView):
     def get(self, request):
         polls = Poll.objects.all()
 
-        if polls:
-            today_poll = polls.last()
-        else:
-            today_poll = None
+        # if polls:
+        #     today_poll = polls.last()
+        # else:
+        #     today_poll = None
 
         polls = polls.order_by("-id")
         # sort = request.GET.get("sort")
@@ -64,8 +64,7 @@ class MainView(APIView):
             "mbti와 통계를 통한 투표 겨루기"
         ]
 
-        today_poll = Today_Poll.objects.get(id=1)
-        print('1', today_poll)
+        today_poll = Today_Poll.objects.get()
         hot_polls = Poll.objects.filter(total_count__gte=10)
             
         random_phrase = random.choice(phrases)
