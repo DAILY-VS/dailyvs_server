@@ -1050,7 +1050,10 @@ def poll_analysis(uservote_id, nonuservote_id, poll_id,
 def get_random_fortune(mbti):
     default_fortune = "일시적인 오류입니다! 다음에 시도해주세요."
     selected_fortunes = fortunes.get(mbti, [])
-    return random.choice(selected_fortunes) if selected_fortunes else default_fortune
+    fortune = random.choice(selected_fortunes) if selected_fortunes else default_fortune
+    if mbti != 'nonuser':
+        fortune = mbti + '인 당신! ' + fortune
+    return fortune
 
 
 #포춘 쿠키 페이지 
