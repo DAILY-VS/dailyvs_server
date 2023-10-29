@@ -548,6 +548,11 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         statistics = poll_calcstat(poll_id)
         #analysis = poll_analysis(statistics, gender, mbti, age)
 
+        # 댓글
+        comments = Comment.objects.filter(poll_id=poll_id)
+        comments_count = comments.count()
+        serialized_comments= CommentSerializer(comments, many=True).data
+
         #serialize
         serialized_poll = PollSerializer(poll).data
 
@@ -555,6 +560,8 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
             "poll": serialized_poll,
             "choices": choice_dict,
             "statistics": statistics,
+            "comments": serialized_comments,
+            "comments_count":comments_count,
             #"analysis" : analysis,
             }
         
