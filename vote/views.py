@@ -63,20 +63,23 @@ class MainView(APIView):
             "나의 취향을 분석적으로",
             "mbti와 통계를 통한 투표 겨루기"
         ]
+        try :
+            today_poll = Today_Poll.objects.get()
+            serialized_today_poll = TodayPollSerializer(today_poll, many=False).data
+        except :
+            today_poll = False
 
-        today_poll = Today_Poll.objects.get()
+
         hot_polls = Poll.objects.filter(total_count__gte=10)
-            
         random_phrase = random.choice(phrases)
         serialized_polls = PollSerializer(polls, many=True).data
         serialized_hot_polls = PollSerializer(hot_polls, many=True).data
-        serialized_today_poll = TodayPollSerializer(today_poll, many=False)
 
         response_data = {
             "polls": serialized_polls,
             "hot_polls": serialized_hot_polls,
             "random_phrase": random_phrase,
-            "today_poll":serialized_today_poll,
+            "today_poll": serialized_today_poll if today_poll else None,
         }
         return Response(response_data)
 

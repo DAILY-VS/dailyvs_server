@@ -84,5 +84,6 @@ class Comment(models.Model):
         return self.content
 
 class Today_Poll(models.Model):
-    choice1 = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    choice1 = models.ImageField(upload_to="choice1/%Y/%m/%d")
+    choice2 = models.ImageField(upload_to="choice2/%Y/%m/%d")
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
