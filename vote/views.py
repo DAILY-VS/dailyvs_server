@@ -1054,7 +1054,7 @@ def get_random_fortune(mbti):
 
 
 #포춘 쿠키 페이지 
-@api_view(['GET'])    
+@api_view(['POST'])    
 def fortune(request):
     user = request.user
     if user.is_authenticated:
