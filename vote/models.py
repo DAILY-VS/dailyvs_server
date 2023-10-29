@@ -82,3 +82,7 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.content
+
+class Today_Poll(models.Model):
+    choice1 = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)

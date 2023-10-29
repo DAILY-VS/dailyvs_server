@@ -57,8 +57,6 @@ class MainView(APIView):
         #     page = paginator.num_pages
         #     page_obj = paginator.page(page)
 
-
-        
         phrases = [
             "투표하는 즐거움",
             "나의 투표를 가치있게",
@@ -66,17 +64,20 @@ class MainView(APIView):
             "mbti와 통계를 통한 투표 겨루기"
         ]
 
+        today_poll = Today_Poll.objects.get(id=1)
+        print('1', today_poll)
         hot_polls = Poll.objects.filter(total_count__gte=10)
-
+            
         random_phrase = random.choice(phrases)
         serialized_polls = PollSerializer(polls, many=True).data
         serialized_hot_polls = PollSerializer(hot_polls, many=True).data
-        
+        serialized_today_poll = TodayPollSerializer(today_poll, many=False)
+
         response_data = {
             "polls": serialized_polls,
             "hot_polls": serialized_hot_polls,
-            "today_poll": PollSerializer(today_poll).data if today_poll else None,
             "random_phrase": random_phrase,
+            "today_poll":serialized_today_poll,
         }
         return Response(response_data)
 
