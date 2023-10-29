@@ -64,11 +64,15 @@ class MainView(APIView):
             "mbti와 통계를 통한 투표 겨루기"
         ]
 
+        hot_polls = Poll.objects.filter(total_count__gte=10)
+
         random_phrase = random.choice(phrases)
         serialized_polls = PollSerializer(polls, many=True).data
+        serialized_hot_polls = PollSerializer(hot_polls, many=True).data
         
         response_data = {
             "polls": serialized_polls,
+            "hot_polls": serialized_hot_polls,
             "page_obj": page_obj.number,
             "paginator": {
                 "num_pages": paginator.num_pages,
@@ -76,7 +80,7 @@ class MainView(APIView):
             },
             "promotion_polls": PollSerializer(promotion_polls, many=True).data,
             "today_poll": PollSerializer(today_poll).data if today_poll else None,
-            "random_phrase": random_phrase
+            "random_phrase": random_phrase,
         }
         return Response(response_data)
 
@@ -456,8 +460,11 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     # 기존 값 가져오기 -> 나누고 정수 변환 -> 1 더하기 -> 비트로 변환하고 붙이기 -> 저장
     # 기존 값 가져오기
     poll_result.total_count += 1 #total_count 1 더해주기 
-    ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
+    #####
     poll = Poll.objects.get(id=poll_id)
+    poll.total_count = +1 
+    poll.save()
+    ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
     serialized_poll = PollSerializer(poll).data
     choices = serialized_poll.get('choices', [])
     poll_result.choice_count= len(choices)
