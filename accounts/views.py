@@ -97,19 +97,37 @@ class KakaoLogin(SocialLoginView):
     client_class = OAuth2Client
     callback_url = KAKAO_CALLBACK_URI
 
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
+from allauth.account.views import ConfirmEmailView
+from allauth.account import app_settings as allauth_settings
 
-class ConfirmEmailView(APIView):
+class MyConfirmEmailView(ConfirmEmailView):
     permission_classes = [AllowAny]
 
     def get(self, *args, **kwargs):
-        self.object = confirmation = self.get_object()
-        confirmation.confirm(self.request)
-        # A React Router Route will handle the failure scenario
-        return HttpResponseRedirect('/') # 인증성공
+        try:
+            self.object = self.get_object()
+            if allauth_settings.CONFIRM_EMAIL_ON_GET:
+                return self.post(*args, **kwargs)
+        except:
+            self.object = None
+            return redirect("http://localhost:3000/email-error")
+
+        return redirect("http://localhost:3000/login/")
+
+    def post(self, request, *args, **kwargs):
+        try:
+            self.object = confirmation = self.get_object()
+            confirmation.confirm(self.request)
+            return redirect("http://localhost:3000/login/")
+        except:
+            # print("잘못된 key이거나 이미 인증된 메일, 기타등등")
+            return redirect("http://localhost:3000/email-error")
+
+        return self.respond(True)
 
     def get_object(self, queryset=None):
         key = self.kwargs['key']
@@ -120,7 +138,6 @@ class ConfirmEmailView(APIView):
             try:
                 email_confirmation = queryset.get(key=key.lower())
             except EmailConfirmation.DoesNotExist:
-                # A React Router Route will handle the failure scenario
                 return HttpResponseRedirect('/') # 인증실패
         return email_confirmation
 
@@ -128,7 +145,7 @@ class ConfirmEmailView(APIView):
         qs = EmailConfirmation.objects.all_valid()
         qs = qs.select_related("email_address__user")
         return qs
-    
+
 @api_view(['GET'])
 def MyPageInfo(request):
     user = request.user
