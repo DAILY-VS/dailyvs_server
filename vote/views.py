@@ -452,12 +452,17 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     poll = Poll.objects.get(id=poll_id)
     poll.total_count = +1 
     poll.save()
+
+
+
     ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
     serialized_poll = PollSerializer(poll).data
     choices = serialized_poll.get('choices', [])
     poll_result.choice_count= len(choices)
     poll_result.save()
     #########################################################
+
+
     choice_set = getattr(poll_result, 'choice' + str(choice_id))
     # 나누고 정수 변환 -> 이 부분이 load 함수 역할. 괜히 함수 호출하면 시간 걸릴까봐 그냥 안에 넣었음. calcstat에서도 그대로 쓰면 됨.
     tmp_set = {}
@@ -517,6 +522,7 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         user=request.user
         if user.is_authenticated:
             user.voted_polls.add(poll_id)
+            UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id)
             for category in category_list:
                 setattr(user, category, received_data[category])
                 user.save() 
