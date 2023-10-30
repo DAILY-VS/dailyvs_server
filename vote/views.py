@@ -60,13 +60,16 @@ class MainView(APIView):
 @parser_classes([MultiPartParser])
 def poll_create(request):
     body = request.POST
+    print(body)
     thumbnail = request.FILES.get('thumbnail')
     print(thumbnail)
     serialized_poll = PollSerializer(data=request.data)
     if serialized_poll.is_valid():
         serialized_poll.save(owner=request.user, thumbnail=thumbnail)
         return Response(serialized_poll.data, status=status.HTTP_200_OK)
-    return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        print("Error creating poll")
+        return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 투표 디테일 페이지
 class PollDetailView(APIView):
@@ -1076,6 +1079,7 @@ def get_random_fortune(mbti):
 @api_view(['POST'])    
 def fortune(request):
     user = request.user
+    print(user)
     if user.is_authenticated:
         random_fortune = get_random_fortune(user.mbti)
     else:
