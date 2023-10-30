@@ -34,9 +34,10 @@ class TodayPollSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserVoteSerializer(serializers.ModelSerializer):
+    poll = PollSerializer(many=False)
     class Meta:
         model = UserVote
-        fields = '__all__'
+        fields = ['poll']
 
 class CommentSerializer(serializers.ModelSerializer):
     user_info = UserSerializer()

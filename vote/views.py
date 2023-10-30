@@ -27,35 +27,7 @@ User = get_user_model()
 class MainView(APIView):
     def get(self, request):
         polls = Poll.objects.all()
-
-        # if polls:
-        #     today_poll = polls.last()
-        # else:
-        #     today_poll = None
-
         polls = polls.order_by("-id")
-        # sort = request.GET.get("sort")
-        # promotion_polls = Poll.objects.filter().order_by("-views_count")[:3]
-
-        # if sort == "popular":
-        #     polls = polls.order_by("-views_count")  # 인기순
-        # elif sort == "latest":
-        #     polls = polls.order_by("-id")  # 최신순
-        # elif sort == "oldest":
-        #     polls = polls.order_by("id")  # 등록순
-
-        # page = request.GET.get("page")
-        # # random_poll = random.choice(polls) if polls.exists() else None
-        # paginator = Paginator(polls, 4)
-
-        # try:
-        #     page_obj = paginator.page(page)
-        # except PageNotAnInteger:
-        #     page = 1
-        #     page_obj = paginator.page(page)
-        # except EmptyPage:
-        #     page = paginator.num_pages
-        #     page_obj = paginator.page(page)
 
         phrases = [
             "투표하는 즐거움",
@@ -83,7 +55,6 @@ class MainView(APIView):
         }
         return Response(response_data)
 
-    
 # 투표 만들기
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
