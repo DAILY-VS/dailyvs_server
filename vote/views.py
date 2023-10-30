@@ -139,8 +139,14 @@ class PollDetailView(APIView):
 # 댓글 create, read
 class CommentView(APIView):
     def get(self, request, poll_id): 
-        comments = Comment.objects.filter(poll_id=poll_id)
+        comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None)
         serializer = CommentSerializer(comments, many=True).data
+        
+        for comment in serializer:
+            choice_id = comment.get('choice')
+            if choice_id:
+                choice = Choice.objects.get(pk=choice_id)
+                comment['choice_text'] = choice.choice_text
         return Response(serializer, status=status.HTTP_200_OK)
 
     def post(self, request, poll_id):
@@ -210,8 +216,21 @@ class PollLikeView(APIView):
 class CommentLikeView(APIView):
     def get(self, request, comment_id):
         comment = get_object_or_404(Comment, id=comment_id)
-        serializer = CommentLikeSerializer(comment).data
-        return Response(serializer, status=status.HTTP_200_OK)
+        user = request.user
+        user_likes_comment = comment.comment_like.filter(id=user.id).exists()
+        
+        if user_likes_comment:
+            message = "like"
+        else:
+            message = "unlike"
+
+        like_count = comment.comment_like.count()
+        context = {
+            "like_count": like_count,
+            "message": message,
+            "user_likes_comment": user_likes_comment 
+        }
+        return Response(context, status=status.HTTP_200_OK)
 
     def post(self, request, comment_id):
         try:
@@ -222,7 +241,6 @@ class CommentLikeView(APIView):
         comment = get_object_or_404(Comment, id=comment_id)
         user = request.user
         user_likes_comment = comment.comment_like.filter(id=user.id).exists()
-        print(user_likes_comment)
         
         if user_likes_comment: #user가 좋아요를 누른 상태 -> 좋아요 취소 누르기
             comment.comment_like.remove(user)
