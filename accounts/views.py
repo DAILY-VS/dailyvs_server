@@ -114,7 +114,7 @@ class MyConfirmEmailView(ConfirmEmailView):
                 return self.post(*args, **kwargs)
         except:
             self.object = None
-            return redirect("http://localhost:3000/email-error")
+            return redirect("http://localhost:3000/email-error/")
 
         return redirect("http://localhost:3000/login/")
 
@@ -125,7 +125,7 @@ class MyConfirmEmailView(ConfirmEmailView):
             return redirect("http://localhost:3000/login/")
         except:
             # print("잘못된 key이거나 이미 인증된 메일, 기타등등")
-            return redirect("http://localhost:3000/email-error")
+            return redirect("http://localhost:3000/email-error/")
 
         return self.respond(True)
 
@@ -145,6 +145,19 @@ class MyConfirmEmailView(ConfirmEmailView):
         qs = EmailConfirmation.objects.all_valid()
         qs = qs.select_related("email_address__user")
         return qs
+
+from dj_rest_auth.views import PasswordResetConfirmView
+class MyPasswordResetConfirmView(PasswordResetConfirmView):
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(
+                {'message': 'success'},
+            )
+        except:
+            return Response({'message':'fail'})
 
 @api_view(['GET'])
 def MyPageInfo(request):
