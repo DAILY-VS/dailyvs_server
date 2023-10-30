@@ -516,6 +516,7 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         #user 정보 업데이트 
         user=request.user
         if user.is_authenticated:
+            user.voted_polls.add(poll_id)
             for category in category_list:
                 setattr(user, category, received_data[category])
                 user.save() 
