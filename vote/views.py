@@ -74,10 +74,10 @@ class PollDetailView(APIView):
         user = request.user
 
         #이미 투표한 경우 
-        if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
-            uservote = UserVote.objects.filter(poll_id=poll_id, user=user)
-            poll_result_page_url = reverse("vote:poll_result_page", args=[poll_id, uservote.id, 0])
-            return redirect(poll_result_page_url)
+        # if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
+        #     uservote = UserVote.objects.filter(poll_id=poll_id, user=user)
+        #     poll_result_page_url = reverse("vote:poll_result_page", args=[poll_id, uservote.id, 0])
+        #     return redirect(poll_result_page_url)
 
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll).data
