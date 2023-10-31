@@ -83,12 +83,13 @@ def poll_create(request):
 class PollDetailView(APIView):
     def get(self, request, poll_id):
         user = request.user
-        uservote = False
         #이미 투표한 경우 
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
-             uservote = UserVote.objects.filter(poll_id=poll_id, user=user)
-             serialized_uservote = UserVoteSerializer(uservote).data
-
+            try : 
+                uservote = UserVote.objects.get(poll_id=poll_id, user=user)
+                previous_choice = str(uservote.choice)
+            except :
+                previous_choice = False
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll).data
 
@@ -103,7 +104,7 @@ class PollDetailView(APIView):
                     category_remove_list.append(category_name)
         category_list = [category for category in category_list if category not in category_remove_list]
         context = {
-            "uservote" : serialized_uservote if uservote else False,
+            "previous choice" : previous_choice,
             "poll": serialized_poll,
             "category_list" : category_list,
         }
@@ -243,11 +244,13 @@ class CommentLikeView(APIView):
 class MypageView(APIView):
     def get(self, request):
         user = request.user
+        print(user)
         if not user.is_authenticated:
             return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
 
         #사용자의 투표 목록 가져오기
         uservote = UserVote.objects.filter(user=request.user)
+        print(uservote)
         #내가 만든 투표 목록 가져오기
         my_poll = Poll.objects.filter(owner=request.user)
         #사용자가 좋아하는 투표 목록 가져오기
@@ -390,6 +393,8 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         #analysis = poll_analysis(statistics, gender, mbti, age)
 
         #uservote 생성
+        if user.is_authenticated:
+            UserVote.objects.get_or_create(user=user, choice_id=choice_id, poll_id=poll_id)
 
 
         # 댓글
