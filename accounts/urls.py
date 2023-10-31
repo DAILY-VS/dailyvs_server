@@ -3,12 +3,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from dj_rest_auth.registration.views import VerifyEmailView
-from dj_rest_auth.views import PasswordResetConfirmView, PasswordResetView, PasswordChangeView
+from dj_rest_auth.views import PasswordResetView, PasswordChangeView
 from .views import *
 
 urlpatterns = [
     # path('', measure_time),
-
     path('', include('dj_rest_auth.urls')),
     path('', include('dj_rest_auth.registration.urls')),
 
@@ -16,7 +15,7 @@ urlpatterns = [
     re_path(r'^allauth/confirm-email/$', VerifyEmailView.as_view(), name='account_email_verification_sent'),
     # 유저가 클릭한 이메일(=링크) 확인
     re_path(r'^allauth/confirm-email/(?P<key>[-:\w]+)/$', MyConfirmEmailView.as_view(), name='account_confirm_email'),
-    path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('password/reset/confirm/<uidb64>/<token>/', MyPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
     path('user_info/', UserInfo),
     path('mypage_info/', MyPageInfo),
