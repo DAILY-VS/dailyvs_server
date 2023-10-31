@@ -63,20 +63,41 @@ class MainViewSearch(generics.ListAPIView):
             queryset = queryset.filter(title__icontains=search_query)
         return queryset
 
-# 투표 만들기
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def poll_create(request):
-    body = request.POST
-    print(body)
+
     thumbnail = request.FILES.get('thumbnail')
     print(thumbnail)
-    serialized_poll = PollSerializer(data=request.data)
+    
+    title = request.data.get('title')
+    content = request.data.get('content')
+    categories = request.data.getlist('category') 
+    choices = request.data.getlist('choice')
+    owner = request.user
+    if not (title and content and thumbnail and categories and choices and owner):
+        return Response({"error": "필수 필드를 모두 제공해야함"}, status=status.HTTP_400_BAD_REQUEST)
+    try: #따옴표 제거
+        category_data = [json.loads(category.replace("'", "\""))for category in categories]
+        choice_data = [json.loads(choice.replace("'", "\""))for choice in choices]
+    except json.JSONDecodeError:
+        return Response({"error": "올바른 JSON 데이터 형식이 아닙니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Poll 객체 생성
+    poll_data = {
+        "title": title,
+        "content": content,
+        "thumbnail": thumbnail,
+        "category": category_data,
+        "choices": choice_data,
+        "owner": owner,
+    }
+    print(poll_data)
+    serialized_poll = PollCreateSerializer(data=poll_data)
     if serialized_poll.is_valid():
-        serialized_poll.save(owner=request.user, thumbnail=thumbnail)
+        serialized_poll.save()
         return Response(serialized_poll.data, status=status.HTTP_200_OK)
     else:
-        print("Error creating poll")
         return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 투표 디테일 페이지
