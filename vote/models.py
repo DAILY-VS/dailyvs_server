@@ -50,7 +50,6 @@ class UserVote(models.Model):
 # 투표 별 카테고리
 class Category(models.Model):
     name = models.CharField(max_length=255)
-
     def __str__(self):
         return self.name
 
