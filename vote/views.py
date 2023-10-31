@@ -14,6 +14,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
@@ -63,18 +64,18 @@ class MainViewSearch(generics.ListAPIView):
             queryset = queryset.filter(title__icontains=search_query)
         return queryset
 
+#투표 만들기
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def poll_create(request):
-
-    thumbnail = request.FILES.get('thumbnail')
-    print(thumbnail)
     
+    thumbnail = request.FILES.get('thumbnail')
     title = request.data.get('title')
     content = request.data.get('content')
     categories = request.data.getlist('category') 
     choices = request.data.getlist('choice')
     owner = request.user
+    
     if not (title and content and thumbnail and categories and choices and owner):
         return Response({"error": "필수 필드를 모두 제공해야함"}, status=status.HTTP_400_BAD_REQUEST)
     try: #따옴표 제거
@@ -82,20 +83,23 @@ def poll_create(request):
         choice_data = [json.loads(choice.replace("'", "\""))for choice in choices]
     except json.JSONDecodeError:
         return Response({"error": "올바른 JSON 데이터 형식이 아닙니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Poll 객체 생성
+    
+    #user 객체로 변환
+    user = request.user
+    user_dict = {"User": user} 
+    
     poll_data = {
         "title": title,
         "content": content,
         "thumbnail": thumbnail,
         "category": category_data,
         "choices": choice_data,
-        "owner": owner,
+        "owner": user_dict, 
     }
     print(poll_data)
     serialized_poll = PollCreateSerializer(data=poll_data)
     if serialized_poll.is_valid():
-        serialized_poll.save()
+        serialized_poll.save(thumbnail=thumbnail)
         return Response(serialized_poll.data, status=status.HTTP_200_OK)
     else:
         return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -175,7 +179,6 @@ def comment_delete(request, comment_id):
         return Response("success", status=status.HTTP_204_NO_CONTENT)
     else:
         return Response("fail", status=status.HTTP_403_FORBIDDEN)
-
 
 # 투표 좋아요
 class PollLikeView(APIView):
@@ -263,16 +266,16 @@ class CommentLikeView(APIView):
         return Response(context, status=status.HTTP_200_OK)
 
 #마이페이지
-class MypageView(APIView):
+class MypageView(APIView, PageNumberPagination):
+    pagination_class = PageNumberPagination
+    page_size = 5
     def get(self, request):
         user = request.user
-        print(user)
         if not user.is_authenticated:
             return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
 
         #사용자의 투표 목록 가져오기
         uservote = UserVote.objects.filter(user=request.user)
-        print(uservote)
         #내가 만든 투표 목록 가져오기
         my_poll = Poll.objects.filter(owner=request.user)
         #사용자가 좋아하는 투표 목록 가져오기
@@ -280,13 +283,19 @@ class MypageView(APIView):
         #유저 정보 불러오기
         user_info = User.objects.get(email=request.user)
         
-        uservote_serializer = UserVoteSerializer(uservote, many=True).data
-        mypoll_serializer = PollSerializer(my_poll, many=True).data
-        poll_like_serializer = PollSerializer(poll_like, many=True).data
+        #각각 페이지네이션
+        uservote_page = self.paginate_queryset(uservote, self.request)
+        my_poll_page = self.paginate_queryset(my_poll, self.request)
+        poll_like_page = self.paginate_queryset(poll_like, self.request)
+        
+        uservote_serializer = UserVoteSerializer(uservote_page, many=True).data if uservote_page is not None else UserVoteSerializer(uservote, many=True).data
+        my_poll_serializer = PollSerializer(my_poll_page, many=True).data if my_poll_page is not None else PollSerializer(my_poll, many=True).data
+        poll_like_serializer = PollSerializer(poll_like_page, many=True).data if poll_like_page is not None else PollSerializer(poll_like, many=True).data
+        
 
         context = {
             "uservote": uservote_serializer,
-            "my_poll": mypoll_serializer,
+            "my_poll": my_poll_serializer,
             "poll_like": poll_like_serializer,
             "user": {
                 "nickname": user_info.nickname,
@@ -359,8 +368,7 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     poll_result.save()
     return None
 
-
-class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
+class poll_result_page(APIView): 
     def get(self, request, poll_id): #새로고침, 링크로 접속 시
         #기본 투표 정보
         poll = get_object_or_404(Poll, id=poll_id)
