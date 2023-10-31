@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from .serializers import *
 
 from django.contrib.auth import get_user_model
@@ -28,7 +28,7 @@ User = get_user_model()
 
 # 메인페이지
 class MainViewSet(ModelViewSet):
-    queryset = Poll.objects.all().order_by('-id')
+    queryset = Poll.objects.all()
     serializer_class = PollSerializer
     
     def list(self, request, *args, **kwargs):
@@ -49,10 +49,13 @@ class MainViewSet(ModelViewSet):
         }
         return Response(response_data)
 
+#검색 기능
 class MainViewSearch(generics.ListAPIView):
     queryset = Poll.objects.all()
     serializer_class = PollSerializer
-
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['title']
+    
     def get_queryset(self):
         queryset = super().get_queryset()
         search_query = self.request.query_params.get('search', None)
@@ -236,7 +239,7 @@ class CommentLikeView(APIView):
         }
         return Response(context, status=status.HTTP_200_OK)
 
-
+#마이페이지
 class MypageView(APIView):
     def get(self, request):
         user = request.user
@@ -245,25 +248,13 @@ class MypageView(APIView):
 
         #사용자의 투표 목록 가져오기
         uservote = UserVote.objects.filter(user=request.user)
-        #내가 만든 투표 목목 가져오기
+        #내가 만든 투표 목록 가져오기
         my_poll = Poll.objects.filter(owner=request.user)
         #사용자가 좋아하는 투표 목록 가져오기
         poll_like = Poll.objects.filter(poll_like=request.user)
         #유저 정보 불러오기
         user_info = User.objects.get(email=request.user)
         
-        # 투표 목록을 페이지별로 페이징
-        paginator = Paginator(uservote, 4)
-        page = request.GET.get("page")
-        try:
-            page_obj = paginator.page(page)
-        except PageNotAnInteger:
-            page = 1
-            page_obj = paginator.page(page)
-        except EmptyPage:
-            page = paginator.num_pages
-            page_obj = paginator.page(page)
-
         uservote_serializer = UserVoteSerializer(uservote, many=True).data
         mypoll_serializer = PollSerializer(my_poll, many=True).data
         poll_like_serializer = PollSerializer(poll_like, many=True).data
@@ -278,15 +269,10 @@ class MypageView(APIView):
                 "mbti": user_info.mbti,
                 "gender": user_info.gender
             },
-            "page_obj": page_obj.number,
-            "paginator": {
-                "num_pages": paginator.num_pages,
-                "count": paginator.count,
-            },
         }
-
         return Response(context)
-    #마이페이지 수정 (account로 옮길 예정)
+    
+    #마이페이지 수정 (개인정보)
     def put(self, request):
         user = request.user
         serializer = UserSerializer(user, data=request.data)
