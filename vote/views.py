@@ -83,11 +83,10 @@ def poll_create(request):
 class PollDetailView(APIView):
     def get(self, request, poll_id):
         user = request.user
-        uservote = False
         #이미 투표한 경우 
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
-             uservote = UserVote.objects.filter(poll_id=poll_id, user=user)
-             serialized_uservote = UserVoteSerializer(uservote).data
+            uservote = UserVote.objects.get(poll_id=poll_id, user=user)
+            previous_choice = str(uservote.choice)
 
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll).data
@@ -103,7 +102,7 @@ class PollDetailView(APIView):
                     category_remove_list.append(category_name)
         category_list = [category for category in category_list if category not in category_remove_list]
         context = {
-            "uservote" : serialized_uservote if uservote else False,
+            "previous choice" : previous_choice,
             "poll": serialized_poll,
             "category_list" : category_list,
         }
