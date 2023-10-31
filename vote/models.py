@@ -46,6 +46,8 @@ class UserVote(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
+    def __str__(self):
+        return self.poll.title
 
 # 투표 별 카테고리
 class Category(models.Model):
