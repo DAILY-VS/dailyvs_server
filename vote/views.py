@@ -250,6 +250,7 @@ class MypageView(APIView):
 
         #사용자의 투표 목록 가져오기
         uservote = UserVote.objects.filter(user=request.user)
+        print(uservote)
         #내가 만든 투표 목록 가져오기
         my_poll = Poll.objects.filter(owner=request.user)
         #사용자가 좋아하는 투표 목록 가져오기
@@ -392,6 +393,8 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         #analysis = poll_analysis(statistics, gender, mbti, age)
 
         #uservote 생성
+        if user.is_authenticated:
+            UserVote.objects.get_or_create(user=user, choice_id=choice_id, poll_id=poll_id)
 
 
         # 댓글
