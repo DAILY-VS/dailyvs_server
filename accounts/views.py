@@ -199,3 +199,36 @@ def UserInfo(request):
         "age": user.age,
     }
     return Response(context)
+
+from allauth.account.models import EmailAddress
+from django.test.client import Client
+from django.urls import reverse
+import time
+def create_test_user(request):
+    c = Client()
+    for i in range(10):
+        resp = c.post(
+            reverse("rest_register"),
+            {
+                "email": f"test{i}@example.com",
+                "password1": "qkrtlsqls12**",
+                "password2": "qkrtlsqls12**",
+                "nickname": "asdf",
+                "gender": "M",
+                "mbti": "ISTP",
+                "age": "10"
+            },
+            follow=True,
+        )
+        new_user = EmailAddress.objects.get(email=f"test{i}@example.com")
+        new_user.verified = True
+        new_user.save()
+        time.sleep(0.2)
+    return redirect('/')
+
+def delete_test_user(request):
+    for i in range(10):
+        user = User.objects.filter(email=f"test{i}@example.com")
+        user.delete()
+        time.sleep(0.2)
+    return redirect('/')
