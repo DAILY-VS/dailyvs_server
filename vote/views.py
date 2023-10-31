@@ -83,7 +83,7 @@ def poll_create(request):
 class PollDetailView(APIView):
     def get(self, request, poll_id):
         user = request.user
-
+        uservote = False
         #이미 투표한 경우 
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
              uservote = UserVote.objects.filter(poll_id=poll_id, user=user)
@@ -103,7 +103,7 @@ class PollDetailView(APIView):
                     category_remove_list.append(category_name)
         category_list = [category for category in category_list if category not in category_remove_list]
         context = {
-            "uservote" : serialized_uservote,
+            "uservote" : serialized_uservote if uservote else False,
             "poll": serialized_poll,
             "category_list" : category_list,
         }
@@ -282,153 +282,6 @@ class MypageView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-"""
-# 투표 시 회원, 비회원 구분 (회원일시 바로 결과페이지, 비회원일시 성별 페이지)
-@api_view(['POST'])
-def poll_classifyuser(request, poll_id):
-    user = request.user
-    # if user.is_authenticated :
-    #     if user.gender== "" or user.mbti=="":
-    #         return redirect("vote:update")
-    if request.method == "POST":
-        poll = get_object_or_404(Poll, pk=poll_id)
-        choice_id = request.POST.get("choice")
-        choice = Choice.objects.get(id=choice_id)
-        try: 
-            uservote = UserVote(user=request.user, poll=poll, choice=choice) 
-                # user = requqest.user에서 성공시 uservote, error 시 nonuservote
-            uservote.save()
-            user.voted_polls.add(poll_id)
-                #user의 투표 리스트에 추가 
-            poll_result_update(poll_id,uservote.choice_id, user.gender, user.mbti)
-
-            # poll_result.total += 1
-            # if user.gender == "M":
-            #     poll_result.choice1_man += (
-            #         1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #     )
-            #     poll_result.choice2_man += (
-            #         1 if int(choice_id) == 2 * (poll_id) else 0
-            #     )
-            # elif user.gender == "W":
-            #     poll_result.choice1_woman += (
-            #         1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #     )
-            #     poll_result.choice2_woman += (
-            #         1 if int(choice_id) == 2 * (poll_id) else 0
-            #     )
-            # for letter in user.mbti:
-            #     if letter == "E":
-            #         poll_result.choice1_E += (
-            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #         )
-            #         poll_result.choice2_E += (
-            #             1 if int(choice_id) == 2 * (poll_id) else 0
-            #         )
-            #     elif letter == "I":
-            #         poll_result.choice1_I += (
-            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #         )
-            #         poll_result.choice2_I += (
-            #             1 if int(choice_id) == 2 * (poll_id) else 0
-            #         )
-            #     elif letter == "S":
-            #         poll_result.choice1_S += (
-            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #         )
-            #         poll_result.choice2_S += (
-            #             1 if int(choice_id) == 2 * (poll_id) else 0
-            #         )
-            #     elif letter == "N":
-            #         poll_result.choice1_N += (
-            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #         )
-            #         poll_result.choice2_N += (
-            #             1 if int(choice_id) == 2 * (poll_id) else 0
-            #         )
-            #     elif letter == "T":
-            #         poll_result.choice1_T += (
-            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #         )
-            #         poll_result.choice2_T += (
-            #             1 if int(choice_id) == 2 * (poll_id) else 0
-            #         )
-            #     elif letter == "F":
-            #         poll_result.choice1_F += (
-            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #         )
-            #         poll_result.choice2_F += (
-            #             1 if int(choice_id) == 2 * (poll_id) else 0
-            #         )
-            #     elif letter == "J":
-            #         poll_result.choice1_J += (
-            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #         )
-            #         poll_result.choice2_J += (
-            #             1 if int(choice_id) == 2 * (poll_id) else 0
-            #         )
-            #     elif letter == "P":
-            #         poll_result.choice1_P += (
-            #             1 if int(choice_id) == 2 * (poll_id) - 1 else 0
-            #         )
-            #         poll_result.choice2_P += (
-            #             1 if int(choice_id) == 2 * (poll_id) else 0
-            #         )
-            # poll_result.save()
-            poll_result_page__url = reverse("vote:poll_result_page", args=[poll_id, uservote.id, 0])
-            return redirect(poll_result_page__url)
-        except ValueError:
-            #nonuservote 
-            nonuservote = NonUserVote(poll=poll, choice=choice)
-            #nonuservote 생성 mbti와 성별은 아직 받지 않았음.
-            nonuservote.save()
-            serialized_poll = PollSerializer(poll).data
-            context = {
-                "poll": serialized_poll,
-                "gender": ["M", "W"],
-                "nonuservote_id": nonuservote.id,
-                #"loop_time": [0,1],
-            }
-            return Response(context)
-    else:
-        return redirect("/")
-
-
-# 비회원 투표시 Gender update 후 mbti 페이지
-@api_view(['POST'])
-def poll_nonusermbti(request, poll_id, nonuservote_id):
-    if request.method == "POST":
-        choice_id = request.POST.get("choice")
-        if choice_id == "M":
-            NonUserVote.objects.filter(pk=nonuservote_id).update(gender="M")
-        if choice_id == "W":
-            NonUserVote.objects.filter(pk=nonuservote_id).update(gender="W")
-        poll = get_object_or_404(Poll, pk=poll_id)
-        serialized_poll = PollSerializer(poll).data
-        context = {
-            "poll": serialized_poll,
-            "nonuservote_id": nonuservote_id,
-        }
-        return Response(context)
-    else:
-        return redirect("/")
-
-
-# 비회원 투표시 투표 정보 전송 페이지
-@api_view(['POST'])
-def poll_nonuserfinal(request, poll_id, nonuservote_id):
-    if request.method == "POST":
-        selected_mbti = request.POST.get("selected_mbti")
-        NonUserVote.objects.filter(pk=nonuservote_id).update(MBTI=selected_mbti)
-        nonuservote = NonUserVote.objects.get(id=nonuservote_id)
-        poll_result_update(poll_id,nonuservote.choice_id, nonuservote.gender, nonuservote.MBTI)
-       
-        poll_result_page_url = reverse("vote:poll_result_page", args=[poll_id, 0, nonuservote_id])
-        return redirect(poll_result_page_url)
-    else:
-        return redirect("/")
-"""
-
 
 # 투표 시 poll_result 업데이트 함수 (uservote, nonuservote 둘 다)
 # 어떤 poll에 choice_id번 선택지를 골랐음. + **extra_fields(Poll의 카테고리)의 정보가 있음.
@@ -446,8 +299,6 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     poll = Poll.objects.get(id=poll_id)
     poll.total_count = +1 
     poll.save()
-
-
 
     ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
     serialized_poll = PollSerializer(poll).data
@@ -537,6 +388,9 @@ class poll_result_page(APIView): #댓글 필터링은 아직 고려 안함
         #statistics, analysis 
         statistics = poll_calcstat(poll_id)
         #analysis = poll_analysis(statistics, gender, mbti, age)
+
+        #uservote 생성
+
 
         # 댓글
         comments = Comment.objects.filter(poll_id=poll_id)
