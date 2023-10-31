@@ -85,9 +85,11 @@ class PollDetailView(APIView):
         user = request.user
         #이미 투표한 경우 
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
-            uservote = UserVote.objects.get(poll_id=poll_id, user=user)
-            previous_choice = str(uservote.choice)
-
+            try : 
+                uservote = UserVote.objects.get(poll_id=poll_id, user=user)
+                previous_choice = str(uservote.choice)
+            except :
+                previous_choice = False
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll).data
 
@@ -242,6 +244,7 @@ class CommentLikeView(APIView):
 class MypageView(APIView):
     def get(self, request):
         user = request.user
+        print(user)
         if not user.is_authenticated:
             return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
 
