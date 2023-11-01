@@ -68,41 +68,56 @@ class MainViewSearch(generics.ListAPIView):
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def poll_create(request):
-    
     thumbnail = request.FILES.get('thumbnail')
     title = request.data.get('title')
     content = request.data.get('content')
     categories = request.data.getlist('category') 
     choices = request.data.getlist('choice')
     owner = request.user
+
+    if not (title and content and categories and choices and owner and thumbnail):
+        return Response({"error": "필수 데이터가 제공되어 있지 않음"}, status=status.HTTP_400_BAD_REQUEST)
     
-    if not (title and content and thumbnail and categories and choices and owner):
-        return Response({"error": "필수 필드를 모두 제공해야함"}, status=status.HTTP_400_BAD_REQUEST)
-    try: #따옴표 제거
-        category_data = [json.loads(category.replace("'", "\""))for category in categories]
-        choice_data = [json.loads(choice.replace("'", "\""))for choice in choices]
-    except json.JSONDecodeError:
-        return Response({"error": "올바른 JSON 데이터 형식이 아닙니다."}, status=status.HTTP_400_BAD_REQUEST)
+    # 카테고리 데이터 파싱
+    category_ids = []
+    for category_str in categories:
+        try:
+            category_data = json.loads(category_str.replace("'", "\""))
+            category_id = category_data.get('id')
+            if category_id is not None:
+                category_ids.append(category_id)
+        except (json.JSONDecodeError, KeyError):
+            return Response({"error": "카테고리 데이터 형식이 아님."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 선택지 데이터 파싱
+    choice_data = []
+    for choice_str in choices:
+        try:
+            choice_dict = json.loads(choice_str.replace("'", "\""))
+            choice_data.append(choice_dict['choice_text'])
+        except (json.JSONDecodeError, KeyError):
+            return Response({"error": "선택지 데이터 형식이 아님."}, status=status.HTTP_400_BAD_REQUEST)
     
-    #user 객체로 변환
-    user = request.user
-    user_dict = {"User": user} 
-    
+    # Poll 객체 생성
     poll_data = {
         "title": title,
         "content": content,
         "thumbnail": thumbnail,
-        "category": category_data,
-        "choices": choice_data,
-        "owner": user_dict, 
+        "owner": owner,
     }
     print(poll_data)
-    serialized_poll = PollCreateSerializer(data=poll_data)
-    if serialized_poll.is_valid():
-        serialized_poll.save(thumbnail=thumbnail)
-        return Response(serialized_poll.data, status=status.HTTP_200_OK)
-    else:
-        return Response(serialized_poll.errors, status=status.HTTP_400_BAD_REQUEST)
+    poll = Poll.objects.create(**poll_data)
+    
+    # 카테고리 할당
+    poll.category.set(category_ids)
+    # 선택지 할당
+    for choice_text in choice_data:
+        choice = Choice.objects.create(poll=poll, choice_text=choice_text)
+        poll.choices.add(choice)
+
+    serialized_poll = PollCreateSerializer(poll)
+    
+    return Response(serialized_poll.data, status=status.HTTP_200_OK)
 
 # 투표 디테일 페이지
 class PollDetailView(APIView):
@@ -283,7 +298,7 @@ class MypageView(APIView, PageNumberPagination):
         #유저 정보 불러오기
         user_info = User.objects.get(email=request.user)
         
-        #각각 페이지네이션
+        #각각 페이지네이션 (url 뒤에 쿼리로 보냄)
         uservote_page = self.paginate_queryset(uservote, self.request)
         my_poll_page = self.paginate_queryset(my_poll, self.request)
         poll_like_page = self.paginate_queryset(poll_like, self.request)
@@ -292,7 +307,6 @@ class MypageView(APIView, PageNumberPagination):
         my_poll_serializer = PollSerializer(my_poll_page, many=True).data if my_poll_page is not None else PollSerializer(my_poll, many=True).data
         poll_like_serializer = PollSerializer(poll_like_page, many=True).data if poll_like_page is not None else PollSerializer(poll_like, many=True).data
         
-
         context = {
             "uservote": uservote_serializer,
             "my_poll": my_poll_serializer,
@@ -306,7 +320,7 @@ class MypageView(APIView, PageNumberPagination):
         }
         return Response(context)
     
-    #마이페이지 수정 (개인정보)
+    #마이페이지 수정 (개인정보 수정)
     def put(self, request):
         user = request.user
         serializer = UserSerializer(user, data=request.data)

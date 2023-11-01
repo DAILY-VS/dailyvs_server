@@ -27,18 +27,17 @@ class PollSerializer(serializers.ModelSerializer):
         model = Poll
         fields = '__all__'
 
-class CategoryCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ['id']
-
 class PollCreateSerializer(serializers.ModelSerializer):
-    owner = UserSerializer()
     choices = ChoiceSerializer(many=True)
-    category = CategoryCreateSerializer(many=True)
     class Meta:
         model = Poll
         fields = '__all__'
+    def create(self, validated_data): #choice 중첩 문제로 오버라이딩
+        choices_data = validated_data.pop('choices')
+        poll = Poll.objects.create(**validated_data)
+        for choice_data in choices_data:
+            Choice.objects.create(poll=poll, **choice_data)
+        return poll
 
 class TodayPollSerializer(serializers.ModelSerializer):
     poll = PollSerializer(many=False)
