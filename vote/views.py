@@ -40,13 +40,23 @@ class MainViewSet(ModelViewSet):
             serialized_today_poll = None
 
         hot_polls = Poll.objects.filter(total_count__gte=10)
+        mbti_polls = Poll.objects.filter(category__name='mbti')
+        gender_polls = Poll.objects.filter(category__name='gender')
+        age_polls = Poll.objects.filter(category__name='age')
+
         serialized_polls = self.get_serializer(self.queryset, many=True).data
         serialized_hot_polls = self.get_serializer(hot_polls, many=True).data
+        serialized_mbti_polls = self.get_serializer(mbti_polls, many=True).data
+        serialized_gender_polls = self.get_serializer(gender_polls, many=True).data
+        serialized_age_polls = self.get_serializer(age_polls, many=True).data
 
         response_data = {
             "polls": serialized_polls,
             "hot_polls": serialized_hot_polls,
             "today_poll": serialized_today_poll,
+            "mbti_polls" : serialized_mbti_polls,
+            "gender_polls" : serialized_gender_polls,
+            "age_polls" : serialized_age_polls,
         }
         return Response(response_data)
 
