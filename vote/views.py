@@ -424,9 +424,9 @@ class poll_result_page(APIView):
         #user 정보 업데이트 
         user=request.user
         if user.is_authenticated:
-            user.voted_polls.add(poll_id)
             if not user.voted_polls.filter(id=poll_id).exists():
                 UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id)
+            user.voted_polls.add(poll_id)
             for category in category_list:
                 setattr(user, category, received_data[category])
                 user.save() 
@@ -446,10 +446,6 @@ class poll_result_page(APIView):
         #statistics, analysis 
         statistics = poll_calcstat(poll_id)
         #analysis = poll_analysis(statistics, gender, mbti, age)
-
-        #uservote 생성
-        if user.is_authenticated:
-            UserVote.objects.get_or_create(user=user, choice_id=choice_id, poll_id=poll_id)
 
 
         # 댓글
