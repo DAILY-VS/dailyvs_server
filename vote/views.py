@@ -334,7 +334,7 @@ class MypageView(APIView, PageNumberPagination):
 # 투표 시 poll_result 업데이트 함수 (uservote, nonuservote 둘 다)
 # 어떤 poll에 choice_id번 선택지를 골랐음. + **extra_fields(Poll의 카테고리)의 정보가 있음.
 import struct
-def poll_result_update(poll_id, choice_id, **extra_fields):
+def poll_result_update(poll_id, choice_number, **extra_fields):
     # user, nonUser 정보 처리는 위에서 해주면 좋겠다.
     # M, W \x00\x00\x00\x10 \x00\x00\x00\x10
     # E I S N T F P J \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 
@@ -356,7 +356,7 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     #########################################################
 
 
-    choice_set = getattr(poll_result, 'choice' + str(choice_id))
+    choice_set = getattr(poll_result, 'choice' + str(choice_number))
     # 나누고 정수 변환 -> 이 부분이 load 함수 역할. 괜히 함수 호출하면 시간 걸릴까봐 그냥 안에 넣었음. calcstat에서도 그대로 쓰면 됨.
     tmp_set = {}
     category_set = ["M", "W", "E", "I", "S", "N", "T", "F", "P", "J", "10", "20_1", "20_2", "30_1", "30_2", "40"]
@@ -378,7 +378,7 @@ def poll_result_update(poll_id, choice_id, **extra_fields):
     for i, key in enumerate(category_set):
         res += struct.pack('>i', tmp_set[key])
     # 저장
-    setattr(poll_result, 'choice' + str(choice_id), res)
+    setattr(poll_result, 'choice' + str(choice_number), res)
     poll_result.save()
     return None
 
@@ -407,7 +407,8 @@ class poll_result_page(APIView):
     def post(self, request, poll_id): #투표 완료 버튼 후 
         #client에서 받은 정보 처리 
         received_data = request.data
-        choice_id = received_data['choice_id']
+        choice_id = received_data['choice_id'] #고유 id값
+        choice_number = received_data['choice_number'] #해당 poll의 몇 번째 답변 
         category_list = received_data['category_list']
 
         #user 정보 업데이트 
@@ -428,19 +429,15 @@ class poll_result_page(APIView):
 
         #poll_result_update
         if user.is_authenticated:
-            poll_result_update(poll_id, choice_id, **{'gender': user.gender, 'mbti': user.mbti, 'age': user.age})
+            poll_result_update(poll_id, choice_number, **{'gender': user.gender, 'mbti': user.mbti, 'age': user.age})
         else:
-            poll_result_update(poll_id, choice_id, **{'gender': received_data['gender'], 'mbti': received_data['mbti'], 'age': received_data['age']})
+            poll_result_update(poll_id, choice_number, **{'gender': received_data['gender'], 'mbti': received_data['mbti'], 'age': received_data['age']})
 
         #statistics, analysis 
         statistics = poll_calcstat(poll_id)
         #analysis = poll_analysis(statistics, gender, mbti, age)
 
         #uservote 생성
-        print(poll.choices.first().id)
-        real_choice
-
-
         if user.is_authenticated:
             UserVote.objects.get_or_create(user=user, choice_id=choice_id, poll_id=poll_id)
 
