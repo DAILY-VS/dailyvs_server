@@ -306,7 +306,7 @@ class MypageView(APIView, PageNumberPagination):
         uservote_serializer = UserVoteSerializer(uservote_page, many=True).data if uservote_page is not None else UserVoteSerializer(uservote, many=True).data
         my_poll_serializer = PollSerializer(my_poll_page, many=True).data if my_poll_page is not None else PollSerializer(my_poll, many=True).data
         poll_like_serializer = PollSerializer(poll_like_page, many=True).data if poll_like_page is not None else PollSerializer(poll_like, many=True).data
-        
+        print(uservote_serializer)
         context = {
             "uservote": uservote_serializer,
             "my_poll": my_poll_serializer,
@@ -437,6 +437,10 @@ class poll_result_page(APIView):
         #analysis = poll_analysis(statistics, gender, mbti, age)
 
         #uservote 생성
+        print(poll.choices.first().id)
+        real_choice
+
+
         if user.is_authenticated:
             UserVote.objects.get_or_create(user=user, choice_id=choice_id, poll_id=poll_id)
 
