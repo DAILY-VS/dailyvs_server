@@ -455,11 +455,18 @@ class poll_result_page(APIView):
         comments_count = comments.count()
         serialized_comments= CommentSerializer(comments, many=True).data
 
+        user = request.user
+        if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
+            uservote = UserVote.objects.get(poll_id=poll_id, user=user)
+            choice = Choice.objects.get(id = uservote.choice_id)
+        serialized_choice = ChoiceSerializer(choice, many=False).data
+
         context = {
             "poll": serialized_poll,
             "statistics": statistics,
             "comments": serialized_comments,
             "comments_count":comments_count,
+            "choice":serialized_choice,
             }
         return Response(context)
 
@@ -510,9 +517,14 @@ class poll_result_page(APIView):
         comments = Comment.objects.filter(poll_id=poll_id)
         comments_count = comments.count()
         serialized_comments= CommentSerializer(comments, many=True).data
+        if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
+            uservote = UserVote.objects.get(poll_id=poll_id, user=user)
+            choice = Choice.objects.get(id = uservote.choice_id)
+        serialized_choice = ChoiceSerializer(choice, many=False).data
 
         #serialize
         serialized_poll = PollSerializer(poll).data
+
 
         context = {
             "poll": serialized_poll,
@@ -520,6 +532,7 @@ class poll_result_page(APIView):
             "statistics": statistics,
             "comments": serialized_comments,
             "comments_count":comments_count,
+            "choice":serialized_choice,
             #"analysis" : analysis,
             }
         
