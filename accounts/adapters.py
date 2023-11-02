@@ -20,7 +20,10 @@ class CustomAccountAdapter(DefaultAccountAdapter):
         mbti = data.get("mbti")
         if mbti:
             user.mbti = mbti
-            
+
+        age = data.get("age")
+        if age:
+            user.age = age
 
         user.save()
         return user
