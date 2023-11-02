@@ -49,7 +49,7 @@ def kakao_callback(request):
 
     # 이메일 없으면 오류 => 카카오톡 최신 버전에서는 이메일 없이 가입 가능하다고 함...
     if email is None:
-        return Response({'message': 'failed to get email'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'fail'}, status=status.HTTP_400_BAD_REQUEST)
     
     # 이메일 받아옴 -> 추가 정보 입력창 -> 받아서 기존 유저 로그인 방식대로 로그인?(비밀번호 없음)
     # 3. 전달받은 이메일, access_token, code를 바탕으로 회원가입/로그인
@@ -64,7 +64,7 @@ def kakao_callback(request):
 
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
-            return Response({'message': 'failed to signin'}, status=accept_status)
+            return Response({'message': 'fail'}, status=accept_status)
 
         accept_json = accept.json()
         accept_json.pop('user', None)
@@ -84,7 +84,7 @@ def kakao_callback(request):
 
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
-            return Response({'message': 'failed to signup'}, status=accept_status)
+            return Response({'message': 'fail'}, status=accept_status)
 
         accept_json = accept.json()
         accept_json.pop('user', None)
