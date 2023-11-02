@@ -99,7 +99,6 @@ def kakao_callback(request):
 
     
 class KakaoLogin(SocialLoginView):
-    print("hellloo")
     BASE_URL = local_settings.BASE_URL
     KAKAO_CALLBACK_URI = BASE_URL + 'accounts/kakao/login/callback/'
     adapter_class = kakao_view.KakaoOAuth2Adapter
