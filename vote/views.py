@@ -123,8 +123,8 @@ def poll_create(request):
     # 카테고리 할당
     poll.category.set(category_ids)
     # 선택지 할당
-    for choice_text in choice_data:
-        choice = Choice.objects.create(poll=poll, choice_text=choice_text)
+    for i, choice_text in enumerate(choice_data):
+        choice = Choice.objects.create(poll=poll, choice_text=choice_text, choice_number= i + 1)
         poll.choices.add(choice)
 
     serialized_poll = PollCreateSerializer(poll)
@@ -174,7 +174,7 @@ class PollDetailView(APIView):
 
 # 댓글 create, read
 class CommentView(APIView):
-    def get(self, request, poll_id): 
+    def get(self, request, poll_id):
         comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None)
         serializer = CommentSerializer(comments, many=True).data
         
@@ -347,6 +347,7 @@ class MypageView(APIView, PageNumberPagination):
 # 어떤 poll에 choice_id번 선택지를 골랐음. + **extra_fields(Poll의 카테고리)의 정보가 있음.
 import struct
 def poll_result_update(poll_id, choice_number, **extra_fields):
+    print("poll_result_update 입니다.")
     # user, nonUser 정보 처리는 위에서 해주면 좋겠다.
     # M, W \x00\x00\x00\x10 \x00\x00\x00\x10
     # E I S N T F P J \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 
@@ -395,51 +396,47 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     return None
 
 def poll_result_remove(poll_id, choice_number, **extra_fields):
-    try:
-        poll = Poll.objects.get(id=poll_id)
-        poll_result = Poll_Result.objects.get(poll=poll_id)
-        # 기존 값 가져오기 -> 나누고 정수 변환 -> 1 더하기 -> 비트로 변환하고 붙이기 -> 저장
-        # 기존 값 가져오기
-        poll_result.total_count -= 1 #total_count 1 빼주기
-        #####
-        poll.total_count -= 1
-        poll.save()
+    poll = Poll.objects.get(id=poll_id)
+    poll_result = Poll_Result.objects.get(poll=poll_id)
+    # 기존 값 가져오기 -> 나누고 정수 변환 -> 1 더하기 -> 비트로 변환하고 붙이기 -> 저장
+    # 기존 값 가져오기
+    poll_result.total_count -= 1 #total_count 1 빼주기
+    #####
+    poll.total_count -= 1
+    poll.save()
 
-        ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
-        serialized_poll = PollSerializer(poll).data
-        choices = serialized_poll.get('choices', [])
-        poll_result.choice_count= len(choices)
-        poll_result.save()
-        #########################################################
+    ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
+    serialized_poll = PollSerializer(poll).data
+    choices = serialized_poll.get('choices', [])
+    poll_result.choice_count= len(choices)
+    poll_result.save()
+    #########################################################
 
-
-        choice_set = getattr(poll_result, 'choice' + str(choice_number))
-        # 나누고 정수 변환 -> 이 부분이 load 함수 역할. 괜히 함수 호출하면 시간 걸릴까봐 그냥 안에 넣었음. calcstat에서도 그대로 쓰면 됨.
-        tmp_set = {}
-        category_set = ["M", "W", "E", "I", "S", "N", "T", "F", "P", "J", "10", "20_1", "20_2", "30_1", "30_2", "40"]
-        for i, key in enumerate(category_set):
-            tmp_set[key] = int.from_bytes(choice_set[0 + 4 * i : 4 + 4 * i], byteorder='big', signed=False)
-        # 1 더하기
-        gender = extra_fields.get('gender')
-        mbti = extra_fields.get('mbti')
-        age = extra_fields.get('age')
-        if gender:
-            tmp_set[gender] -= 1
-        if mbti:
-            for i in range(4):
-                tmp_set[mbti[i]] -= 1
-        if age:
-            tmp_set[age] -= 1
-        # 비트로 변환하고 붙이기
-        res = bytearray()
-        for i, key in enumerate(category_set):
-            res += struct.pack('>i', tmp_set[key])
-        # 저장
-        setattr(poll_result, 'choice' + str(choice_number), res)
-        poll_result.save()
-        return None
-    except:
-        return -1
+    choice_set = getattr(poll_result, 'choice' + str(choice_number))
+    # 나누고 정수 변환 -> 이 부분이 load 함수 역할. 괜히 함수 호출하면 시간 걸릴까봐 그냥 안에 넣었음. calcstat에서도 그대로 쓰면 됨.
+    tmp_set = {}
+    category_set = ["M", "W", "E", "I", "S", "N", "T", "F", "P", "J", "10", "20_1", "20_2", "30_1", "30_2", "40"]
+    for i, key in enumerate(category_set):
+        tmp_set[key] = int.from_bytes(choice_set[0 + 4 * i : 4 + 4 * i], byteorder='big', signed=False)
+    # 1 더하기
+    gender = extra_fields.get('gender')
+    mbti = extra_fields.get('mbti')
+    age = extra_fields.get('age')
+    if gender:
+        tmp_set[gender] -= 1
+    if mbti:
+        for i in range(4):
+            tmp_set[mbti[i]] -= 1
+    if age:
+        tmp_set[age] -= 1
+    # 비트로 변환하고 붙이기
+    res = bytearray()
+    for i, key in enumerate(category_set):
+        res += struct.pack('>i', tmp_set[key])
+    # 저장
+    setattr(poll_result, 'choice' + str(choice_number), res)
+    poll_result.save()
+    return None
 
 class poll_result_page(APIView): 
     def get(self, request, poll_id): #새로고침, 링크로 접속 시
@@ -474,11 +471,19 @@ class poll_result_page(APIView):
         #client에서 받은 정보 처리 
         received_data = request.data
         choice_id = received_data['choice_id'] #고유 id값
-        choice_number = received_data['choice_number'] #해당 poll의 몇 번째 답변 
+        choice_number = received_data['choice_number'] #해당 poll의 몇 번째 답변
         category_list = received_data['category_list']
-
-        #user 정보 업데이트 
         user=request.user
+
+        #이미 투표 하였을 경우, poll_result_remove
+        if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
+            uservote = UserVote.objects.get(poll_id=poll_id, user=user)
+            prev_choice = uservote.choice.choice_number
+            poll_result_remove(poll_id, prev_choice, **{'gender': user.gender, 'mbti': user.mbti, 'age': user.age})
+            uservote.choice_id = choice_id
+            uservote.save()
+
+        #user 정보 업데이트
         if user.is_authenticated:
             if not user.voted_polls.filter(id=poll_id).exists():
                 UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id)
@@ -493,15 +498,6 @@ class poll_result_page(APIView):
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
 
-        #이미 투표 하였을 경우, poll_result_remove 
-        if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
-            try : 
-                uservote = UserVote.objects.get(poll_id=poll_id, user=user)
-                poll_result_remove(poll_id, uservote.choice_id, **{'gender': user.gender, 'mbti': user.mbti, 'age': user.age})
-                uservote.choice_id = choice_id
-                uservote.save()
-            except :
-                pass 
 
         #poll_result_update
         if user.is_authenticated:
