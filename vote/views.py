@@ -84,6 +84,7 @@ def poll_create(request):
     categories = request.data.getlist('category') 
     choices = request.data.getlist('choice')
     owner = request.user
+    print(categories)
 
     if not (title and content and categories and choices and owner and thumbnail):
         return Response({"error": "필수 데이터가 제공되어 있지 않음"}, status=status.HTTP_400_BAD_REQUEST)
@@ -94,6 +95,7 @@ def poll_create(request):
         try:
             category_data = json.loads(category_str.replace("'", "\""))
             category_id = category_data.get('id')
+            print(category_id)
             if category_id is not None:
                 category_ids.append(category_id)
         except (json.JSONDecodeError, KeyError):
@@ -261,7 +263,7 @@ class CommentLikeView(APIView):
         context = {
             "like_count": like_count,
             "message": message,
-            "user_likes_comment": user_likes_comment 
+            "user_likes_comment": user_likes_comment
         }
         return Response(context, status=status.HTTP_200_OK)
 
@@ -355,7 +357,7 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     poll_result.total_count += 1 #total_count 1 더해주기 
     #####
     poll = Poll.objects.get(id=poll_id)
-    poll.total_count = +1 
+    poll.total_count += 1
     poll.save()
 
     ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
@@ -391,6 +393,53 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     setattr(poll_result, 'choice' + str(choice_number), res)
     poll_result.save()
     return None
+
+def poll_result_remove(poll_id, choice_number, **extra_fields):
+    try:
+        poll = Poll.objects.get(id=poll_id)
+        poll_result = Poll_Result.objects.get(poll=poll_id)
+        # 기존 값 가져오기 -> 나누고 정수 변환 -> 1 더하기 -> 비트로 변환하고 붙이기 -> 저장
+        # 기존 값 가져오기
+        poll_result.total_count -= 1 #total_count 1 빼주기
+        #####
+        poll.total_count -= 1
+        poll.save()
+
+        ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
+        serialized_poll = PollSerializer(poll).data
+        choices = serialized_poll.get('choices', [])
+        poll_result.choice_count= len(choices)
+        poll_result.save()
+        #########################################################
+
+
+        choice_set = getattr(poll_result, 'choice' + str(choice_number))
+        # 나누고 정수 변환 -> 이 부분이 load 함수 역할. 괜히 함수 호출하면 시간 걸릴까봐 그냥 안에 넣었음. calcstat에서도 그대로 쓰면 됨.
+        tmp_set = {}
+        category_set = ["M", "W", "E", "I", "S", "N", "T", "F", "P", "J", "10", "20_1", "20_2", "30_1", "30_2", "40"]
+        for i, key in enumerate(category_set):
+            tmp_set[key] = int.from_bytes(choice_set[0 + 4 * i : 4 + 4 * i], byteorder='big', signed=False)
+        # 1 더하기
+        gender = extra_fields.get('gender')
+        mbti = extra_fields.get('mbti')
+        age = extra_fields.get('age')
+        if gender:
+            tmp_set[gender] -= 1
+        if mbti:
+            for i in range(4):
+                tmp_set[mbti[i]] -= 1
+        if age:
+            tmp_set[age] -= 1
+        # 비트로 변환하고 붙이기
+        res = bytearray()
+        for i, key in enumerate(category_set):
+            res += struct.pack('>i', tmp_set[key])
+        # 저장
+        setattr(poll_result, 'choice' + str(choice_number), res)
+        poll_result.save()
+        return None
+    except:
+        return -1
 
 class poll_result_page(APIView): 
     def get(self, request, poll_id): #새로고침, 링크로 접속 시
@@ -429,7 +478,7 @@ class poll_result_page(APIView):
             user.voted_polls.add(poll_id)
             for category in category_list:
                 setattr(user, category, received_data[category])
-                user.save() 
+                user.save()
 
         #기본 투표 정보
         poll = get_object_or_404(Poll, id=poll_id)
