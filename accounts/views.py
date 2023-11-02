@@ -2,7 +2,6 @@ import os
 from django.shortcuts import render, redirect
 import requests
 from json import JSONDecodeError
-from django.http import JsonResponse
 from rest_framework import status
 from .models import User
 from config import local_settings
@@ -20,9 +19,8 @@ def kakao_login(request):
     # 1. 인가 코드 받기 요청
     KAKAO_CALLBACK_URI = local_settings.BASE_URL + 'accounts/kakao/login/callback/'
     client_id = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
-    print(client_id)
     return redirect(f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={KAKAO_CALLBACK_URI}&response_type=code&scope=account_email")
-
+@api_view(['GET'])
 def kakao_callback(request):
     BASE_URL = local_settings.BASE_URL
     KAKAO_CALLBACK_URI = BASE_URL + 'accounts/kakao/login/callback/'
@@ -51,9 +49,7 @@ def kakao_callback(request):
 
     # 이메일 없으면 오류 => 카카오톡 최신 버전에서는 이메일 없이 가입 가능하다고 함...
     if email is None:
-        return JsonResponse({'err_msg': 'failed to get email'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    print(email)
+        return Response({'message': 'fail'}, status=status.HTTP_400_BAD_REQUEST)
     
     # 이메일 받아옴 -> 추가 정보 입력창 -> 받아서 기존 유저 로그인 방식대로 로그인?(비밀번호 없음)
     # 3. 전달받은 이메일, access_token, code를 바탕으로 회원가입/로그인
@@ -61,18 +57,24 @@ def kakao_callback(request):
         # 전달받은 이메일로 등록된 유저가 있는지 탐색
         user = User.objects.get(email=email)
 
-        # 이미 Google로 제대로 가입된 유저 => 로그인 & 해당 우저의 jwt 발급
+        # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
         accept = requests.post(f"{BASE_URL}accounts/kakao/login/finish/", data=data)
         accept_status = accept.status_code
 
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
-            return JsonResponse({'err_msg': 'failed to signin'}, status=accept_status)
+            return Response({'message': 'fail'}, status=accept_status)
 
         accept_json = accept.json()
         accept_json.pop('user', None)
-        return JsonResponse(accept_json)
+        print("user exists")
+        context = {
+            'access': accept_json.pop('access'),
+            'refresh': accept_json.pop('refresh'),
+            'nickname': email.split('@')[0],
+        }
+        return Response(context)
 
     except User.DoesNotExist:
         # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
@@ -82,15 +84,22 @@ def kakao_callback(request):
 
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
-            return JsonResponse({'err_msg': 'failed to signup'}, status=accept_status)
+            return Response({'message': 'fail'}, status=accept_status)
 
         accept_json = accept.json()
         accept_json.pop('user', None)
-        return JsonResponse(accept_json)
+        print("user does not exist")
+        context = {
+            'access': accept_json.pop('access'),
+            'refresh': accept_json.pop('refresh'),
+            'nickname': email.split('@')[0],
+        }
+        return Response(context)
 
 
     
 class KakaoLogin(SocialLoginView):
+    print("hellloo")
     BASE_URL = local_settings.BASE_URL
     KAKAO_CALLBACK_URI = BASE_URL + 'accounts/kakao/login/callback/'
     adapter_class = kakao_view.KakaoOAuth2Adapter
