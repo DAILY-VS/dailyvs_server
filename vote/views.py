@@ -437,6 +437,16 @@ class poll_result_page(APIView):
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
 
+        #이미 투표 하였을 경우, poll_result_remove 
+        if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
+            try : 
+                uservote = UserVote.objects.get(poll_id=poll_id, user=user)
+                poll_result_remove(poll_id, uservote.choice_id, **{'gender': user.gender, 'mbti': user.mbti, 'age': user.age})
+                uservote.choice_id = choice_id
+                uservote.save()
+            except :
+                pass 
+
         #poll_result_update
         if user.is_authenticated:
             poll_result_update(poll_id, choice_number, **{'gender': user.gender, 'mbti': user.mbti, 'age': user.age})
@@ -446,7 +456,6 @@ class poll_result_page(APIView):
         #statistics, analysis 
         statistics = poll_calcstat(poll_id)
         #analysis = poll_analysis(statistics, gender, mbti, age)
-
 
         # 댓글
         comments = Comment.objects.filter(poll_id=poll_id)
