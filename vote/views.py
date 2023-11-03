@@ -192,6 +192,7 @@ class CommentView(APIView):
             'choice': choice.id,
         }
         serializer = CommentSerializer(data=data)
+        print(data)
         if serializer.is_valid():
             serializer.save(user_info=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
