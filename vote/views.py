@@ -450,18 +450,18 @@ class poll_result_page(APIView, PageNumberPagination):
         #기본 투표 정보
         poll = get_object_or_404(Poll, id=poll_id)
         
-        #statistics
         statistics = poll_calcstat(poll_id)
-        
         serialized_poll = PollSerializer(poll).data
         # 댓글
         comments = Comment.objects.filter(poll_id=poll_id)
         comments_count = comments.count()
         comment_page=self.paginate_queryset(comments, self.request)
-        
-        #serialized_comments= CommentSerializer(comments, many=True).data
-        
         serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
+        for comment in serialized_comments:
+            choice_id = comment.get('choice')
+            if choice_id:
+                choice = Choice.objects.get(pk=choice_id)
+                comment['choice_text'] = choice.choice_text
         
         serialized_choice= False
         user = request.user
@@ -476,7 +476,6 @@ class poll_result_page(APIView, PageNumberPagination):
 
         latest_polls = Poll.objects.all().order_by("-id")[0:5]
         serialized_latest_polls= PollSerializer(latest_polls, many=True).data
-
 
         context = {
             "poll": serialized_poll,
@@ -520,7 +519,6 @@ class poll_result_page(APIView, PageNumberPagination):
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
 
-
         #poll_result_update
         if user.is_authenticated:
             poll_result_update(poll_id, choice_number, **{'gender': user.gender, 'mbti': user.mbti, 'age': user.age})
@@ -537,15 +535,20 @@ class poll_result_page(APIView, PageNumberPagination):
         # 댓글
         comments = Comment.objects.filter(poll_id=poll_id)
         comments_count = comments.count()
-        serialized_comments= CommentSerializer(comments, many=True).data
+        comment_page=self.paginate_queryset(comments, self.request)
+        serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
+        
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
             choice = Choice.objects.get(id = uservote.choice_id)
         serialized_choice = ChoiceSerializer(choice, many=False).data
+        for comment in serialized_comments:
+            choice_id = comment.get('choice')
+            if choice_id:
+                choice = Choice.objects.get(pk=choice_id)
+                comment['choice_text'] = choice.choice_text
 
-        #serialize
         serialized_poll = PollSerializer(poll).data
-
 
         context = {
             "poll": serialized_poll,
@@ -556,7 +559,6 @@ class poll_result_page(APIView, PageNumberPagination):
             "choice":serialized_choice,
             #"analysis" : analysis,
             }
-        
         return Response(context)
 
 
