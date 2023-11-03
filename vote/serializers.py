@@ -56,8 +56,8 @@ class CommentSerializer(serializers.ModelSerializer):
     user_info = UserSerializer()
     time_difference = serializers.SerializerMethodField()
     reply = serializers.SerializerMethodField()
-
     choice_text = serializers.CharField(source='choice.choice_text', read_only=True)
+    
     def get_reply(self, obj):  # 대댓글
         replies = Comment.objects.filter(parent_comment=obj)
         print(replies)
@@ -67,7 +67,6 @@ class CommentSerializer(serializers.ModelSerializer):
                 choice = Choice.objects.get(pk=choice_id)
                 comment.choice_text = choice.choice_text
         return CommentSerializer(replies, many=True).data
-
     
     def get_time_difference(self, obj): #클라이언트에게 넘겨줄 시간차이(-전)
         now = datetime.now()
