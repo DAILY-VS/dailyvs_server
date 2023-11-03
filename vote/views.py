@@ -462,14 +462,12 @@ class poll_result_page(APIView):
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
             choice = Choice.objects.get(id = uservote.choice_id)
-            serialized_choice = ChoiceSerializer(choice, many=False).data
+        serialized_choice = ChoiceSerializer(choice, many=False).data
 
         choice_dict= {}
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
 
-
-        print(choice)
         context = {
             "poll": serialized_poll,
             "choices": choice_dict,
