@@ -22,8 +22,7 @@ def kakao_login(request):
     return redirect(f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={KAKAO_CALLBACK_URI}&response_type=code&scope=account_email")
 @api_view(['GET'])
 def kakao_callback(request):
-    BASE_URL = local_settings.BASE_URL
-    KAKAO_CALLBACK_URI = BASE_URL + 'accounts/kakao/login/callback/'
+    KAKAO_CALLBACK_URI = 'http://localhost:3000/accounts/kakao/login/callback/'
     client_id = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
     # 4. 인가 코드 받기. (반드시 프론트에서 쿼리스트링으로 받아야 한다는데..?https://velog.io/@mechauk418/DRF-%EC%B9%B4%EC%B9%B4%EC%98%A4-%EC%86%8C%EC%85%9C-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0-JWT-%EC%BF%A0%ED%82%A4-%EC%84%A4%EC%A0%95-%EB%B0%8F-%EC%A3%BC%EC%9D%98%EC%82%AC%ED%95%AD-CORS%EA%B4%80%EB%A0%A8)
     code = request.GET.get("code")
@@ -79,7 +78,7 @@ def kakao_callback(request):
     except User.DoesNotExist:
         # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
-        accept = requests.post(f"{BASE_URL}accounts/kakao/login/finish/", data=data)
+        accept = requests.post("http://localhost:8000/accounts/kakao/login/finish/", data=data)
         accept_status = accept.status_code
 
         # 뭔가 중간에 문제가 생기면 에러
@@ -99,8 +98,7 @@ def kakao_callback(request):
 
     
 class KakaoLogin(SocialLoginView):
-    BASE_URL = local_settings.BASE_URL
-    KAKAO_CALLBACK_URI = BASE_URL + 'accounts/kakao/login/callback/'
+    KAKAO_CALLBACK_URI = 'http://localhost:3000/accounts/kakao/login/callback/'
     adapter_class = kakao_view.KakaoOAuth2Adapter
     client_class = OAuth2Client
     callback_url = KAKAO_CALLBACK_URI
