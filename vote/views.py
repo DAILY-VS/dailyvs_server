@@ -440,11 +440,6 @@ def poll_result_remove(poll_id, choice_number, **extra_fields):
 class poll_result_page(APIView): 
     def get(self, request, poll_id): #새로고침, 링크로 접속 시
         #기본 투표 정보
-        print('asdf')
-        print('asdf')
-        print('asdf')
-        print('asdf')
-        print('asdf')
         poll = get_object_or_404(Poll, id=poll_id)
             
         #statistics
@@ -467,6 +462,10 @@ class poll_result_page(APIView):
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
 
+        latest_polls = Poll.objects.all().order_by("-id")[0:5]
+        serialized_latest_polls= PollSerializer(latest_polls, many=True).data
+
+
         context = {
             "poll": serialized_poll,
             "choices": choice_dict,
@@ -474,6 +473,7 @@ class poll_result_page(APIView):
             "comments": serialized_comments,
             "comments_count":comments_count,
             "choice":serialized_choice,
+            "latest_polls":serialized_latest_polls,
             }
         return Response(context)
 
