@@ -168,34 +168,50 @@ class PollDetailView(APIView):
         else: 
             return Response("fail", status=status.HTTP_403_FORBIDDEN)
 
-# 댓글 create, read
-class CommentView(APIView):
-    def get(self, request, poll_id):
-        comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None)
-        serializer = CommentSerializer(comments, many=True).data
-        
-        for comment in serializer:
+# 댓글 read
+class CommentView(APIView, PageNumberPagination):
+    pagination_class=PageNumberPagination
+    page_size=5
+    def get(self, request, poll_id, sort='newest'):
+        # 댓글
+        if sort == 'newest':
+            comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
+        elif sort == 'popular':
+            comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-likes_count', '-id')
+        else:
+            comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
+        comments_count = comments.count()
+        comment_page=self.paginate_queryset(comments, self.request)
+        serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
+        for comment in serialized_comments:
             choice_id = comment.get('choice')
             if choice_id:
                 choice = Choice.objects.get(pk=choice_id)
                 comment['choice_text'] = choice.choice_text
-        return Response(serializer, status=status.HTTP_200_OK)
-
-    def post(self, request, poll_id):
-        choice = UserVote.objects.get(user=request.user, poll=poll_id).choice
-        poll = poll_id
-        user=request.user
-        data= {
-            **request.data,
-            'choice': choice.id,
-            'poll': poll,
+                
+        context = {
+            "comments": serialized_comments,
+            "comments_count": comments_count
         }
-        print(data)
-        serializer = CommentSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save(user_info=request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(context, status=status.HTTP_200_OK)
+
+#댓글 쓰기
+@api_view(['POST'])
+def comment_create(request, poll_id):
+    choice = UserVote.objects.get(user=request.user, poll=poll_id).choice
+    poll = poll_id
+    user=request.user
+    data= {
+        **request.data,
+        'choice': choice.id,
+        'poll': poll,
+    }
+    print(data)
+    serializer = CommentSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save(user_info=request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 댓글 delete
 @api_view(['DELETE'])
@@ -441,25 +457,13 @@ def poll_result_remove(poll_id, choice_number, **extra_fields):
     poll_result.save()
     return None
 
-class poll_result_page(APIView, PageNumberPagination):
-    pagination_class=PageNumberPagination
-    page_size=5
+class poll_result_page(APIView):
     def get(self, request, poll_id): #새로고침, 링크로 접속 시
         #기본 투표 정보
         poll = get_object_or_404(Poll, id=poll_id)
         statistics = poll_calcstat(poll_id)
         serialized_poll = PollSerializer(poll).data
-        # 댓글
-        comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None)
-        comments_count = comments.count()
-        comment_page=self.paginate_queryset(comments, self.request)
-        serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
-        for comment in serialized_comments:
-            choice_id = comment.get('choice')
-            if choice_id:
-                choice = Choice.objects.get(pk=choice_id)
-                comment['choice_text'] = choice.choice_text
-        
+
         serialized_choice= False
         user = request.user
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
@@ -478,8 +482,6 @@ class poll_result_page(APIView, PageNumberPagination):
             "poll": serialized_poll,
             "choices": choice_dict,
             "statistics": statistics,
-            "comments": serialized_comments,
-            "comments_count":comments_count,
             "choice":serialized_choice,
             "latest_polls":serialized_latest_polls,
             }
@@ -528,22 +530,11 @@ class poll_result_page(APIView, PageNumberPagination):
         #statistics, analysis 
         statistics = poll_calcstat(poll_id)
         #analysis = poll_analysis(statistics, gender, mbti, age)
-
-        # 댓글
-        comments = Comment.objects.filter(poll_id=poll_id)
-        comments_count = comments.count()
-        comment_page=self.paginate_queryset(comments, self.request)
-        serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
         
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
             choice = Choice.objects.get(id = uservote.choice_id)
         serialized_choice = ChoiceSerializer(choice, many=False).data
-        for comment in serialized_comments:
-            choice_id = comment.get('choice')
-            if choice_id:
-                choice = Choice.objects.get(pk=choice_id)
-                comment['choice_text'] = choice.choice_text
 
         serialized_poll = PollSerializer(poll).data
 
@@ -551,8 +542,6 @@ class poll_result_page(APIView, PageNumberPagination):
             "poll": serialized_poll,
             "choices": choice_dict,
             "statistics": statistics,
-            "comments": serialized_comments,
-            "comments_count":comments_count,
             "choice":serialized_choice,
             #"analysis" : analysis,
             }
@@ -616,7 +605,6 @@ def get_random_fortune(mbti):
     if mbti != 'nonuser':
         fortune = mbti + '인 당신! ' + fortune
     return fortune
-
 
 #포춘 쿠키 페이지 
 @api_view(['POST'])    
