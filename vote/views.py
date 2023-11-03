@@ -347,7 +347,6 @@ class MypageView(APIView, PageNumberPagination):
 # 어떤 poll에 choice_id번 선택지를 골랐음. + **extra_fields(Poll의 카테고리)의 정보가 있음.
 import struct
 def poll_result_update(poll_id, choice_number, **extra_fields):
-    print("poll_result_update 입니다.")
     # user, nonUser 정보 처리는 위에서 해주면 좋겠다.
     # M, W \x00\x00\x00\x10 \x00\x00\x00\x10
     # E I S N T F P J \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 \x00\x00\x00\x10 
@@ -516,7 +515,10 @@ class poll_result_page(APIView):
         if user.is_authenticated:
             poll_result_update(poll_id, choice_number, **{'gender': user.gender, 'mbti': user.mbti, 'age': user.age})
         else:
-            poll_result_update(poll_id, choice_number, **{'gender': received_data['gender'], 'mbti': received_data['mbti'], 'age': received_data['age']})
+            extra_fields = {}
+            for i in category_list:
+                extra_fields[i] = received_data[i]
+            poll_result_update(poll_id, choice_number, **extra_fields)
 
         #statistics, analysis 
         statistics = poll_calcstat(poll_id)
