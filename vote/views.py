@@ -8,12 +8,10 @@ from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.viewsets import ModelViewSet
@@ -187,12 +185,15 @@ class CommentView(APIView):
 
     def post(self, request, poll_id):
         choice = UserVote.objects.get(user=request.user, poll=poll_id).choice
+        poll = poll_id
+        user=request.user
         data= {
             **request.data,
             'choice': choice.id,
+            'poll': poll,
         }
-        serializer = CommentSerializer(data=data)
         print(data)
+        serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save(user_info=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -296,8 +297,9 @@ class CommentLikeView(APIView):
 #마이페이지
 class MypageView(APIView, PageNumberPagination):
     pagination_class = PageNumberPagination
-    page_size = 5
+    page_size = 5 
     def get(self, request):
+        self.request = request
         user = request.user
         if not user.is_authenticated:
             return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
@@ -311,15 +313,18 @@ class MypageView(APIView, PageNumberPagination):
         #유저 정보 불러오기
         user_info = User.objects.get(email=request.user)
         
-        #각각 페이지네이션 (url 뒤에 쿼리로 보냄)
+        uservote_page_number = int(self.request.query_params.get("uservote_page", 1))
+        my_poll_page_number = int(self.request.query_params.get("my_poll_page", 1))
+        poll_like_page_number = int(self.request.query_params.get("poll_like_page", 1))
+
         uservote_page = self.paginate_queryset(uservote, self.request)
         my_poll_page = self.paginate_queryset(my_poll, self.request)
         poll_like_page = self.paginate_queryset(poll_like, self.request)
-        
+
         uservote_serializer = UserVoteSerializer(uservote_page, many=True).data if uservote_page is not None else UserVoteSerializer(uservote, many=True).data
         my_poll_serializer = PollSerializer(my_poll_page, many=True).data if my_poll_page is not None else PollSerializer(my_poll, many=True).data
         poll_like_serializer = PollSerializer(poll_like_page, many=True).data if poll_like_page is not None else PollSerializer(poll_like, many=True).data
-        print(uservote_serializer)
+
         context = {
             "uservote": uservote_serializer,
             "my_poll": my_poll_serializer,
@@ -438,11 +443,13 @@ def poll_result_remove(poll_id, choice_number, **extra_fields):
     poll_result.save()
     return None
 
-class poll_result_page(APIView): 
+class poll_result_page(APIView, PageNumberPagination):
+    pagination_class=PageNumberPagination
+    page_size=5
     def get(self, request, poll_id): #새로고침, 링크로 접속 시
         #기본 투표 정보
         poll = get_object_or_404(Poll, id=poll_id)
-            
+        
         #statistics
         statistics = poll_calcstat(poll_id)
         
@@ -450,8 +457,12 @@ class poll_result_page(APIView):
         # 댓글
         comments = Comment.objects.filter(poll_id=poll_id)
         comments_count = comments.count()
-        serialized_comments= CommentSerializer(comments, many=True).data
-
+        comment_page=self.paginate_queryset(comments, self.request)
+        
+        #serialized_comments= CommentSerializer(comments, many=True).data
+        
+        serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
+        
         serialized_choice= False
         user = request.user
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
