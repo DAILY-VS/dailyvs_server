@@ -27,6 +27,7 @@ User = get_user_model()
 
 # 메인페이지
 class MainViewSet(ModelViewSet):
+    serializer_class = PollSerializer
     def list(self, request, *args, **kwargs):
         polls = Poll.objects.all()
         today_poll = Today_Poll.objects.first()
@@ -40,11 +41,11 @@ class MainViewSet(ModelViewSet):
         gender_polls = Poll.objects.filter(category__name='gender')
         age_polls = Poll.objects.filter(category__name='age')
 
-        serialized_polls = PollSerializer(polls, many=True).data
-        serialized_hot_polls = PollSerializer(hot_polls, many=True).data
-        serialized_mbti_polls = PollSerializer(mbti_polls, many=True).data
-        serialized_gender_polls = PollSerializer(gender_polls, many=True).data
-        serialized_age_polls = PollSerializer(age_polls, many=True).data
+        serialized_polls = self.get_serializer(polls, many=True).data
+        serialized_hot_polls = self.get_serializer(hot_polls, many=True).data
+        serialized_mbti_polls = self.get_serializer(mbti_polls, many=True).data
+        serialized_gender_polls = self.get_serializer(gender_polls, many=True).data
+        serialized_age_polls = self.get_serializer(age_polls, many=True).data
 
         response_data = {
             "polls": serialized_polls,
