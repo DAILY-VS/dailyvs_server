@@ -153,7 +153,7 @@ class PollDetailView(APIView):
         if user.is_authenticated : 
             for category_name in category_list:
                 user_category_value = getattr(user, category_name, "")
-                if user_category_value != "":
+                if user_category_value is not None:
                     category_remove_list.append(category_name)
         category_list = [category for category in category_list if category not in category_remove_list]
         context = {
