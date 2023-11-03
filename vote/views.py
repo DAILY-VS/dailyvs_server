@@ -457,12 +457,12 @@ class poll_result_page(APIView):
         comments_count = comments.count()
         serialized_comments= CommentSerializer(comments, many=True).data
 
-        choice = False
+        serialized_choice= False
         user = request.user
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
             choice = Choice.objects.get(id = uservote.choice_id)
-        serialized_choice = ChoiceSerializer(choice, many=False).data
+            serialized_choice = ChoiceSerializer(choice, many=False).data
 
         choice_dict= {}
         for idx, choice in enumerate(poll.choices.all()):
