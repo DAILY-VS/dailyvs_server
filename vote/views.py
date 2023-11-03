@@ -448,11 +448,10 @@ class poll_result_page(APIView, PageNumberPagination):
     def get(self, request, poll_id): #새로고침, 링크로 접속 시
         #기본 투표 정보
         poll = get_object_or_404(Poll, id=poll_id)
-        
         statistics = poll_calcstat(poll_id)
         serialized_poll = PollSerializer(poll).data
         # 댓글
-        comments = Comment.objects.filter(poll_id=poll_id)
+        comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None)
         comments_count = comments.count()
         comment_page=self.paginate_queryset(comments, self.request)
         serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
