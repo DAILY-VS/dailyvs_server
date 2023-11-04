@@ -17,8 +17,11 @@ urlpatterns = [
     path("create", views.poll_create, name="poll_create"), #투표 만들기
     path("<int:poll_id>/like", views.PollLikeView.as_view(), name="poll_like"),
     path("<int:comment_id>/comment_like", views.CommentLikeView.as_view(), name="comment_like"),
-
     path("comment/<int:comment_id>/delete", views.comment_delete, name="comment_delete"),
+    #마이페이지
+    path("mypage_uservote", views.MypageUserVoteView.as_view(), name="mypage_uservote"),
+    path("mypage_my_poll", views.MypageMyPollView.as_view(), name="mypage_uservote"),
+    path("mypage_poll_like", views.MypagePollLikeView.as_view(), name="mypage_uservote"),
     path("mypage", views.MypageView.as_view(), name="mypage"),
 
     # path('get_replies/<int:comment_id>/', views.get_replies_view, name='get_replies'),    # 논유저
