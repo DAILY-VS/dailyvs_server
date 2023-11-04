@@ -27,6 +27,7 @@ User = get_user_model()
 
 # 메인페이지
 class MainViewSet(ModelViewSet):
+    template_name="index.html"
     serializer_class = PollSerializer
     def list(self, request, *args, **kwargs):
         polls = Poll.objects.all()
