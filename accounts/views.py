@@ -13,69 +13,59 @@ from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from vote.models import Poll, UserVote
 
-class KakaoLoginView:
-    def post(self, request):
-        code = request.GET.get('code')
-        access_token = request.GET.get("access")
-        BASE_URL = local_settings.BASE_URL
-
-        # access token으로 카카오톡 프로필 요청
-        profile_request = requests.post(
-            "https://kapi.kakao.com/v2/user/me",
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
-        profile_json = profile_request.json()
-
-        kakao_account = profile_json.get("kakao_account")
-        email = kakao_account.get("email", None)
-
-        if email is None:
-            return Response({'message': 'fail'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 이메일 받아옴 -> 추가 정보 입력창 -> 받아서 기존 유저 로그인 방식대로 로그인?(비밀번호 없음)
-        # 3. 전달받은 이메일, access_token, code를 바탕으로 회원가입/로그인
-        try:
-            # 전달받은 이메일로 등록된 유저가 있는지 탐색
-            user = User.objects.get(email=email)
-
-            # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
-            data = {'access_token': access_token, 'code': code}
-            accept = requests.post(f"{BASE_URL}accounts/kakao/login/finish/", data=data)
-            accept_status = accept.status_code
-
-            # 뭔가 중간에 문제가 생기면 에러
-            if accept_status != 200:
-                return Response({'message': 'fail'}, status=accept_status)
-
-            accept_json = accept.json()
-            accept_json.pop('user', None)
-            print("user exists")
-            context = {
-                'access': accept_json.pop('access'),
-                'refresh': accept_json.pop('refresh'),
-                'nickname': email.split('@')[0],
-            }
-            return Response(context)
-
-        except User.DoesNotExist:
-            # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
-            data = {'access_token': access_token, 'code': code}
-            accept = requests.post("http://localhost:8000/accounts/kakao/login/finish/", data=data)
-            accept_status = accept.status_code
-
-            # 뭔가 중간에 문제가 생기면 에러
-            if accept_status != 200:
-                return Response({'message': 'fail'}, status=accept_status)
-
-            accept_json = accept.json()
-            accept_json.pop('user', None)
-            print("user does not exist")
-            context = {
-                'access': accept_json.pop('access'),
-                'refresh': accept_json.pop('refresh'),
-                'nickname': email.split('@')[0],
-            }
-            return Response(context)
+@api_view(['POST'])
+def kakao_login(request):
+    code = request.GET.get('code')
+    access_token = request.GET.get("access")
+    BASE_URL = local_settings.BASE_URL
+    # access token으로 카카오톡 프로필 요청
+    profile_request = requests.post(
+        "https://kapi.kakao.com/v2/user/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    profile_json = profile_request.json()
+    kakao_account = profile_json.get("kakao_account")
+    email = kakao_account.get("email", None)
+    if email is None:
+        return Response({'message': 'fail'}, status=status.HTTP_400_BAD_REQUEST)
+    # 이메일 받아옴 -> 추가 정보 입력창 -> 받아서 기존 유저 로그인 방식대로 로그인?(비밀번호 없음)
+    # 3. 전달받은 이메일, access_token, code를 바탕으로 회원가입/로그인
+    try:
+        # 전달받은 이메일로 등록된 유저가 있는지 탐색
+        user = User.objects.get(email=email)
+        # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
+        data = {'access_token': access_token, 'code': code}
+        accept = requests.post(f"{BASE_URL}accounts/kakao/login/finish/", data=data)
+        accept_status = accept.status_code
+        # 뭔가 중간에 문제가 생기면 에러
+        if accept_status != 200:
+            return Response({'message': 'fail'}, status=accept_status)
+        accept_json = accept.json()
+        accept_json.pop('user', None)
+        print("user exists")
+        context = {
+            'access': accept_json.pop('access'),
+            'refresh': accept_json.pop('refresh'),
+            'nickname': email.split('@')[0],
+        }
+        return Response(context)
+    except User.DoesNotExist:
+        # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
+        data = {'access_token': access_token, 'code': code}
+        accept = requests.post("http://localhost:8000/accounts/kakao/login/finish/", data=data)
+        accept_status = accept.status_code
+        # 뭔가 중간에 문제가 생기면 에러
+        if accept_status != 200:
+            return Response({'message': 'fail'}, status=accept_status)
+        accept_json = accept.json()
+        accept_json.pop('user', None)
+        print("user does not exist")
+        context = {
+            'access': accept_json.pop('access'),
+            'refresh': accept_json.pop('refresh'),
+            'nickname': email.split('@')[0],
+        }
+        return Response(context)
 
 
     
