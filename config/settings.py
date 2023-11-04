@@ -22,7 +22,7 @@ MEDIA_URL = "/media/"
 # SECURITY WARNING: keep the secret key used in production secret!
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -133,10 +133,10 @@ AUTH_USER_MODEL = "accounts.User"
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
-    os.path.join(ROOT_DIR, 'client/static')
+    os.path.join(BASE_DIR, 'client/static'),
 ]
 
-#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
