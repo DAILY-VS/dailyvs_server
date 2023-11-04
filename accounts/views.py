@@ -1,7 +1,6 @@
 import os
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 import requests
-from json import JSONDecodeError
 from rest_framework import status
 from .models import User
 from config import local_settings
@@ -14,27 +13,11 @@ from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from vote.models import Poll, UserVote
 
-# 카카오 로그인 요청 (이건 나중에 프론트에서 할 예정)
-def kakao_login(request):
-    # 1. 인가 코드 받기 요청
-    KAKAO_CALLBACK_URI = local_settings.BASE_URL + 'accounts/kakao/login/callback/'
-    client_id = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
-    return redirect(f"https://kauth.kakao.com/oauth/authorize?client_id={client_id}&redirect_uri={KAKAO_CALLBACK_URI}&response_type=code&scope=account_email")
 @api_view(['GET'])
 def kakao_callback(request):
-    KAKAO_CALLBACK_URI = 'http://localhost:3000/accounts/kakao/login/callback/'
-    client_id = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
-    # 4. 인가 코드 받기. (반드시 프론트에서 쿼리스트링으로 받아야 한다는데..?https://velog.io/@mechauk418/DRF-%EC%B9%B4%EC%B9%B4%EC%98%A4-%EC%86%8C%EC%85%9C-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0-JWT-%EC%BF%A0%ED%82%A4-%EC%84%A4%EC%A0%95-%EB%B0%8F-%EC%A3%BC%EC%9D%98%EC%82%AC%ED%95%AD-CORS%EA%B4%80%EB%A0%A8)
-    code = request.GET.get("code")
-
-    # 5. 인가 코드로 access token 요청 (jwt 아님)
-    token_request = requests.get(f"https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id={client_id}&redirect_uri={KAKAO_CALLBACK_URI}&code={code}")
-    token_response_json = token_request.json()
-    # 에러 발생 시 중단
-    error = token_response_json.get("error", None)
-    if error is not None:
-        raise JSONDecodeError(error)
-    access_token = token_response_json.get("access_token")
+    code = request.GET.get('code')
+    access_token = request.GET.get("access")
+    BASE_URL = local_settings.BASE_URL
 
     # access token으로 카카오톡 프로필 요청
     profile_request = requests.post(
@@ -44,9 +27,8 @@ def kakao_callback(request):
     profile_json = profile_request.json()
 
     kakao_account = profile_json.get("kakao_account")
-    email = kakao_account.get("email", None) # 이메일!
+    email = kakao_account.get("email", None)
 
-    # 이메일 없으면 오류 => 카카오톡 최신 버전에서는 이메일 없이 가입 가능하다고 함...
     if email is None:
         return Response({'message': 'fail'}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -103,8 +85,7 @@ class KakaoLogin(SocialLoginView):
     client_class = OAuth2Client
     callback_url = KAKAO_CALLBACK_URI
 
-from django.http import HttpResponseRedirect, Http404
-from rest_framework.views import APIView
+from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
 from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
 from allauth.account.views import ConfirmEmailView

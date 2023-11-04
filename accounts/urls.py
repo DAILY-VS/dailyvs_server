@@ -21,7 +21,6 @@ urlpatterns = [
     path('mypage_info/', MyPageInfo),
 
     path('allauth/', include('allauth.urls')),
-    path('kakao/login/', kakao_login, name='kakao_login'),
     path('kakao/login/callback/', kakao_callback, name='kakao_callback'),
     path('kakao/login/finish/', KakaoLogin.as_view(), name='kakao_login_todjango'),
 
