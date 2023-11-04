@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.css": "/static/css/main.fe330801.css",
+    "main.js": "/static/js/main.9ac6042b.js",
+    "static/media/esamanru-Medium.otf": "/static/media/esamanru-Medium.7f60da04a389283e7758.otf",
+    "static/media/esamanru-Bold.otf": "/static/media/esamanru-Bold.ff762617ead545736c7d.otf",
+    "static/media/esamanru-Light.otf": "/static/media/esamanru-Light.7b9cbfd88431effbef7c.otf",
+    "static/media/revicons.eot": "/static/media/revicons.a77de540a38981833f9e.eot",
+    "static/media/revicons.ttf": "/static/media/revicons.57fd05d4ae650374c8de.ttf",
+    "static/media/revicons.woff": "/static/media/revicons.e8746a624ed098489406.woff",
+    "index.html": "/index.html",
+    "main.fe330801.css.map": "/static/css/main.fe330801.css.map",
+    "main.9ac6042b.js.map": "/static/js/main.9ac6042b.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.fe330801.css",
+    "static/js/main.9ac6042b.js"
+  ]
+}
