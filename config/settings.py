@@ -10,13 +10,7 @@ DATABASES = local_settings.DATABASES
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
-env = environ.Env(
-    # set casting, default value
-    DEBUG=(bool, False),
-)
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-environ.Env.read_env(BASE_DIR / '.env')
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
