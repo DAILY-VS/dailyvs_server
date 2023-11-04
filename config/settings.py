@@ -10,7 +10,8 @@ DATABASES = local_settings.DATABASES
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
@@ -130,9 +131,8 @@ AUTH_USER_MODEL = "accounts.User"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/'
-ROOT_DIR = os.path.dirname(BASE_DIR)
-
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "client/static")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "client/static")]
 
 # Default primary key field type
