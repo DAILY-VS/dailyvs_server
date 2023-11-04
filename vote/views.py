@@ -309,41 +309,68 @@ class CommentLikeView(APIView):
         }
         return Response(context, status=status.HTTP_200_OK)
 
+#마이페이지_내가한투표
+class MypageUserVoteView(APIView, PageNumberPagination):
+    pagination_class = PageNumberPagination
+    page_size = 5
+    def get(self, request):
+        user = request.user
+        #사용자의 투표 목록 가져오기
+        if not user.is_authenticated:
+            return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
+        uservote = UserVote.objects.filter(user=request.user)
+        uservote_page=self.paginate_queryset(uservote, self.request)
+        uservote_serializer = UserVoteSerializer(uservote_page, many=True).data if uservote_page is not None else UserVoteSerializer(uservote, many=True).data
+        context={
+            "uservote":uservote_serializer,
+        }
+        return Response(context)
+    
+#마이페이지_내가만든투표
+class MypageMyPollView(APIView, PageNumberPagination):
+    pagination_class = PageNumberPagination
+    page_size = 5
+    def get(self, request):
+        user = request.user
+        #사용자의 투표 목록 가져오기
+        if not user.is_authenticated:
+            return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
+        my_poll = Poll.objects.filter(owner=request.user)
+        my_poll_page = self.paginate_queryset(my_poll, self.request)
+        my_poll_serializer = PollSerializer(my_poll_page, many=True).data if my_poll_page is not None else PollSerializer(my_poll, many=True).data
+        context={
+            "my_poll":my_poll_serializer,
+        }
+        return Response(context)
+
+#마이페이지_내가좋아요한투표
+class MypagePollLikeView(APIView, PageNumberPagination):
+    pagination_class = PageNumberPagination
+    page_size = 5
+    def get(self, request):
+        user = request.user
+        #사용자의 투표 목록 가져오기
+        if not user.is_authenticated:
+            return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
+        poll_like = Poll.objects.filter(poll_like=request.user)
+        poll_like_page = self.paginate_queryset(poll_like, self.request)
+        poll_like_serializer = PollSerializer(poll_like_page, many=True).data if poll_like_page is not None else PollSerializer(poll_like, many=True).data
+        context={
+            "poll_like":poll_like_serializer,
+        }
+        return Response(context)
+
 #마이페이지
 class MypageView(APIView, PageNumberPagination):
     pagination_class = PageNumberPagination
     page_size = 5 
     def get(self, request):
-        self.request = request
         user = request.user
         if not user.is_authenticated:
             return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
-
-        #사용자의 투표 목록 가져오기
-        uservote = UserVote.objects.filter(user=request.user)
-        #내가 만든 투표 목록 가져오기
-        my_poll = Poll.objects.filter(owner=request.user)
-        #사용자가 좋아하는 투표 목록 가져오기
-        poll_like = Poll.objects.filter(poll_like=request.user)
         #유저 정보 불러오기
         user_info = User.objects.get(email=request.user)
-        
-        uservote_page_number = int(self.request.query_params.get("uservote_page", 1))
-        my_poll_page_number = int(self.request.query_params.get("my_poll_page", 1))
-        poll_like_page_number = int(self.request.query_params.get("poll_like_page", 1))
-
-        uservote_page = self.paginate_queryset(uservote, self.request)
-        my_poll_page = self.paginate_queryset(my_poll, self.request)
-        poll_like_page = self.paginate_queryset(poll_like, self.request)
-
-        uservote_serializer = UserVoteSerializer(uservote_page, many=True).data if uservote_page is not None else UserVoteSerializer(uservote, many=True).data
-        my_poll_serializer = PollSerializer(my_poll_page, many=True).data if my_poll_page is not None else PollSerializer(my_poll, many=True).data
-        poll_like_serializer = PollSerializer(poll_like_page, many=True).data if poll_like_page is not None else PollSerializer(poll_like, many=True).data
-
         context = {
-            "uservote": uservote_serializer,
-            "my_poll": my_poll_serializer,
-            "poll_like": poll_like_serializer,
             "user": {
                 "nickname": user_info.nickname,
                 "age": user_info.age,
