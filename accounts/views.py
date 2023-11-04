@@ -15,8 +15,9 @@ from vote.models import Poll, UserVote
 
 @api_view(['POST'])
 def kakao_login(request):
-    code = request.GET.get('code')
-    access_token = request.GET.get("access")
+    code = request.data.get('code')
+    access_token = request.data.get("access")
+
     BASE_URL = local_settings.BASE_URL
     # access token으로 카카오톡 프로필 요청
     profile_request = requests.post(
@@ -70,7 +71,7 @@ def kakao_login(request):
 
     
 class KakaoLogin(SocialLoginView):
-    KAKAO_CALLBACK_URI = 'http://localhost:3000/accounts/kakao/login/callback/'
+    KAKAO_CALLBACK_URI = 'http://localhost:3000/oauth/kakao/callback/'
     adapter_class = kakao_view.KakaoOAuth2Adapter
     client_class = OAuth2Client
     callback_url = KAKAO_CALLBACK_URI
