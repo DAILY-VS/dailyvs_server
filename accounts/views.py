@@ -43,11 +43,9 @@ def kakao_login(request):
             return Response({'message': 'fail'}, status=accept_status)
         accept_json = accept.json()
         accept_json.pop('user', None)
-        print("user exists")
         context = {
             'access': accept_json.pop('access'),
             'refresh': accept_json.pop('refresh'),
-            'nickname': email.split('@')[0],
         }
         return Response(context)
     except User.DoesNotExist:
@@ -60,11 +58,12 @@ def kakao_login(request):
             return Response({'message': 'fail'}, status=accept_status)
         accept_json = accept.json()
         accept_json.pop('user', None)
-        print("user does not exist")
+        user = User.objects.get(email=email)
+        user.nickname = "user" + str(user.id)
+        user.save()
         context = {
             'access': accept_json.pop('access'),
             'refresh': accept_json.pop('refresh'),
-            'nickname': email.split('@')[0],
         }
         return Response(context)
 
