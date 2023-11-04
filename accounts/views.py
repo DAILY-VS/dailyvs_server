@@ -13,7 +13,6 @@ from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from vote.models import Poll, UserVote
 
-@api_view(['GET'])
 class KakaoLoginView:
     def post(self, request):
         code = request.GET.get('code')
