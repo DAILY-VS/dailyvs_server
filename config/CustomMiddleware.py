@@ -1,6 +1,6 @@
 from django.http import HttpResponseForbidden
 from django.utils.functional import SimpleLazyObject
-from dj_rest_auth.jwt_auth import JWTCookieAuthenticationn
+from dj_rest_auth.jwt_auth import JWTCookieAuthentication
 
 
 class SuperUserMiddleware:
