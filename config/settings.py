@@ -9,7 +9,7 @@ SECRET_KEY = local_settings.SECRET_KEY
 DATABASES = local_settings.DATABASES
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-DEBUG = True
+DEBUG = False
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = os.path.dirname(BASE_DIR)
@@ -130,7 +130,7 @@ USE_TZ = False
 
 AUTH_USER_MODEL = "accounts.User"
 
-# Static files (CSS, JavaScript, Images)
+# Static files (CSS, JavaScript, Images/Users/hansol/Desktop/DailyVS_client/DailyVS_client/build)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "/static/"
