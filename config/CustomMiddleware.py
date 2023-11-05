@@ -1,6 +1,7 @@
 from django.http import HttpResponseForbidden
 from django.utils.functional import SimpleLazyObject
 from dj_rest_auth.jwt_auth import JWTCookieAuthentication
+from django.shortcuts import redirect
 
 
 class SuperUserMiddleware:
@@ -9,7 +10,7 @@ class SuperUserMiddleware:
         
     def __call__(self, request):
         if not self._is_admin_api_authenticated(request):
-            return HttpResponseForbidden()
+            return redirect("/error")
         response = self.get_response(request)
         
         return response
