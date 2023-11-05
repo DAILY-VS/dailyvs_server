@@ -8,7 +8,7 @@ urlpatterns = [
     path("admin/", admin.site.urls), 
     path("api/", include("vote.urls")), #vote app
     path("api/accounts/", include("accounts.urls")),
-    re_path('.*', TemplateView.as_view(template_name='index.html')),
+    re_path('^((?!media).)*$', TemplateView.as_view(template_name='index.html')),
 ]
 
 #urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
