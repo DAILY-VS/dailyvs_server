@@ -12,7 +12,6 @@ class SuperUserMiddleware:
         if not self._is_admin_api_authenticated(request):
             return redirect("/error")
         response = self.get_response(request)
-        
         return response
     
     def _is_admin_api_authenticated(self, request) -> bool:
