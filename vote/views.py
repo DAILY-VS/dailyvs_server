@@ -321,8 +321,12 @@ class MypageUserVoteView(APIView, PageNumberPagination):
         uservote = UserVote.objects.filter(user=request.user)
         uservote_page=self.paginate_queryset(uservote, self.request)
         uservote_serializer = UserVoteSerializer(uservote_page, many=True).data if uservote_page is not None else UserVoteSerializer(uservote, many=True).data
+        
+        uservote_count = uservote.count()
+        
         context={
             "uservote":uservote_serializer,
+            "uservote_count":uservote_count,
         }
         return Response(context)
     
@@ -338,8 +342,12 @@ class MypageMyPollView(APIView, PageNumberPagination):
         my_poll = Poll.objects.filter(owner=request.user)
         my_poll_page = self.paginate_queryset(my_poll, self.request)
         my_poll_serializer = PollSerializer(my_poll_page, many=True).data if my_poll_page is not None else PollSerializer(my_poll, many=True).data
+        
+        my_poll_count = my_poll.count()
+        
         context={
             "my_poll":my_poll_serializer,
+            "my_poll_count":my_poll_count,
         }
         return Response(context)
 
@@ -355,7 +363,11 @@ class MypagePollLikeView(APIView, PageNumberPagination):
         poll_like = Poll.objects.filter(poll_like=request.user)
         poll_like_page = self.paginate_queryset(poll_like, self.request)
         poll_like_serializer = PollSerializer(poll_like_page, many=True).data if poll_like_page is not None else PollSerializer(poll_like, many=True).data
+        
+        poll_like_count = poll_like.count()
+        
         context={
+            "poll_like_count": poll_like_count,
             "poll_like":poll_like_serializer,
         }
         return Response(context)
