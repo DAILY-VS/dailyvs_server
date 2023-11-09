@@ -5,8 +5,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls), 
-    path("", include("vote.urls")), #vote app
-    path("accounts/", include("accounts.urls")),
+    path("api/", include("vote.urls")), #vote app
+    path("api/accounts/", include("accounts.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
