@@ -1,15 +1,5 @@
 html {
-  width: 100vw;
   display: flex;
-}
-
-#root {
-  /* box-shadow:
-    -5px 0px 5px rgba(0, 0, 0, 0.1),
-    5px 0px 5px rgba(0, 0, 0, 0.1); */
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
 }
 
 .radio-input {
@@ -121,6 +111,7 @@ html {
 }
 body {
   line-height: 1;
+
   overflow-x: hidden;
   /* color: #333; */
 }
