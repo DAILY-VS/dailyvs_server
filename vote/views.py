@@ -47,7 +47,7 @@ class MainViewSet(ModelViewSet):
         serialized_gender_polls = self.get_serializer(gender_polls, many=True).data
         serialized_age_polls = self.get_serializer(age_polls, many=True).data
 
-        response_data = {
+        context = {
             "polls": serialized_polls,
             "hot_polls": serialized_hot_polls,
             "today_poll": serialized_today_poll,
@@ -55,7 +55,7 @@ class MainViewSet(ModelViewSet):
             "gender_polls" : serialized_gender_polls,
             "age_polls" : serialized_age_polls,
         }
-        return Response(response_data)
+        return Response(context)
 
 #검색 기능
 class MainViewSearch(generics.ListAPIView):
@@ -81,7 +81,6 @@ def poll_create(request):
     categories = request.data.getlist('category') 
     choices = request.data.getlist('choice')
     owner = request.user
-    print(categories)
 
     if not (title and content and categories and choices and owner and thumbnail):
         return Response({"error": "필수 데이터가 제공되어 있지 않음"}, status=status.HTTP_400_BAD_REQUEST)
@@ -92,7 +91,6 @@ def poll_create(request):
         try:
             category_data = json.loads(category_str.replace("'", "\""))
             category_id = category_data.get('id')
-            print(category_id)
             if category_id is not None:
                 category_ids.append(category_id)
         except (json.JSONDecodeError, KeyError):
@@ -125,7 +123,6 @@ def poll_create(request):
         poll.choices.add(choice)
 
     serialized_poll = PollCreateSerializer(poll)
-    
     return Response(serialized_poll.data, status=status.HTTP_200_OK)
 
 # 투표 디테일 페이지
