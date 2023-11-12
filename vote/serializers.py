@@ -8,7 +8,7 @@ import math
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['nickname', 'age', 'gender', 'mbti']
+        fields = ['nickname', 'age', 'gender', 'mbti', 'email']
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
