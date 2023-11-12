@@ -170,12 +170,14 @@ class PollDetailView(APIView):
 class CommentView(APIView, PageNumberPagination):
     pagination_class=PageNumberPagination
     page_size=5
-    def get(self, request, poll_id, sort='newest'):
+    def get(self, request, poll_id, sort):
         # 댓글
         if sort == 'newest':
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
+            #print(comments)
         elif sort == 'popular':
-            comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-likes_count', '-id')
+            comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-comment_like', '-id')
+            print(comments)
         else:
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
         comments_count = comments.count()
@@ -186,7 +188,6 @@ class CommentView(APIView, PageNumberPagination):
             if choice_id:
                 choice = Choice.objects.get(pk=choice_id)
                 comment['choice_text'] = choice.choice_text
-                
         context = {
             "comments": serialized_comments,
             "comments_count": comments_count
