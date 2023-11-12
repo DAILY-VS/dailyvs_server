@@ -150,8 +150,12 @@ class PollDetailView(APIView):
                 if user_category_value is not None:
                     category_remove_list.append(category_name)
         category_list = [category for category in category_list if category not in category_remove_list]
+        
+        is_owner = False 
+        if user == poll.owner : 
+           is_owner = True
         context = {
-            "user_id" : user.id, 
+            "is_owner" : is_owner,
             "previous_choice" : previous_choice,
             "poll": serialized_poll,
             "category_list" : category_list,
