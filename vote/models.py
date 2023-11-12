@@ -46,9 +46,6 @@ class UserVote(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
-    gender = models.CharField(verbose_name="성별", max_length=1 null= True)
-    mbti=models.CharField(verbose_name='MBTI', max_length=4, null= True)
-    age = models.CharField(verbose_name='나이', max_length=4, null= True)
 
     def __str__(self):
         return self.poll.title
