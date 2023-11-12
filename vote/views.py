@@ -179,10 +179,8 @@ class CommentView(APIView, PageNumberPagination):
         # 댓글
         if sort == 'newest':
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
-            #print(comments)
         elif sort == 'popular':
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-comment_like', '-id')
-            print(comments)
         else:
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
         comments_count = comments.count()
@@ -222,6 +220,8 @@ def comment_create(request, poll_id):
 def comment_delete(request, comment_id):
     comment = Comment.objects.get(id=comment_id)
     if request.user == comment.user_info:
+        print(request.user)
+        print(comment.user_info)
         comment.delete()
         return Response("success", status=status.HTTP_204_NO_CONTENT)
     else:
