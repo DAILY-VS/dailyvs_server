@@ -538,6 +538,9 @@ class poll_result_page(APIView):
             prev_choice = uservote.choice.choice_number
             poll_result_remove(poll_id, prev_choice, **{'gender': uservote.gender, 'mbti': uservote.mbti, 'age': uservote.age})
             uservote.choice_id = choice_id
+            uservote.age = user.age
+            uservote.mbti = user.mbti
+            uservote.gender =user.gender
             uservote.save()
 
         #user 정보 업데이트
