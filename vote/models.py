@@ -4,6 +4,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
+import os
 from io import BytesIO
 from PIL import Image
 from django.core.files import File
@@ -13,7 +14,7 @@ def compress_image(image, size=(1000, 1000)):
     temp_image = Image.open(image).convert('RGB')
     temp_image.thumbnail(size)
     temp_image_io = BytesIO()
-    temp_image.save(temp_image_io, 'jpeg', quality=80)
+    temp_image.save(temp_image_io, 'jpeg', quality=50)
     new_image = File(temp_image_io, name=image.name)
     return new_image
 # size=(1000, 1000)
@@ -40,10 +41,7 @@ class Poll(models.Model):
         return self.title
     
     def save(self, *args, **kwargs):
-        
-        print(self.thumbnail)
         new_thumbnail = compress_image(self.thumbnail)
-        print(new_thumbnail)
         self.thumbnail = new_thumbnail
         super().save(*args, **kwargs)
 

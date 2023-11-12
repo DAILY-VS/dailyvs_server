@@ -220,8 +220,6 @@ def comment_create(request, poll_id):
 def comment_delete(request, comment_id):
     comment = Comment.objects.get(id=comment_id)
     if request.user == comment.user_info:
-        print(request.user)
-        print(comment.user_info)
         comment.delete()
         return Response("success", status=status.HTTP_204_NO_CONTENT)
     else:
