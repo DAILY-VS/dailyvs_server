@@ -104,3 +104,8 @@ class Today_Poll(models.Model):
     choice1 = models.ImageField(upload_to="choice1/%Y/%m/%d")
     choice2 = models.ImageField(upload_to="choice2/%Y/%m/%d")
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+
+class Report(models.Model):
+    user = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    report_count = models.IntegerField(default=0)
