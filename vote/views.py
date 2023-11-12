@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import EmailMessage
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
 from rest_framework.pagination import PageNumberPagination
@@ -267,6 +268,22 @@ class PollLikeView(APIView):
         }
         return Response(context, status=status.HTTP_200_OK)
 
+# 투표 신고
+@api_view(['POST'])
+def poll_report(request, poll_id):
+    user = request.user
+    if user.is_authenticated:
+        report, created = Report.objects.get_or_create(poll_id=poll_id)
+        print(report)
+        report.report_count += 1
+        report.save()
+        subject = "[DailyVS] 신고 접수" # 메일 제목
+        to = ["spark2357@naver.com"] # 문의 내용을 보낼 메일 주소, 리스트 형식
+        message = f'Poll_id : {poll_id}\n\n\n확인 부탁드립니다.' # 메일 내용
+        EmailMessage(subject=subject, body=message, to=to).send() # 메일 보내기
+        return Response({"message":"success"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"message":"fail"}, status=status.HTTP_401_Unauthorized)
 
 # 댓글 좋아요
 class CommentLikeView(APIView):
