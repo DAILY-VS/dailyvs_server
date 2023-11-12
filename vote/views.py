@@ -151,6 +151,7 @@ class PollDetailView(APIView):
                     category_remove_list.append(category_name)
         category_list = [category for category in category_list if category not in category_remove_list]
         context = {
+            "user_id" : user.id, 
             "previous_choice" : previous_choice,
             "poll": serialized_poll,
             "category_list" : category_list,
