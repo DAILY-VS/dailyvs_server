@@ -91,11 +91,13 @@ class Comment(models.Model):
     content = models.CharField(max_length=200)
     parent_comment = models.ForeignKey('self', related_name='reply', on_delete=models.CASCADE, null=True, blank=True)  # 대댓글
     likes_count = models.PositiveIntegerField(default=0, null=True, blank=True)  # 좋아요 수
+    report_count = models.IntegerField(default=0)
     comment_like = models.ManyToManyField(
         'accounts.User',
         related_name='comment_like',
         blank=True
     )
+
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -106,7 +108,12 @@ class Today_Poll(models.Model):
     choice2 = models.ImageField(upload_to="choice2/%Y/%m/%d")
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
 
-class Report(models.Model):
+class Poll_Report(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    content = models.CharField(max_length=100, null=True)
+
+class Comment_Report(models.Model):
+    user = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
     content = models.CharField(max_length=100, null=True)
