@@ -273,18 +273,26 @@ class PollLikeView(APIView):
 def poll_report(request, poll_id):
     user = request.user
     if user.is_authenticated:
-        content = request.data.get('content')
         poll = Poll.objects.get(id=poll_id)
-        report = Report.objects.create(user=user, poll=poll, content=content)
-        poll.report_count += 1
-        poll.save()
+        try:
+            report = Report.objects.get(user=user, poll=poll)
+        except:
+            return Response({"message": "reported"}, status=status.HTTP_200_OK)
+        
+        try:
+            content = request.data.get('content')
+            report = Report.objects.create(user=user, poll=poll, content=content)
+            poll.report_count += 1
+            poll.save()
 
-        subject = "[DailyVS] 신고 접수" # 메일 제목
-        to = ["spark2357@naver.com"] # 문의 내용을 보낼 메일 주소, 리스트 형식
-        message = f"Poll_id: {poll_id}\n신고내용: {content}\n누적 신고수: {poll.report_count}\n확인 부탁드립니다." # 메일 내용
+            subject = "[DailyVS] 신고 접수" # 메일 제목
+            to = ["spark2357@naver.com"] # 문의 내용을 보낼 메일 주소, 리스트 형식
+            message = f"Poll_id: {poll_id}\n신고내용: {content}\n누적 신고수: {poll.report_count}\n확인 부탁드립니다." # 메일 내용
 
-        EmailMessage(subject=subject, body=message, to=to).send() # 메일 보내기
-        return Response({"message":"success"}, status=status.HTTP_200_OK)
+            EmailMessage(subject=subject, body=message, to=to).send() # 메일 보내기
+            return Response({"message":"success"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"message":"fail"}, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({"message":"fail"}, status=status.HTTP_401_Unauthorized)
 
