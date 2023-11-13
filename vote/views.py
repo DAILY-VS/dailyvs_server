@@ -280,19 +280,19 @@ class PollLikeView(APIView):
 def poll_report(request, poll_id):
     user = request.user
     if user.is_authenticated:
-        poll = Poll.objects.get(id=poll_id)
         try:
-            report = Report.objects.get(user=user, poll=poll)
+            poll = Poll.objects.get(id=poll_id)
+            report = Poll_Report.objects.get(user=user, poll=poll)
         except:
             return Response({"message": "reported"}, status=status.HTTP_200_OK)
         
         try:
             content = request.data.get('content')
-            report = Report.objects.create(user=user, poll=poll, content=content)
+            report = Poll_Report.objects.create(user=user, poll=poll, content=content)
             poll.report_count += 1
             poll.save()
 
-            subject = "[DailyVS] 신고 접수" # 메일 제목
+            subject = "[DailyVS] 투표글 신고 접수" # 메일 제목
             to = ["spark2357@naver.com"] # 문의 내용을 보낼 메일 주소, 리스트 형식
             message = f"Poll_id: {poll_id}\n신고내용: {content}\n누적 신고수: {poll.report_count}\n확인 부탁드립니다." # 메일 내용
 
@@ -347,6 +347,34 @@ class CommentLikeView(APIView):
             "user_likes_comment": not user_likes_comment 
         }
         return Response(context, status=status.HTTP_200_OK)
+
+# 댓글 신고
+@api_view(['POST'])
+def comment_report(request, comment_id):
+    user = request.user
+    if user.is_authenticated:
+        try:
+            comment = Comment.objects.get(id=comment_id)
+            report = Comment_Report.objects.get(user=user, comment=comment)
+        except:
+            return Response({"message": "reported"}, status=status.HTTP_200_OK)
+        
+        try:
+            content = request.data.get('content')
+            report = Comment_Report.objects.create(user=user, comment=comment, content=content)
+            comment.report_count += 1
+            comment.save()
+
+            subject = "[DailyVS] 댓글 신고 접수" # 메일 제목
+            to = ["spark2357@naver.com"] # 문의 내용을 보낼 메일 주소, 리스트 형식
+            message = f"Comment_id: {comment_id}\n신고내용: {content}\n누적 신고수: {comment.report_count}\n확인 부탁드립니다." # 메일 내용
+
+            EmailMessage(subject=subject, body=message, to=to).send() # 메일 보내기
+            return Response({"message":"success"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"message":"fail"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({"message":"fail"}, status=status.HTTP_401_Unauthorized)
 
 #마이페이지_내가한투표
 class MypageUserVoteView(APIView, PageNumberPagination):
