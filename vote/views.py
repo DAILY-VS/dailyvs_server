@@ -359,12 +359,12 @@ def comment_report(request, comment_id):
     user = request.user
     if user.is_authenticated:
         try:
-            comment = Comment.objects.get(id=poll_id)
+            comment = Comment.objects.get(id=comment_id)
         except:
             return Response({"message": "no comment"}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            report = Comment_Report.objects.get(user=user, poll=poll)
+            report = Comment_Report.objects.get(user=user, comment=comment)
             return Response({"message": "reported"}, status=status.HTTP_200_OK)
         except: 
             # 기존에 신고를 한 번도 안 한 경우
