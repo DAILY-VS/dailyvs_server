@@ -188,13 +188,20 @@ class CommentView(APIView, PageNumberPagination):
         comments_count = comments.count()
         comment_page=self.paginate_queryset(comments, self.request)
         serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
-        for idx, comment in enumerate(serialized_comments):
-            if user.nickname == comment['user_info']['nickname'] :
-                serialized_comments[idx] = comment | {'is_owner' : True}
-            choice_id = comment.get('choice')
-            if choice_id:
-                choice = Choice.objects.get(pk=choice_id)
-                comment['choice_text'] = choice.choice_text
+        if user.is_authenticated : 
+            for idx, comment in enumerate(serialized_comments):
+                if user.nickname == comment['user_info']['nickname'] :
+                    serialized_comments[idx] = comment | {'is_owner' : True}
+                choice_id = comment.get('choice')
+                if choice_id:
+                    choice = Choice.objects.get(pk=choice_id)
+                    comment['choice_text'] = choice.choice_text
+                if comment['reply'] :
+                    for idx2, reply in enumerate(comment['reply']) : 
+                        if user.nickname == reply['user_info']['nickname'] :
+                            reply[idx2] = reply | {'is_owner' : True}
+
+
         context = {
             "comments": serialized_comments,
             "comments_count": comments_count
