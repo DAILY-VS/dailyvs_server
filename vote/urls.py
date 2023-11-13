@@ -18,7 +18,7 @@ urlpatterns = [
     path("<int:poll_id>/like", views.PollLikeView.as_view(), name="poll_like"),
     path("<int:poll_id>/report", views.poll_report, name="poll_report"),
     path("<int:comment_id>/comment_like", views.CommentLikeView.as_view(), name="comment_like"),
-    path("<int:comment_id>/comment_report", views.comment_report, name="comment_report"),
+    path("comment/<int:comment_id>/comment_report", views.comment_report, name="comment_report"),
     path("comment/<int:comment_id>/delete", views.comment_delete, name="comment_delete"),
     #마이페이지
     path("mypage_uservote", views.MypageUserVoteView.as_view(), name="mypage_uservote"),
