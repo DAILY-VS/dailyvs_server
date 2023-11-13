@@ -184,11 +184,6 @@ class DeleteAccount(APIView):
     def delete(self, request):
         user=request.user
         if user.is_authenticated:
-            # 비밀번호 검사
-            password = request.data.get('password')
-            if not user.check_password(password):
-                return Response({"message": "wrong"}, status=status.HTTP_200_OK)
-
             self.logout(request)
             user.delete()
             response = Response(
