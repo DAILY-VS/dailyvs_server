@@ -6,6 +6,7 @@ from .models import User
 from config import local_settings
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework import status
 
 
 from dj_rest_auth.registration.views import SocialLoginView
@@ -176,6 +177,20 @@ def UserInfo(request):
         "age": user.age,
     }
     return Response(context)
+
+@api_view(['DELETE'])
+def DeleteAccount(request):
+    user=request.user
+    if user.is_authenticated:
+        # 비밀번호 검사
+        password = request.data.get('password')
+        if not user.check_password(password):
+            return Response({"message": "wrong"}, status=status.HTTP_200_OK)
+
+        user.delete()
+        return Response({"message": "success"}, status=status.HTTP_200_OK)
+    
+    return Response({"message": "fail"}, status=status.HTTP_401_Unauthorized)
 
 from allauth.account.models import EmailAddress
 from django.test.client import Client

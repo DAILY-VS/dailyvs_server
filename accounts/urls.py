@@ -17,6 +17,8 @@ urlpatterns = [
     re_path(r'^allauth/confirm-email/(?P<key>[-:\w]+)/$', MyConfirmEmailView.as_view(), name='account_confirm_email'),
     path('password/reset/confirm/<uidb64>/<token>/', MyPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
+    path('delete/', DeleteAccount),
+
     path('user_info/', UserInfo),
     path('mypage_info/', MyPageInfo),
 
