@@ -36,6 +36,7 @@ class Poll(models.Model):
     category = models.ManyToManyField('Category')
     choices = models.ManyToManyField('Choice')
     total_count = models.IntegerField(default = 0, null= True) #투표 수
+    report_count = models.IntegerField(default = 0)
 
     def __str__(self):
         return self.title
@@ -108,4 +109,4 @@ class Today_Poll(models.Model):
 class Report(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
-    report_count = models.IntegerField(default=0)
+    content = models.CharField(max_length=100, null=True)
