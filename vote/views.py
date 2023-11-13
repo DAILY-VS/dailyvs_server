@@ -198,8 +198,9 @@ class CommentView(APIView, PageNumberPagination):
                     comment['choice_text'] = choice.choice_text
                 if comment['reply'] :
                     for idx2, reply in enumerate(comment['reply']) : 
+                        print(reply)
                         if user.nickname == reply['user_info']['nickname'] :
-                            reply[idx2] = reply | {'is_owner' : True}
+                            serialized_comments[idx]['reply'][idx2] = reply | {'is_owner' : True}
 
 
         context = {
