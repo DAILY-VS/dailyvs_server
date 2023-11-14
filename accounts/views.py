@@ -3,8 +3,8 @@ from django.shortcuts import redirect
 import requests
 from rest_framework import status
 from .models import User
-from config import local_settings
-from config import settings
+from config.settings.base import local_settings
+from config.settings import base
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -190,8 +190,8 @@ class DeleteAccount(APIView):
                 {"message": "success"},
                 status=status.HTTP_200_OK,
             )
-            cookie_name1 = settings.REST_AUTH['JWT_AUTH_COOKIE']
-            cookie_name2 = settings.REST_AUTH['JWT_AUTH_REFRESH_COOKIE']
+            cookie_name1 = base.REST_AUTH['JWT_AUTH_COOKIE']
+            cookie_name2 = base.REST_AUTH['JWT_AUTH_REFRESH_COOKIE']
             response.delete_cookie(cookie_name1)
             response.delete_cookie(cookie_name2)
 
@@ -210,9 +210,9 @@ class DeleteAccount(APIView):
             status=status.HTTP_200_OK,
         )
         
-        cookie_name = settings.REST_AUTH['JWT_AUTH_COOKIE']
+        cookie_name = base.REST_AUTH['JWT_AUTH_COOKIE']
         unset_jwt_cookies(response)
-        if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
+        if 'rest_framework_simplejwt.token_blacklist' in base.INSTALLED_APPS:
             # add refresh token to blacklist
             try:
                 token = RefreshToken(request.data['refresh'])

@@ -28,4 +28,4 @@ urlpatterns = [
 
     path('test/user/create/', create_test_user),
     path('test/user/delete/', delete_test_user),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]+ static(base.MEDIA_URL, document_root=base.MEDIA_ROOT)
