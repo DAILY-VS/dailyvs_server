@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import EmailMessage
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
 from rest_framework.pagination import PageNumberPagination
@@ -178,22 +179,29 @@ class CommentView(APIView, PageNumberPagination):
     page_size=5
     def get(self, request, poll_id, sort):
         # 댓글
+        user = request.user
         if sort == 'newest':
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
-            #print(comments)
         elif sort == 'popular':
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-comment_like', '-id')
-            print(comments)
         else:
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
         comments_count = comments.count()
         comment_page=self.paginate_queryset(comments, self.request)
         serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
-        for comment in serialized_comments:
-            choice_id = comment.get('choice')
-            if choice_id:
-                choice = Choice.objects.get(pk=choice_id)
-                comment['choice_text'] = choice.choice_text
+        if user.is_authenticated : 
+            for idx, comment in enumerate(serialized_comments):
+                if user.nickname == comment['user_info']['nickname'] :
+                    serialized_comments[idx] = comment | {'is_owner' : True}
+                choice_id = comment.get('choice')
+                if choice_id:
+                    choice = Choice.objects.get(pk=choice_id)
+                    comment['choice_text'] = choice.choice_text
+                if comment['reply'] :
+                    for idx2, reply in enumerate(comment['reply']) : 
+                        print(reply)
+                        if user.nickname == reply['user_info']['nickname'] :
+                            serialized_comments[idx]['reply'][idx2] = reply | {'is_owner' : True}
         context = {
             "comments": serialized_comments,
             "comments_count": comments_count
@@ -267,6 +275,37 @@ class PollLikeView(APIView):
         }
         return Response(context, status=status.HTTP_200_OK)
 
+# 투표 신고
+@api_view(['POST'])
+def poll_report(request, poll_id):
+    user = request.user
+    if user.is_authenticated:
+        try:
+            poll = Poll.objects.get(id=poll_id)
+        except:
+            return Response({"message": "no poll"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            report = Poll_Report.objects.get(user=user, poll=poll)
+            return Response({"message": "reported"}, status=status.HTTP_200_OK)
+        except: 
+            # 기존에 신고를 한 번도 안 한 경우
+            try:
+                content = request.data.get('content')
+                report = Poll_Report.objects.create(user=user, poll=poll, content=content)
+                poll.report_count += 1
+                poll.save()
+
+                subject = "[DailyVS] 투표글 신고 접수" # 메일 제목
+                to = ["spark2357@naver.com"] # 문의 내용을 보낼 메일 주소, 리스트 형식
+                message = f"Poll_id: {poll_id}\n신고내용: {content}\n누적 신고수: {poll.report_count}\n확인 부탁드립니다." # 메일 내용
+
+                EmailMessage(subject=subject, body=message, to=to).send() # 메일 보내기
+                return Response({"message":"success"}, status=status.HTTP_200_OK)
+            except:
+                return Response({"message":"fail"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({"message":"fail"}, status=status.HTTP_401_Unauthorized)
 
 # 댓글 좋아요
 class CommentLikeView(APIView):
@@ -312,6 +351,38 @@ class CommentLikeView(APIView):
             "user_likes_comment": not user_likes_comment 
         }
         return Response(context, status=status.HTTP_200_OK)
+
+# 댓글 신고
+@api_view(['POST'])
+def comment_report(request, comment_id):
+    user = request.user
+    if user.is_authenticated:
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except:
+            return Response({"message": "no comment"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            report = Comment_Report.objects.get(user=user, comment=comment)
+            return Response({"message": "reported"}, status=status.HTTP_200_OK)
+        except: 
+            # 기존에 신고를 한 번도 안 한 경우
+            try:
+                content = request.data.get('content')
+                report = Comment_Report.objects.create(user=user, comment=comment, content=content)
+                comment.report_count += 1
+                comment.save()
+
+                subject = "[DailyVS] 투표글 신고 접수" # 메일 제목
+                to = ["spark2357@naver.com"] # 문의 내용을 보낼 메일 주소, 리스트 형식
+                message = f"Comment_id: {comment_id}\n신고내용: {content}\n누적 신고수: {comment.report_count}\n확인 부탁드립니다." # 메일 내용
+
+                EmailMessage(subject=subject, body=message, to=to).send() # 메일 보내기
+                return Response({"message":"success"}, status=status.HTTP_200_OK)
+            except:
+                return Response({"message":"fail"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({"message":"fail"}, status=status.HTTP_401_Unauthorized)
 
 #마이페이지_내가한투표
 class MypageUserVoteView(APIView, PageNumberPagination):
@@ -543,14 +614,17 @@ class poll_result_page(APIView):
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
             prev_choice = uservote.choice.choice_number
-            poll_result_remove(poll_id, prev_choice, **{'gender': user.gender, 'mbti': user.mbti, 'age': user.age})
+            poll_result_remove(poll_id, prev_choice, **{'gender': uservote.gender, 'mbti': uservote.mbti, 'age': uservote.age})
             uservote.choice_id = choice_id
+            uservote.age = user.age
+            uservote.mbti = user.mbti
+            uservote.gender =user.gender
             uservote.save()
 
         #user 정보 업데이트
         if user.is_authenticated:
             if not user.voted_polls.filter(id=poll_id).exists():
-                UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id)
+                UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id, gender = user.gender, mbti = user.mbti, age = user.age)
             user.voted_polls.add(poll_id)
             for category in category_list:
                 setattr(user, category, received_data[category])

@@ -8,7 +8,7 @@ import math
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['nickname', 'age', 'gender', 'mbti', 'email']
+        fields = ['nickname', 'age', 'gender', 'mbti']
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
@@ -60,7 +60,7 @@ class CommentSerializer(serializers.ModelSerializer):
     
     def get_reply(self, obj):  # 대댓글
         replies = Comment.objects.filter(parent_comment=obj)
-        print(replies)
+        print('replies', replies)
         for comment in replies:
             choice_id = comment.choice_id
             if choice_id:
