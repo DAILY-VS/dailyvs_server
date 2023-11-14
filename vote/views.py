@@ -201,8 +201,6 @@ class CommentView(APIView, PageNumberPagination):
                         print(reply)
                         if user.nickname == reply['user_info']['nickname'] :
                             serialized_comments[idx]['reply'][idx2] = reply | {'is_owner' : True}
-
-
         context = {
             "comments": serialized_comments,
             "comments_count": comments_count

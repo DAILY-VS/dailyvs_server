@@ -1,4 +1,4 @@
-import os, environ
+import os
 from pathlib import Path
 from datetime import timedelta
 import pymysql 
@@ -10,14 +10,7 @@ DATABASES = local_settings.DATABASES
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
-env = environ.Env(
-    # set casting, default value
-    DEBUG=(bool, False),
-)
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-environ.Env.read_env(BASE_DIR / '.env')
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
