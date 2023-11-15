@@ -1,20 +1,14 @@
-import json
-import random, math
-import numpy as np
+import json, random
 from .models import *
-#from accounts.models import *
 from .fortunes import fortunes
-from django.urls import reverse
-from django.http import HttpResponse, JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
-from django.core.serializers.json import DjangoJSONEncoder
-from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
 from django.core.mail import EmailMessage
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
-from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
+from rest_framework.decorators import api_view, parser_classes
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -23,24 +17,22 @@ from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .serializers import *
 
-from django.contrib.auth import get_user_model
-User = get_user_model()
 
 # 메인페이지
 class MainViewSet(ModelViewSet):
     serializer_class = PollSerializer
     def list(self, request, *args, **kwargs):
-        polls = Poll.objects.all()
+        polls = Poll.objects.all().order_by('-id')
         today_poll = Today_Poll.objects.first()
         if today_poll:
             serialized_today_poll = TodayPollSerializer(today_poll, many=False).data
         else:
             serialized_today_poll = None
 
-        hot_polls = Poll.objects.filter(total_count__gte=10)
-        mbti_polls = Poll.objects.filter(category__name='mbti')
-        gender_polls = Poll.objects.filter(category__name='gender')
-        age_polls = Poll.objects.filter(category__name='age')
+        hot_polls = Poll.objects.filter(total_count__gte=10).order_by('-id')
+        mbti_polls = Poll.objects.filter(category__name='mbti').order_by('-id')
+        gender_polls = Poll.objects.filter(category__name='gender').order_by('-id')
+        age_polls = Poll.objects.filter(category__name='age').order_by('-id')
 
         serialized_polls = self.get_serializer(polls, many=True).data
         serialized_hot_polls = self.get_serializer(hot_polls, many=True).data
@@ -154,7 +146,7 @@ class PollDetailView(APIView):
         
         is_owner = False 
         if user == poll.owner : 
-           is_owner = True
+            is_owner = True
         context = {
             "is_owner" : is_owner,
             "previous_choice" : previous_choice,
@@ -182,12 +174,14 @@ class CommentView(APIView, PageNumberPagination):
         if sort == 'newest':
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
         elif sort == 'popular':
-            comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-comment_like', '-id')
+            comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-likes_count', '-id')
         else:
             comments = Comment.objects.filter(poll_id=poll_id, parent_comment=None).order_by('-id')
         comments_count = comments.count()
         comment_page=self.paginate_queryset(comments, self.request)
         serialized_comments = CommentSerializer(comment_page, many=True).data if comment_page is not None else CommentSerializer(comments, many=True).data
+        
+        #댓글 작성자와 일치 여부
         if user.is_authenticated : 
             for idx, comment in enumerate(serialized_comments):
                 if user.nickname == comment['user_info']['nickname'] :
@@ -198,9 +192,9 @@ class CommentView(APIView, PageNumberPagination):
                     comment['choice_text'] = choice.choice_text
                 if comment['reply'] :
                     for idx2, reply in enumerate(comment['reply']) : 
-                        print(reply)
                         if user.nickname == reply['user_info']['nickname'] :
                             serialized_comments[idx]['reply'][idx2] = reply | {'is_owner' : True}
+                            
         context = {
             "comments": serialized_comments,
             "comments_count": comments_count
@@ -263,8 +257,7 @@ class PollLikeView(APIView):
             message = "unlike" #좋아요가 있으므로 좋아요 취소
         else:
             poll.poll_like.add(user)
-            message = "like" #좋아요가 없으므로 좋아요 
-
+            message = "like" #좋아요가 없으므로 좋아요
         like_count = poll.poll_like.count()
         
         context = {
@@ -342,10 +335,11 @@ class CommentLikeView(APIView):
         else: #user가 좋아요 누르지 않은 상태 -> 좋아요 누르기
             comment.comment_like.add(user)
             message = "like"
-
-        like_count = comment.comment_like.count()
+        comment.likes_count = comment.comment_like.count()
+        comment.save()
+        likes_count=comment.comment_like.count()
         context = {
-            "like_count": like_count,
+            "likes_count": likes_count,
             "message": message,
             "user_likes_comment": not user_likes_comment 
         }
@@ -446,7 +440,7 @@ class MypagePollLikeView(APIView, PageNumberPagination):
         }
         return Response(context)
 
-#마이페이지
+#마이페이지 개인정보
 class MypageView(APIView, PageNumberPagination):
     pagination_class = PageNumberPagination
     page_size = 5 
@@ -727,7 +721,6 @@ def get_random_fortune(mbti):
 @api_view(['POST'])    
 def fortune(request):
     user = request.user
-    print(user)
     if user.is_authenticated:
         random_fortune = get_random_fortune(user.mbti)
     else:
