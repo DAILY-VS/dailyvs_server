@@ -507,7 +507,12 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     mbti = extra_fields.get('mbti')
     age = extra_fields.get('age')
     if gender:
+        print('1')
+        print(gender)
         tmp_set[gender] += 1
+    else :
+        tmp_set['M'] += 1
+        
     if mbti:
         for i in range(4):
             tmp_set[mbti[i]] += 1
