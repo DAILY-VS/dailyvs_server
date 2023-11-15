@@ -60,7 +60,6 @@ class CommentSerializer(serializers.ModelSerializer):
     
     def get_reply(self, obj):  # 대댓글
         replies = Comment.objects.filter(parent_comment=obj)
-        print('replies', replies)
         for comment in replies:
             choice_id = comment.choice_id
             if choice_id:
