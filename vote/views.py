@@ -285,8 +285,8 @@ def poll_report(request, poll_id):
             try:
                 content = request.data.get('content')
                 report = Poll_Report.objects.create(user=user, poll=poll, content=content)
-                poll.report_count += 1
-                poll.save()
+                Poll.objects.filter(pk=poll_id).update(report_count = poll.report_count +1)
+
 
                 subject = "[DailyVS] 투표글 신고 접수" # 메일 제목
                 to = ["spark2357@naver.com"] # 문의 내용을 보낼 메일 주소, 리스트 형식
@@ -485,8 +485,7 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     poll_result.total_count += 1 #total_count 1 더해주기 
     #####
     poll = Poll.objects.get(id=poll_id)
-    poll.total_count += 1
-    poll.save()
+    Poll.objects.filter(pk=poll_id).update(total_count = poll.total_count + 1)
 
     ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
     serialized_poll = PollSerializer(poll).data
@@ -533,9 +532,7 @@ def poll_result_remove(poll_id, choice_number, **extra_fields):
     # 기존 값 가져오기 -> 나누고 정수 변환 -> 1 더하기 -> 비트로 변환하고 붙이기 -> 저장
     # 기존 값 가져오기
     poll_result.total_count -= 1 #total_count 1 빼주기
-    #####
-    poll.total_count -= 1
-    poll.save()
+    Poll.objects.filter(pk=poll_id).update(total_count = poll.total_count -1)
 
     ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
     serialized_poll = PollSerializer(poll).data
