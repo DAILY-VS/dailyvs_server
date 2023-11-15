@@ -30,17 +30,17 @@ User = get_user_model()
 class MainViewSet(ModelViewSet):
     serializer_class = PollSerializer
     def list(self, request, *args, **kwargs):
-        polls = Poll.objects.all()
+        polls = Poll.objects.all().order_by('-id')
         today_poll = Today_Poll.objects.first()
         if today_poll:
             serialized_today_poll = TodayPollSerializer(today_poll, many=False).data
         else:
             serialized_today_poll = None
 
-        hot_polls = Poll.objects.filter(total_count__gte=10)
-        mbti_polls = Poll.objects.filter(category__name='mbti')
-        gender_polls = Poll.objects.filter(category__name='gender')
-        age_polls = Poll.objects.filter(category__name='age')
+        hot_polls = Poll.objects.filter(total_count__gte=10).order_by('-id')
+        mbti_polls = Poll.objects.filter(category__name='mbti').order_by('-id')
+        gender_polls = Poll.objects.filter(category__name='gender').order_by('-id')
+        age_polls = Poll.objects.filter(category__name='age').order_by('-id')
 
         serialized_polls = self.get_serializer(polls, many=True).data
         serialized_hot_polls = self.get_serializer(hot_polls, many=True).data
