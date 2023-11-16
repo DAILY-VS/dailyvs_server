@@ -75,8 +75,18 @@ def poll_create(request):
     choices = request.data.getlist('choice')
     owner = request.user
 
-    if not (title and content and categories and choices and owner and thumbnail):
-        return Response({"error": "필수 데이터가 제공되어 있지 않음"}, status=status.HTTP_400_BAD_REQUEST)
+    if not(thumbnail):
+        return Response({"error": "이미지를 업로드해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    elif not (title):
+        return Response({"error": "제목을 입력해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    elif not (content):
+        return Response({"error": "내용을 입력해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    elif (len(choices) < 2):
+        return Response({"error": "선택지를 2개 이상 입력해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    elif not (categories):
+        return Response({"error": "카테고리를 선택해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    # elif not (title and content and categories and choices and owner and thumbnail):
+    #     return Response({"error": "필수 데이터가 제공되어 있지 않음"}, status=status.HTTP_400_BAD_REQUEST)
     
     # 카테고리 데이터 파싱
     category_ids = []
