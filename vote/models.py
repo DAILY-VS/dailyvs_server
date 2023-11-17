@@ -41,10 +41,10 @@ class Poll(models.Model):
     def __str__(self):
         return self.title
     
-    # def save(self, *args, **kwargs):
-    #     new_thumbnail = compress_image(self.thumbnail)
-    #     self.thumbnail = new_thumbnail
-    #     super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        new_thumbnail = compress_image(self.thumbnail)
+        self.thumbnail = new_thumbnail
+        super().save(*args, **kwargs)
 
 # 투표 선택지
 class Choice(models.Model):
