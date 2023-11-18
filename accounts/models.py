@@ -61,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 		("40", "40대 이상"),
 	)
     
-    email = models.EmailField(max_length=255)
+    email = models.EmailField(max_length=255, unique=True)
     nickname = models.CharField(max_length=10)
     gender = models.CharField(verbose_name="성별", max_length=1, choices=GENDERS, null= True)
     mbti=models.CharField(verbose_name='MBTI', max_length=4, choices=MBTI_set, null= True)
