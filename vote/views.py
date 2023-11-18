@@ -75,8 +75,18 @@ def poll_create(request):
     choices = request.data.getlist('choice')
     owner = request.user
 
-    if not (title and content and categories and choices and owner and thumbnail):
-        return Response({"error": "필수 데이터가 제공되어 있지 않음"}, status=status.HTTP_400_BAD_REQUEST)
+    if not(thumbnail):
+        return Response({"error": "이미지를 업로드해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    elif not (title):
+        return Response({"error": "제목을 입력해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    elif not (content):
+        return Response({"error": "내용을 입력해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    elif (len(choices) < 2):
+        return Response({"error": "선택지를 2개 이상 입력해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    elif not (categories):
+        return Response({"error": "카테고리를 선택해주세요"}, status=status.HTTP_400_BAD_REQUEST)
+    # elif not (title and content and categories and choices and owner and thumbnail):
+    #     return Response({"error": "필수 데이터가 제공되어 있지 않음"}, status=status.HTTP_400_BAD_REQUEST)
     
     # 카테고리 데이터 파싱
     category_ids = []
@@ -285,8 +295,8 @@ def poll_report(request, poll_id):
             try:
                 content = request.data.get('content')
                 report = Poll_Report.objects.create(user=user, poll=poll, content=content)
-                poll.report_count += 1
-                poll.save()
+                Poll.objects.filter(pk=poll_id).update(report_count = poll.report_count +1)
+
 
                 subject = "[DailyVS] 투표글 신고 접수" # 메일 제목
                 to = ["spark2357@naver.com"] # 문의 내용을 보낼 메일 주소, 리스트 형식
@@ -485,8 +495,7 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     poll_result.total_count += 1 #total_count 1 더해주기 
     #####
     poll = Poll.objects.get(id=poll_id)
-    poll.total_count += 1
-    poll.save()
+    Poll.objects.filter(pk=poll_id).update(total_count = poll.total_count + 1)
 
     ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
     serialized_poll = PollSerializer(poll).data
@@ -507,7 +516,12 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     mbti = extra_fields.get('mbti')
     age = extra_fields.get('age')
     if gender:
+        print('1')
+        print(gender)
         tmp_set[gender] += 1
+    else :
+        tmp_set['M'] += 1
+        
     if mbti:
         for i in range(4):
             tmp_set[mbti[i]] += 1
@@ -528,9 +542,7 @@ def poll_result_remove(poll_id, choice_number, **extra_fields):
     # 기존 값 가져오기 -> 나누고 정수 변환 -> 1 더하기 -> 비트로 변환하고 붙이기 -> 저장
     # 기존 값 가져오기
     poll_result.total_count -= 1 #total_count 1 빼주기
-    #####
-    poll.total_count -= 1
-    poll.save()
+    Poll.objects.filter(pk=poll_id).update(total_count = poll.total_count -1)
 
     ######임시 함수 -->PollDetailView 함수에 추후에 이동 ######
     serialized_poll = PollSerializer(poll).data
