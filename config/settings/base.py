@@ -191,7 +191,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 URL_FRONT = 'http://localhost:3000/'
-CUSTOM_ACCOUNT_CONFIRM_EMAIL_URL = "http://localhost:8000/api/accounts/allauth/confirm-email/{0}/"
+CUSTOM_ACCOUNT_CONFIRM_EMAIL_URL = "https://daily-vs.com/api/accounts/allauth/confirm-email/{0}/"
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST=local_settings.EMAIL_HOST

@@ -94,18 +94,18 @@ class MyConfirmEmailView(ConfirmEmailView):
                 return self.post(*args, **kwargs)
         except:
             self.object = None
-            return redirect("http://localhost:3000/email-error/")
+            return redirect("http://daily-vs.com/email-error/")
 
-        return redirect("http://localhost:3000/login/")
+        return redirect("http://daily-vs.com/login/")
 
     def post(self, request, *args, **kwargs):
         try:
             self.object = confirmation = self.get_object()
             confirmation.confirm(self.request)
-            return redirect("http://localhost:3000/login/")
+            return redirect("http://daily-vs.com/login/")
         except:
             # print("잘못된 key이거나 이미 인증된 메일, 기타등등")
-            return redirect("http://localhost:3000/email-error/")
+            return redirect("http://daily-vs.com/email-error/")
 
         return self.respond(True)
 
