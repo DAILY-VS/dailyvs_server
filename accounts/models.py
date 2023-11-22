@@ -72,7 +72,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
 
     voted_polls = models.ManyToManyField('vote.Poll', blank=True) #투표한 주제 리스트
-    point = models.IntegerField(default = 0)
+    point = models.IntegerField(default = 0, null=True)
 
     objects = UserManager()
 

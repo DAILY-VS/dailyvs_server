@@ -463,7 +463,8 @@ class MypageView(APIView, PageNumberPagination):
                 "nickname": user_info.nickname,
                 "age": user_info.age,
                 "mbti": user_info.mbti,
-                "gender": user_info.gender
+                "gender": user_info.gender,
+                "point": user_info.point,
             },
         }
         return Response(context)
