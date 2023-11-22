@@ -37,6 +37,9 @@ def kakao_login(request):
     try:
         # 전달받은 이메일로 등록된 유저가 있는지 탐색
         user = User.objects.get(email=email)
+        # 기존 로그인 회원인 경우
+        if user.is_kakao == False:
+            return Response({"message": "existing user"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
         accept = requests.post(f"{BASE_URL}accounts/kakao/login/finish/", data=data)
@@ -63,6 +66,7 @@ def kakao_login(request):
         accept_json.pop('user', None)
         user = User.objects.get(email=email)
         user.nickname = "user" + str(user.id)
+        user.is_kakao = True
         user.save()
         context = {
             'access': accept_json.pop('access'),
@@ -87,24 +91,26 @@ class MyConfirmEmailView(ConfirmEmailView):
     permission_classes = [AllowAny]
 
     def get(self, *args, **kwargs):
+        FRONT_BASE_URL = local_settings.FRONT_BASE_URL
         try:
             self.object = self.get_object()
             if allauth_settings.CONFIRM_EMAIL_ON_GET:
                 return self.post(*args, **kwargs)
         except:
             self.object = None
-            return redirect(f"{BASE_URL}/email-error/")
+            return redirect(f"{FRONT_BASE_URL}/email-error/")
 
-        return redirect(f"{BASE_URL}/login/")
+        return redirect(f"{FRONT_BASE_URL}/login/")
 
     def post(self, request, *args, **kwargs):
+        FRONT_BASE_URL = local_settings.FRONT_BASE_URL
         try:
             self.object = confirmation = self.get_object()
             confirmation.confirm(self.request)
-            return redirect(f"{BASE_URL}/login/")
+            return redirect(f"{FRONT_BASE_URL}/login/")
         except:
             # print("잘못된 key이거나 이미 인증된 메일, 기타등등")
-            return redirect(f"{BASE_URL}/email-error/")
+            return redirect(f"{FRONT_BASE_URL}/email-error/")
 
         return self.respond(True)
 
