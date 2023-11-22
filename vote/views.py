@@ -115,7 +115,6 @@ def poll_create(request):
         "thumbnail": thumbnail,
         "owner": owner,
     }
-    print(poll_data)
     poll = Poll.objects.create(**poll_data)
     
     # 카테고리 할당
@@ -222,7 +221,6 @@ def comment_create(request, poll_id):
         'choice': choice.id,
         'poll': poll,
     }
-    print(data)
     serializer = CommentSerializer(data=data)
     if serializer.is_valid():
         serializer.save(user_info=request.user)
@@ -465,7 +463,8 @@ class MypageView(APIView, PageNumberPagination):
                 "nickname": user_info.nickname,
                 "age": user_info.age,
                 "mbti": user_info.mbti,
-                "gender": user_info.gender
+                "gender": user_info.gender,
+                "point": user_info.point,
             },
         }
         return Response(context)
@@ -516,8 +515,6 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     mbti = extra_fields.get('mbti')
     age = extra_fields.get('age')
     if gender:
-        print('1')
-        print(gender)
         tmp_set[gender] += 1
     else :
         tmp_set['M'] += 1
@@ -615,6 +612,20 @@ class poll_result_page(APIView):
         category_list = received_data['category_list']
         user=request.user
 
+        #기본 투표 정보
+        poll = get_object_or_404(Poll, id=poll_id)
+        choice_dict= {}
+        for idx, choice in enumerate(poll.choices.all()):
+            choice_dict[idx] = str(choice)
+
+        #포인트 업데이트
+        if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
+            pass
+        else : 
+            owner= User.objects.get(id= poll.owner.id)
+            User.objects.filter(id= poll.owner.id).update(point = owner.point + 1)
+            print(poll.owner.point)
+
         #이미 투표 하였을 경우, poll_result_remove
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
@@ -634,12 +645,6 @@ class poll_result_page(APIView):
             for category in category_list:
                 setattr(user, category, received_data[category])
                 user.save()
-
-        #기본 투표 정보
-        poll = get_object_or_404(Poll, id=poll_id)
-        choice_dict= {}
-        for idx, choice in enumerate(poll.choices.all()):
-            choice_dict[idx] = str(choice)
 
         #poll_result_update
         if user.is_authenticated:
