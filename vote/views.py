@@ -137,7 +137,7 @@ class PollDetailView(APIView):
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             try : 
                 uservote = UserVote.objects.get(poll_id=poll_id, user=user)
-                previous_choice = str(uservote.choice)
+                previous_choice = int(uservote.choice.choice_number)
             except :
                 previous_choice = False
         poll = get_object_or_404(Poll, id=poll_id)
