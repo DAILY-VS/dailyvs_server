@@ -54,7 +54,7 @@ def kakao_login(request):
     except User.DoesNotExist:
         # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
-        accept = requests.post("http://localhost:8000/accounts/kakao/login/finish/", data=data)
+        accept = requests.post(f"{BASE_URL}accounts/kakao/login/finish/", data=data)
         accept_status = accept.status_code
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
@@ -73,7 +73,7 @@ def kakao_login(request):
 
     
 class KakaoLogin(SocialLoginView):
-    KAKAO_CALLBACK_URI = 'http://localhost:3000/oauth/kakao/callback/'
+    KAKAO_CALLBACK_URI = local_settings.KAKAO_CALLBACK_URI
     adapter_class = kakao_view.KakaoOAuth2Adapter
     client_class = OAuth2Client
     callback_url = KAKAO_CALLBACK_URI
