@@ -66,7 +66,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'config.CustomMiddleware.SuperUserMiddleware',
+    # 'config.CustomMiddleware.SuperUserMiddleware',
 ]
 
 # CORS 추가
