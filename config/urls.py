@@ -7,7 +7,7 @@ from django.views.static import serve
 from django.urls import re_path as url
 
 urlpatterns = [
-    path("admin/", admin.site.urls), 
+    path("2F650631682090A674BBB3CDBD3A080381C2E37B4B58DB40878FE5AD94635D4E/admin/", admin.site.urls), 
     path("2F650631682090A674BBB3CDBD3A080381C2E37B4B58DB40878FE5AD94635D4E/", include("vote.urls")), #vote app
     path("api/accounts/", include("accounts.urls")),
     url(r'^media/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}),
