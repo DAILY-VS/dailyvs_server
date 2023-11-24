@@ -9,13 +9,11 @@ SECRET_KEY = local_settings.SECRET_KEY
 DATABASES = local_settings.DATABASES
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-DEBUG = False
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-ROOT_DIR = os.path.dirname(BASE_DIR)
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -23,7 +21,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # SECURITY WARNING: keep the secret key used in production secret!
 
 # SECURITY WARNING: don't run with debug turned on in production!
-
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -60,13 +58,13 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'config.CustomMiddleware.DisableCSRFMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'config.CustomMiddleware.SuperUserMiddleware',
+    # 'config.CustomMiddleware.SuperUserMiddleware',
 ]
 
 # CORS 추가
@@ -80,7 +78,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": ['client'],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -131,19 +129,11 @@ USE_TZ = False
 
 AUTH_USER_MODEL = "accounts.User"
 
-# Static files (CSS, JavaScript, Images/Users/hansol/Desktop/DailyVS_client/DailyVS_client/build)
+# Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "/static/"
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'client', 'static'),
-]
-
-if DEBUG == True:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -191,7 +181,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 URL_FRONT = 'http://localhost:3000/'
-CUSTOM_ACCOUNT_CONFIRM_EMAIL_URL = "https://daily-vs.com/api/accounts/allauth/confirm-email/{0}/"
+CUSTOM_ACCOUNT_CONFIRM_EMAIL_URL = "http://localhost:8000/api/accounts/allauth/confirm-email/{0}/"
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST=local_settings.EMAIL_HOST
@@ -224,4 +214,4 @@ SOCIALACCOUNT_PROVIDERS = {
 LOGIN_REDIRECT_URL = '/'   # social login redirect
 ACCOUNT_LOGOUT_REDIRECT_URL = 'https://daily-vs.com/accounts/kakao/login/callback/'
 
-SITE_ID = 1
+SITE_ID = 1 
