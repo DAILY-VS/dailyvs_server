@@ -42,7 +42,7 @@ def kakao_login(request):
             return Response({"message": "existing user"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
-        accept = requests.post(f"{BASE_URL}accounts/kakao/login/finish/", data=data)
+        accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
         accept_status = accept.status_code
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
