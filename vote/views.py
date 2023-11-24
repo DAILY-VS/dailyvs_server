@@ -25,7 +25,7 @@ class MainViewSet(ModelViewSet):
         polls = Poll.objects.all().order_by('-id')
         today_poll = Today_Poll.objects.first()
         if today_poll:
-            serialized_today_poll = TodayPollSerializer(today_poll, many=False).data
+            serialized_today_poll = TodayPollSerializer(today_poll, context={'request': request}).data
         else:
             serialized_today_poll = None
 
