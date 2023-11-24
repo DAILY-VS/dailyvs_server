@@ -13,7 +13,7 @@ def compress_image(image, size=(400, 360)):
     temp_image = Image.open(image).convert('RGB')
     temp_image.thumbnail(size)
     temp_image_io = BytesIO()
-    temp_image.save(temp_image_io, 'jpeg', quality=50)
+    temp_image.save(temp_image_io, 'jpeg', quality=70)
     new_image = File(temp_image_io, name=image.name)
     return new_image
 
