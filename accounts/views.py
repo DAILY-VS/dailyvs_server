@@ -37,9 +37,12 @@ def kakao_login(request):
     try:
         # 전달받은 이메일로 등록된 유저가 있는지 탐색
         user = User.objects.get(email=email)
+        # 기존 로그인 회원인 경우
+        if user.is_kakao == False:
+            return Response({"message": "existing user"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
-        accept = requests.post(f"{BASE_URL}accounts/kakao/login/finish/", data=data)
+        accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
         accept_status = accept.status_code
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
@@ -54,7 +57,7 @@ def kakao_login(request):
     except User.DoesNotExist:
         # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
-        accept = requests.post("http://localhost:8000/accounts/kakao/login/finish/", data=data)
+        accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
         accept_status = accept.status_code
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
@@ -63,6 +66,7 @@ def kakao_login(request):
         accept_json.pop('user', None)
         user = User.objects.get(email=email)
         user.nickname = "user" + str(user.id)
+        user.is_kakao = True
         user.save()
         context = {
             'access': accept_json.pop('access'),
@@ -73,10 +77,9 @@ def kakao_login(request):
 
     
 class KakaoLogin(SocialLoginView):
-    KAKAO_CALLBACK_URI = 'http://localhost:3000/oauth/kakao/callback/'
     adapter_class = kakao_view.KakaoOAuth2Adapter
     client_class = OAuth2Client
-    callback_url = KAKAO_CALLBACK_URI
+    callback_url = local_settings.KAKAO_CALLBACK_URI
 
 from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
@@ -88,24 +91,26 @@ class MyConfirmEmailView(ConfirmEmailView):
     permission_classes = [AllowAny]
 
     def get(self, *args, **kwargs):
+        FRONT_BASE_URL = local_settings.FRONT_BASE_URL
         try:
             self.object = self.get_object()
             if allauth_settings.CONFIRM_EMAIL_ON_GET:
                 return self.post(*args, **kwargs)
         except:
             self.object = None
-            return redirect("http://localhost:3000/email-error/")
+            return redirect(f"{FRONT_BASE_URL}/email-error/")
 
-        return redirect("http://localhost:3000/login/")
+        return redirect(f"{FRONT_BASE_URL}/login/")
 
     def post(self, request, *args, **kwargs):
+        FRONT_BASE_URL = local_settings.FRONT_BASE_URL
         try:
             self.object = confirmation = self.get_object()
             confirmation.confirm(self.request)
-            return redirect("http://localhost:3000/login/")
+            return redirect(f"{FRONT_BASE_URL}/login/")
         except:
             # print("잘못된 key이거나 이미 인증된 메일, 기타등등")
-            return redirect("http://localhost:3000/email-error/")
+            return redirect(f"{FRONT_BASE_URL}/email-error/")
 
         return self.respond(True)
 
