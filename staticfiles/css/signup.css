@@ -1,0 +1,154 @@
+.signup-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  margin: 0;
+}
+
+.signup-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.signup-container input {
+  width: 300px;
+  height: 50px;
+  font-family: "NEXON Lv1 Gothic OTF";
+  font-size: 16px;
+  border: 1px rgba(128, 128, 128, 0.2) solid;
+  background-color: #f4faff;
+  padding-left: 20px;
+}
+
+.signup-container label {
+  margin-top: 10px;
+}
+
+.radio-list {
+  width: 220px;
+}
+
+#id_gender div {
+  display: flex;
+}
+
+.signup-container input[name="gender"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 10px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.lets-login {
+  margin-top: 15px;
+  margin-bottom: 50px;
+}
+
+.lets-login a {
+  font-weight: bold;
+  color: var(--redpink-primary-color);
+}
+
+.lets-login a:hover {
+  border-bottom: 1px solid var(--redpink-primary-color);
+}
+
+.signup-container select {
+  width: 300px;
+  height: 50px;
+  font-family: "NEXON Lv1 Gothic OTF";
+  font-size: 20px;
+  border: 1px rgba(128, 128, 128, 0.2) solid;
+  background-color: #f4faff;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.change-pw-container{
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.change-pw-container form p{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: left;
+}
+
+.change-pw-container form p label{
+  margin-right: auto;
+}
+
+.change-pw-container p input {
+  width: 300px;
+  height: 50px;
+  font-family: "NEXON Lv1 Gothic OTF";
+  font-size: 20px;
+  border: 1px rgba(128, 128, 128, 0.2) solid;
+  background-color: #f4faff;
+  padding-left: 20px;
+  margin-bottom: 10px;
+}
+
+.change-pw-container ul {
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.change-pw-container button {
+  margin-top: 20px;
+  width: 300px;
+  height: 50px;
+  font-family: "NEXON Lv1 Gothic OTF";
+  font-size: 24px;
+  color: white;
+  background-color: #ff495a;
+  border: none;
+  border-radius: 5px;
+  cursor:pointer;
+}
+
+.logo-font-design {
+  font-family: "GongGothicMedium";
+  color: var(--darkblue-primary-color)
+}
+
+.email-name-row {
+  display:flex;
+  flex-direction: row;
+  margin-top: 5px;
+}
+
+.email-container {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.email-container input {
+  height: 50px;
+  font-family: "NEXON Lv1 Gothic OTF";
+  font-size: 16px;
+  border: 1px rgba(128, 128, 128, 0.2) solid;
+  background-color: #f4faff;
+  padding-left: 20px;
+}
+
+.email-signup-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+  margin-top:20px;
+  width: 300px;
+  height: 40px;
+  color: white;
+  background-color: var(--redpink-primary-color);
+}

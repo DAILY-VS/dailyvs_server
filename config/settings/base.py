@@ -12,9 +12,6 @@ DATABASES = local_settings.DATABASES
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-MEDIA_URL = "/media/"
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -50,6 +47,9 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.kakao',
 
     "corsheaders",
+
+    'storages',
+
 ]
 
 MIDDLEWARE = [
@@ -132,8 +132,6 @@ AUTH_USER_MODEL = "accounts.User"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -216,3 +214,32 @@ LOGIN_REDIRECT_URL = '/'   # social login redirect
 ACCOUNT_LOGOUT_REDIRECT_URL = local_settings.BASE_URL + '/accounts/kakao/login/callback/'
 
 SITE_ID = 1 
+
+
+
+
+# STATIC_URL = "/static/"
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
+# MEDIA_URL = "/media/"
+# MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# AWS Setting
+AWS_REGION = 'Seoul' #AWS서버의 지역
+AWS_STORAGE_BUCKET_NAME = 'daily-vs-s3' #생성한 버킷 이름
+AWS_ACCESS_KEY_ID = 'AKIA6LD7XOMD34F76SOW' #액서스 키 ID
+AWS_SECRET_ACCESS_KEY = 'f+dmYoKER0r73Tu930MzVEp0KwnGEveFpmH4BdvV' #액서스 키 PW
+#버킷이름.s3.AWS서버지역.amazonaws.com 형식
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.%s.amazonaws.com' % (AWS_STORAGE_BUCKET_NAME, AWS_REGION)
+# Static Setting
+STATIC_URL = "https://%s/static/" % AWS_S3_CUSTOM_DOMAIN
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# Media Setting
+ 
+MEDIA_URL = "https://%s/meida/" % AWS_S3_CUSTOM_DOMAIN
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
+ 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
