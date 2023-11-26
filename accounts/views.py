@@ -81,6 +81,15 @@ class KakaoLogin(SocialLoginView):
     client_class = OAuth2Client
     callback_url = local_settings.KAKAO_CALLBACK_URI
 
+def logout_with_kakao(request):
+    kakao_rest_api_key = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
+    logout_redirect_uri = f"{local_settings.BASE_URL}/accounts/logout/"
+    state = "none"
+    kakao_service_logout_url = "https://kauth.kakao.com/oauth/logout"
+    return redirect(
+        f"{kakao_service_logout_url}?client_id={kakao_rest_api_key}&logout_redirect_uri={logout_redirect_uri}&state={state}"
+    )
+
 from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
 from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
