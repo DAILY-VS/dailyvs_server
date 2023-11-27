@@ -20,7 +20,6 @@ from vote.models import Poll, UserVote
 def kakao_login(request):
     code = request.data.get('code')
     access_token = request.data.get("access")
-
     BASE_URL = local_settings.BASE_URL
     # access token으로 카카오톡 프로필 요청
     profile_request = requests.post(
@@ -32,42 +31,53 @@ def kakao_login(request):
     email = kakao_account.get("email", None)
     if email is None:
         return Response({'message': 'fail'}, status=status.HTTP_400_BAD_REQUEST)
-    # 이메일 받아옴 -> 추가 정보 입력창 -> 받아서 기존 유저 로그인 방식대로 로그인?(비밀번호 없음)
-    # 3. 전달받은 이메일, access_token, code를 바탕으로 회원가입/로그인
+    
+    # 이메일, access_token, code를 바탕으로 회원가입/로그인
     try:
-        # 전달받은 이메일로 등록된 유저가 있는지 탐색
+        # 이메일로 등록된 유저가 있는지 탐색
         user = User.objects.get(email=email)
+
         # 기존 로그인 회원인 경우
         if user.is_kakao == False:
             return Response({"message": "existing user"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
+        
+        # 이미 카카오로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
         accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
         accept_status = accept.status_code
-        # 뭔가 중간에 문제가 생기면 에러
+
+        # 로그인 과정에서 문제가 생김
         if accept_status != 200:
             return Response({'message': 'fail'}, status=accept_status)
+        
+        # 로그인이 정상적으로 처리된 경우
         accept_json = accept.json()
         accept_json.pop('user', None)
         context = {
             'access': accept_json.pop('access'),
             'refresh': accept_json.pop('refresh'),
         }
+
         return Response(context)
+    
     except User.DoesNotExist:
-        # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
+        # 처음 보는 이메일 => 새로 회원가입 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
         accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
         accept_status = accept.status_code
+
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
             return Response({'message': 'fail'}, status=accept_status)
+        
+        # 회원 생성
         accept_json = accept.json()
         accept_json.pop('user', None)
         user = User.objects.get(email=email)
         user.nickname = "user" + str(user.id)
         user.is_kakao = True
         user.save()
+
         context = {
             'access': accept_json.pop('access'),
             'refresh': accept_json.pop('refresh'),
@@ -80,6 +90,24 @@ class KakaoLogin(SocialLoginView):
     adapter_class = kakao_view.KakaoOAuth2Adapter
     client_class = OAuth2Client
     callback_url = local_settings.KAKAO_CALLBACK_URI
+
+@api_view(['POST'])
+def logout_with_kakao(request):
+    try:
+
+        REST_API_KEY = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
+        access_kakao = request.data.get('access_kakao')
+        headers = {"Authorization": f'Bearer {access_kakao}'}
+        logout_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers=headers)
+
+        refresh = request.data.get('refresh')
+        body = {"refresh": f'{refresh}'}
+        daily_logout_response = requests.post(f'{local_settings.BASE_URL}/accounts/logout/', data=body)
+    except:
+        return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({'message':'success'}, status=status.HTTP_200_OK)
+    
 
 from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
@@ -188,7 +216,7 @@ def MyPageInfo(request):
     user = request.user
     voted_polls = []
     v_app = voted_polls.append
-    print(user.voted_polls)
+
     for poll_n in user.voted_polls.all():
         poll = Poll.objects.get(id=poll_n.id)
         v_app({
@@ -283,36 +311,3 @@ class DeleteAccount(APIView):
             response.data = {'detail': message}
             response.status_code = status.HTTP_200_OK
         return response
-
-from allauth.account.models import EmailAddress
-from django.test.client import Client
-from django.urls import reverse
-import time
-def create_test_user(request):
-    c = Client()
-    for i in range(10):
-        resp = c.post(
-            reverse("rest_register"),
-            {
-                "email": f"test{i}@example.com",
-                "password1": "qkrtlsqls12**",
-                "password2": "qkrtlsqls12**",
-                "nickname": "asdf",
-                "gender": "M",
-                "mbti": "ISTP",
-                "age": "10"
-            },
-            follow=True,
-        )
-        new_user = EmailAddress.objects.get(email=f"test{i}@example.com")
-        new_user.verified = True
-        new_user.save()
-        time.sleep(0.2)
-    return redirect('/')
-
-def delete_test_user(request):
-    for i in range(10):
-        user = User.objects.filter(email=f"test{i}@example.com")
-        user.delete()
-        time.sleep(0.2)
-    return redirect('/')
