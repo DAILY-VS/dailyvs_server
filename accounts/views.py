@@ -144,9 +144,9 @@ class MyPasswordResetConfirmView(PasswordResetConfirmView):
         except:
             return Response({'message':'fail'})
         
-from .serializers import CustomPasswordResetSerializer
+from dj_rest_auth.serializers import PasswordResetSerializer
 class MyPasswordResetView(PasswordResetView):
-    serializer_class = CustomPasswordResetSerializer
+    serializer_class = PasswordResetSerializer
     permission_classes = (AllowAny,)
     throttle_scope = 'dj_rest_auth'
 
