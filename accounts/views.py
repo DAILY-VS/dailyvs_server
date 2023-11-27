@@ -153,18 +153,26 @@ class MyPasswordResetView(PasswordResetView):
     def post(self, request, *args, **kwargs):
         # Create a serializer with request.data
         email = request.data.get('email')
-        user = User.objects.filter(email=email)
-        # 회원가입한 이메일이 아닌 경우
-        if not user:
-            return Response({'message':'invalid'}, status=520)
-        # 카카오 유저인 경우
-        user = user[0]
-        if user.is_kakao:
-            return Response({'message':'kakao user'}, status=521)
-        # 로그인 상태에서 비밀번호 변경의 경우
+
+        # 비밀번호 변경의 경우
         if request.user.is_authenticated:
-            if request.user.email != email:
+            user = request.user
+            if user.email != email:
                 return Response({'message':'wrong'}, status=522)
+            if user.is_kakao:
+                return Response({'message':'kakao user'}, status=521)
+        
+        # 비밀번호 재설정의 경우
+        else:
+            user = User.objects.filter(email=email)
+            # 회원가입한 이메일이 아닌 경우
+            if not user:
+                return Response({'message':'invalid'}, status=520)
+            # 카카오 유저인 경우
+            user = user[0]
+            if user.is_kakao:
+                return Response({'message':'kakao user'}, status=521)
+            
         
         serializer = self.get_serializer(data=request.data)
         try:
