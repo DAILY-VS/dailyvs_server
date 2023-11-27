@@ -160,6 +160,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 REST_AUTH = {
     'LOGIN_SERIALIZER': 'accounts.serializers.CustomLoginSerializer',
     'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'accounts.serializers.CustomPasswordResetSerializer',
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'access',
     'JWT_AUTH_REFRESH_COOKIE': 'refresh',

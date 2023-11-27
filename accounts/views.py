@@ -131,7 +131,7 @@ class MyConfirmEmailView(ConfirmEmailView):
         qs = qs.select_related("email_address__user")
         return qs
 
-from dj_rest_auth.views import PasswordResetConfirmView
+from dj_rest_auth.views import PasswordResetConfirmView, PasswordResetView
 class MyPasswordResetConfirmView(PasswordResetConfirmView):
     def post(self, request, *args, **kwargs):
         try:
@@ -143,6 +143,37 @@ class MyPasswordResetConfirmView(PasswordResetConfirmView):
             )
         except:
             return Response({'message':'fail'})
+        
+from .serializers import CustomPasswordResetSerializer
+class MyPasswordResetView(PasswordResetView):
+    serializer_class = CustomPasswordResetSerializer
+    permission_classes = (AllowAny,)
+    throttle_scope = 'dj_rest_auth'
+
+    def post(self, request, *args, **kwargs):
+        # Create a serializer with request.data
+        email = request.data.get('email')
+        user = User.objects.filter(email=email)
+        # 회원가입한 이메일이 아닌 경우
+        if not user:
+            return Response({'message':'invalid'}, status=status.HTTP_200_OK)
+        # 카카오 유저인 경우
+        user = user[0]
+        if user.is_kakao:
+            return Response({'message':'kakao user'}, status=status.HTTP_200_OK)
+        
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid()
+        except:
+            return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer.save()
+        # Return the success message with OK HTTP status
+        return Response(
+            {'message': 'success'},
+            status=status.HTTP_200_OK,
+        )
 
 @api_view(['GET'])
 def MyPageInfo(request):
