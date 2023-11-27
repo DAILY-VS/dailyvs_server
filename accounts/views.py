@@ -156,24 +156,24 @@ class MyPasswordResetView(PasswordResetView):
         user = User.objects.filter(email=email)
         # 회원가입한 이메일이 아닌 경우
         if not user:
-            return Response({'message':'invalid'}, status=status.HTTP_200_OK)
+            return Response({'message':'invalid'}, status=520)
         # 카카오 유저인 경우
         user = user[0]
         if user.is_kakao:
-            return Response({'message':'kakao user'}, status=status.HTTP_200_OK)
+            return Response({'message':'kakao user'}, status=521)
+        # 로그인 상태에서 비밀번호 변경의 경우
+        if request.user.is_authenticated:
+            if request.user.email != email:
+                return Response({'message':'wrong'}, status=522)
         
         serializer = self.get_serializer(data=request.data)
         try:
             serializer.is_valid()
         except:
-            return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({'message':'fail'}, status=523)
         serializer.save()
         # Return the success message with OK HTTP status
-        return Response(
-            {'message': 'success'},
-            status=status.HTTP_200_OK,
-        )
+        return Response({'message': 'success'}, status=200)
 
 @api_view(['GET'])
 def MyPageInfo(request):
