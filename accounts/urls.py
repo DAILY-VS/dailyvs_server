@@ -7,7 +7,6 @@ from dj_rest_auth.views import PasswordResetView, PasswordChangeView
 from .views import *
 
 urlpatterns = [
-    # path('', measure_time),
     path('', include('dj_rest_auth.urls')),
     path('', include('dj_rest_auth.registration.urls')),
 
@@ -26,7 +25,4 @@ urlpatterns = [
     path('kakao/login/callback/', kakao_login, name='kakao_callback'),
     path('kakao/login/finish/', KakaoLogin.as_view(), name='kakao_login_todjango'),
     path('kakao/logout/', logout_with_kakao),
-
-    path('test/user/create/', create_test_user),
-    path('test/user/delete/', delete_test_user),
 ]+ static(base.MEDIA_URL, document_root=base.MEDIA_ROOT)
