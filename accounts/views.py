@@ -20,7 +20,7 @@ from vote.models import Poll, UserVote
 def kakao_login(request):
     code = request.data.get('code')
     access_token = request.data.get("access")
-
+    print(access_token)
     BASE_URL = local_settings.BASE_URL
     # access token으로 카카오톡 프로필 요청
     profile_request = requests.post(
@@ -49,6 +49,7 @@ def kakao_login(request):
             return Response({'message': 'fail'}, status=accept_status)
         accept_json = accept.json()
         accept_json.pop('user', None)
+        print(accept_json)
         context = {
             'access': accept_json.pop('access'),
             'refresh': accept_json.pop('refresh'),
@@ -81,14 +82,23 @@ class KakaoLogin(SocialLoginView):
     client_class = OAuth2Client
     callback_url = local_settings.KAKAO_CALLBACK_URI
 
+@api_view(['POST'])
 def logout_with_kakao(request):
-    kakao_rest_api_key = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
-    logout_redirect_uri = f"{local_settings.BASE_URL}/accounts/logout/"
-    state = "none"
-    kakao_service_logout_url = "https://kauth.kakao.com/oauth/logout"
-    return redirect(
-        f"{kakao_service_logout_url}?client_id={kakao_rest_api_key}&logout_redirect_uri={logout_redirect_uri}&state={state}"
-    )
+    try:
+
+        REST_API_KEY = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
+        access_kakao = request.data.get('access_kakao')
+        headers = {"Authorization": f'Bearer {access_kakao}'}
+        logout_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers=headers)
+
+        refresh = request.data.get('refresh')
+        body = {"refresh": f'{refresh}'}
+        daily_logout_response = requests.post(f'{local_settings.BASE_URL}/accounts/logout/', data=body)
+    except:
+        return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({'message':'success'}, status=status.HTTP_200_OK)
+    
 
 from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
