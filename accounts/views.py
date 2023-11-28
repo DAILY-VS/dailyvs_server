@@ -39,7 +39,7 @@ def kakao_login(request):
 
         # 기존 로그인 회원인 경우
         if user.is_kakao == False:
-            return Response({"message": "existing user"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"message": "existing user"}, status=530)
         
         # 이미 카카오로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
@@ -53,8 +53,9 @@ def kakao_login(request):
         # 로그인이 정상적으로 처리된 경우
         accept_json = accept.json()
         accept_json.pop('user', None)
+        access = print(accept_json.pop('access'))
         context = {
-            'access': accept_json.pop('access'),
+            'access': access,
             'refresh': accept_json.pop('refresh'),
         }
 
