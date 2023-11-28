@@ -121,8 +121,12 @@ class KakaoLoginView(APIView):
         return response
     
     def custom_login(self, data):
+        print(data)
         self.serializer = self.get_serializer(data=data)
-        self.serializer.is_valid(raise_exception=True)
+        try:
+            self.serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            print(e)
         self.login()
         return self.get_response()
 
