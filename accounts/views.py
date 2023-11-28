@@ -34,11 +34,13 @@ def kakao_login(request):
         return Response({'message': 'fail'}, status=status.HTTP_400_BAD_REQUEST)
     # 이메일 받아옴 -> 추가 정보 입력창 -> 받아서 기존 유저 로그인 방식대로 로그인?(비밀번호 없음)
     # 3. 전달받은 이메일, access_token, code를 바탕으로 회원가입/로그인
-    try:
+    user = User.objects.filter(email=email)
+    if user:
         # 전달받은 이메일로 등록된 유저가 있는지 탐색
-        user = User.objects.get(email=email)
+        user = user[0]
         # 기존 로그인 회원인 경우
         if user.is_kakao == False:
+            raise
             return Response({"message": "existing user"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
@@ -46,6 +48,7 @@ def kakao_login(request):
         accept_status = accept.status_code
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
+            raise
             return Response({'message': 'fail'}, status=accept_status)
         accept_json = accept.json()
         accept_json.pop('user', None)
@@ -54,13 +57,14 @@ def kakao_login(request):
             'refresh': accept_json.pop('refresh'),
         }
         return Response(context)
-    except User.DoesNotExist:
+    else:
         # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
         data = {'access_token': access_token, 'code': code}
         accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
         accept_status = accept.status_code
         # 뭔가 중간에 문제가 생기면 에러
         if accept_status != 200:
+            raise
             return Response({'message': 'fail'}, status=accept_status)
         accept_json = accept.json()
         accept_json.pop('user', None)
