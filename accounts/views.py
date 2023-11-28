@@ -79,11 +79,20 @@ def kakao_login(request):
         return Response(context)
 
 
-    
+from dj_rest_auth.registration.serializers import SocialLoginSerializer
 class KakaoLogin(SocialLoginView):
     adapter_class = kakao_view.KakaoOAuth2Adapter
     client_class = OAuth2Client
     callback_url = local_settings.KAKAO_CALLBACK_URI
+
+    serializer_class = SocialLoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        self.request = request
+        self.serializer = self.get_serializer(data=self.request.data)
+        self.serializer.is_valid(raise_exception=True)
+        self.login()
+        return self.get_response()
 
 from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
