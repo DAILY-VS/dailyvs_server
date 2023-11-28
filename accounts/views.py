@@ -18,6 +18,7 @@ from vote.models import Poll, UserVote
 from dj_rest_auth.models import get_token_model
 from dj_rest_auth.utils import jwt_encode
 from dj_rest_auth.registration.serializers import SocialLoginSerializer
+from dj_rest_auth.serializers import JWTSerializer
 from django.utils import timezone
 
 class KakaoLoginView(APIView):
@@ -53,36 +54,32 @@ class KakaoLoginView(APIView):
             # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
             data = {'access_token': access_token, 'code': code}
             # accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
-            accept = self.custom_login()
+            accept = self.custom_login(data=data)
             accept_status = accept.status_code
             # 뭔가 중간에 문제가 생기면 에러
             if accept_status != 200:
                 return Response({'message': 'fail'}, status=accept_status)
-            accept_json = accept.json()
-            accept_json.pop('user', None)
             context = {
-                'access': accept_json.pop('access'),
-                'refresh': accept_json.pop('refresh'),
+                'access': accept.data['access'],
+                'refresh': accept.data['refresh'],
             }
             return Response(context)
         else:
             # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
             data = {'access_token': access_token, 'code': code}
             # accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
-            accept = self.custom_login()
+            accept = self.custom_login(data=data)
             accept_status = accept.status_code
             # 뭔가 중간에 문제가 생기면 에러
             if accept_status != 200:
                 return Response({'message': 'fail'}, status=accept_status)
-            accept_json = accept.json()
-            accept_json.pop('user', None)
             user = User.objects.get(email=email)
             user.nickname = "user" + str(user.id)
             user.is_kakao = True
             user.save()
             context = {
-                'access': accept_json.pop('access'),
-                'refresh': accept_json.pop('refresh'),
+                'access': accept.data['access'],
+                'refresh': accept.data['refresh'],
             }
             return Response(context)
     def login(self):
@@ -103,10 +100,8 @@ class KakaoLoginView(APIView):
         return serializer_class(*args, **kwargs)
     
     def get_response(self):
-        serializer_class = dj_rest_auth.serializers.JWTSerializer
+        serializer_class = JWTSerializer
 
-        access_token_expiration = (timezone.now() + base.REST_AUTH.ACCESS_TOKEN_LIFETIME)
-        refresh_token_expiration = (timezone.now() + base.REST_AUTH.REFRESH_TOKEN_LIFETIME)
         data = {
             'user': self.user,
             'access': self.access_token,
@@ -125,8 +120,8 @@ class KakaoLoginView(APIView):
         set_jwt_cookies(response, self.access_token, self.refresh_token)
         return response
     
-    def custom_login(self):
-        self.serializer = self.get_serializer(data=self.request.data)
+    def custom_login(self, data):
+        self.serializer = self.get_serializer(data=data)
         self.serializer.is_valid(raise_exception=True)
         self.login()
         return self.get_response()
@@ -139,7 +134,7 @@ class KakaoLogin(SocialLoginView):
 from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
 from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
-from allauth.account.views import ConfirmEmailView
+from allauth.account.views   import ConfirmEmailView
 from allauth.account import app_settings as allauth_settings
 
 class MyConfirmEmailView(ConfirmEmailView):
