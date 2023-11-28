@@ -1,4 +1,5 @@
 import os
+import raven
 from pathlib import Path
 from datetime import timedelta
 import pymysql 
@@ -7,6 +8,8 @@ from . import local_settings
 pymysql.install_as_MySQLdb()
 SECRET_KEY = local_settings.SECRET_KEY
 DATABASES = local_settings.DATABASES
+
+DSN_URL = 'https://sampleurl1234141534samplesample:somemoreurl12341235dfaetr@sentry.io/123456'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 DEBUG = False
@@ -52,6 +55,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.kakao',
 
     "corsheaders",
+    "raven.contrib.django.raven_compat",
 ]
 
 MIDDLEWARE = [
@@ -225,3 +229,8 @@ LOGIN_REDIRECT_URL = '/'   # social login redirect
 ACCOUNT_LOGOUT_REDIRECT_URL = local_settings.BASE_URL + '/accounts/kakao/login/callback/'
 
 SITE_ID = 1
+
+RAVEN_CONFIG = {
+    'dsn': '{}'.format(DSN_URL),
+    'release': raven.fetch_git_sha(BASE_DIR), 
+}
