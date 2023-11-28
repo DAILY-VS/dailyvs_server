@@ -1,5 +1,7 @@
 import os
-import raven
+import sentry_sdk
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.django import DjangoIntegration
 from pathlib import Path
 from datetime import timedelta
 import pymysql 
@@ -8,8 +10,6 @@ from . import local_settings
 pymysql.install_as_MySQLdb()
 SECRET_KEY = local_settings.SECRET_KEY
 DATABASES = local_settings.DATABASES
-
-DSN_URL = 'https://sampleurl1234141534samplesample:somemoreurl12341235dfaetr@sentry.io/123456'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 DEBUG = False
@@ -230,7 +230,15 @@ ACCOUNT_LOGOUT_REDIRECT_URL = local_settings.BASE_URL + '/accounts/kakao/login/c
 
 SITE_ID = 1
 
-RAVEN_CONFIG = {
-    'dsn': '{}'.format(DSN_URL),
-    'release': raven.fetch_git_sha(BASE_DIR), 
-}
+sentry_sdk.init(
+    dsn="https://cb919630c8c0b74e61e4ae1c5d62a3e0@o4506302257561600.ingest.sentry.io/4506302262738944",
+    integrations=[
+        DjangoIntegration(),
+        CeleryIntegration(),
+    ],
+    traces_sample_rate=1.0,
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    send_default_pii=True,
+    enable_tracing=True,
+)
