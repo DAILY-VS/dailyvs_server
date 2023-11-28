@@ -21,6 +21,9 @@ from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from django.utils import timezone
 
 class KakaoLoginView(APIView):
+    serializer_class = SocialLoginSerializer
+    adapter_class = kakao_view.KakaoOAuth2Adapter
+
     def post(self, request):
         code = request.data.get('code')
         access_token = request.data.get("access")
