@@ -23,6 +23,7 @@ from django.utils import timezone
 class KakaoLoginView(APIView):
     serializer_class = SocialLoginSerializer
     adapter_class = kakao_view.KakaoOAuth2Adapter
+    client_class = OAuth2Client
 
     def post(self, request):
         code = request.data.get('code')
@@ -87,7 +88,6 @@ class KakaoLoginView(APIView):
     def login(self):
         self.user = self.serializer.validated_data['user']
         token_model = get_token_model()
-
         self.access_token, self.refresh_token = jwt_encode(self.user)
 
     def get_serializer_context(self):
