@@ -1,6 +1,5 @@
 import os
 import sentry_sdk
-from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from pathlib import Path
 from datetime import timedelta
@@ -234,7 +233,6 @@ sentry_sdk.init(
     dsn="https://cb919630c8c0b74e61e4ae1c5d62a3e0@o4506302257561600.ingest.sentry.io/4506302262738944",
     integrations=[
         DjangoIntegration(),
-        CeleryIntegration(),
     ],
     traces_sample_rate=1.0,
     # If you wish to associate users to errors (assuming you are using
