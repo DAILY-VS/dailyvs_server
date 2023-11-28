@@ -121,12 +121,8 @@ class KakaoLoginView(APIView):
         return response
     
     def custom_login(self, data):
-        print(data)
         self.serializer = self.get_serializer(data=data)
-        try:
-            self.serializer.is_valid(raise_exception=True)
-        except Exception as e:
-            print(e)
+        self.serializer.is_valid(raise_exception=True)
         self.login()
         return self.get_response()
 
@@ -203,7 +199,6 @@ def MyPageInfo(request):
     user = request.user
     voted_polls = []
     v_app = voted_polls.append
-    print(user.voted_polls)
     for poll_n in user.voted_polls.all():
         poll = Poll.objects.get(id=poll_n.id)
         v_app({
