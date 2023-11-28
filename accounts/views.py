@@ -87,6 +87,13 @@ class KakaoLoginView(APIView):
 
         self.access_token, self.refresh_token = jwt_encode(self.user)
 
+    def get_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
     def get_serializer(self, *args, **kwargs):
         serializer_class = SocialLoginSerializer
         kwargs.setdefault('context', self.get_serializer_context())
