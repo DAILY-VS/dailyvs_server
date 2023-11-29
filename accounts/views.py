@@ -19,7 +19,6 @@ from dj_rest_auth.models import get_token_model
 from dj_rest_auth.utils import jwt_encode
 from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from dj_rest_auth.serializers import JWTSerializer
-from django.utils import timezone
 
 class KakaoLoginView(APIView):
     serializer_class = SocialLoginSerializer
@@ -126,10 +125,22 @@ class KakaoLoginView(APIView):
         self.login()
         return self.get_response()
 
-class KakaoLogin(SocialLoginView):
-    adapter_class = kakao_view.KakaoOAuth2Adapter
-    client_class = OAuth2Client
-    callback_url = local_settings.KAKAO_CALLBACK_URI
+@api_view(['POST'])
+def logout_with_kakao(request):
+    try:
+
+        REST_API_KEY = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
+        access_kakao = request.data.get('access_kakao')
+        headers = {"Authorization": f'Bearer {access_kakao}'}
+        logout_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers=headers)
+
+        refresh = request.data.get('refresh')
+        body = {"refresh": f'{refresh}'}
+        daily_logout_response = requests.post(f'{local_settings.BASE_URL}/accounts/logout/', data=body)
+    except:
+        return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({'message':'success'}, status=status.HTTP_200_OK)
 
 from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
@@ -194,6 +205,45 @@ class MyPasswordResetConfirmView(PasswordResetConfirmView):
         except:
             return Response({'message':'fail'})
 
+from dj_rest_auth.serializers import PasswordResetSerializer
+class MyPasswordResetView(PasswordResetView):
+    serializer_class = PasswordResetSerializer
+    permission_classes = (AllowAny,)
+    throttle_scope = 'dj_rest_auth'
+
+    def post(self, request, *args, **kwargs):
+        # Create a serializer with request.data
+        email = request.data.get('email')
+
+        # 비밀번호 변경의 경우
+        if request.user.is_authenticated:
+            user = request.user
+            if user.email != email:
+                return Response({'message':'wrong'}, status=522)
+            if user.is_kakao:
+                return Response({'message':'kakao user'}, status=521)
+        
+        # 비밀번호 재설정의 경우
+        else:
+            user = User.objects.filter(email=email)
+            # 회원가입한 이메일이 아닌 경우
+            if not user:
+                return Response({'message':'invalid'}, status=520)
+            # 카카오 유저인 경우
+            user = user[0]
+            if user.is_kakao:
+                return Response({'message':'kakao user'}, status=521)
+            
+        
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid()
+        except:
+            return Response({'message':'fail'}, status=523)
+        serializer.save()
+        # Return the success message with OK HTTP status
+        return Response({'message': 'success'}, status=200)
+
 @api_view(['GET'])
 def MyPageInfo(request):
     user = request.user
@@ -238,19 +288,30 @@ class DeleteAccount(APIView):
     def delete(self, request):
         user=request.user
         if user.is_authenticated:
-            self.logout(request)
-            user.delete()
-            response = Response(
-                {"message": "success"},
-                status=status.HTTP_200_OK,
-            )
-            cookie_name1 = base.REST_AUTH['JWT_AUTH_COOKIE']
-            cookie_name2 = base.REST_AUTH['JWT_AUTH_REFRESH_COOKIE']
-            response.delete_cookie(cookie_name1)
-            response.delete_cookie(cookie_name2)
+            try:
+                # 카카오 유저인 경우 카카오와 연결 끊기 먼저 진행.
+                if user.is_kakao:
+                    access_kakao = request.data.get('access_kakao')
+                    headers = {"Authorization": f'Bearer {access_kakao}'}
+                    unlink_response = requests.post('https://kapi.kakao.com/v1/user/unlink', headers=headers)
+                
+                self.logout(request)
+                user.delete()
 
-            return response
+                response = Response(
+                    {"message": "success"},
+                    status=status.HTTP_200_OK,
+                )
 
+                cookie_name1 = base.REST_AUTH['JWT_AUTH_COOKIE']
+                cookie_name2 = base.REST_AUTH['JWT_AUTH_REFRESH_COOKIE']
+                response.delete_cookie(cookie_name1)
+                response.delete_cookie(cookie_name2)
+
+                return response
+            except:
+                return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+            
         return Response({"message": "fail"}, status=status.HTTP_401_UNAUTHORIZED)
 
     def logout(self, request):
@@ -293,36 +354,3 @@ class DeleteAccount(APIView):
             response.data = {'detail': message}
             response.status_code = status.HTTP_200_OK
         return response
-
-from allauth.account.models import EmailAddress
-from django.test.client import Client
-from django.urls import reverse
-import time
-def create_test_user(request):
-    c = Client()
-    for i in range(10):
-        resp = c.post(
-            reverse("rest_register"),
-            {
-                "email": f"test{i}@example.com",
-                "password1": "qkrtlsqls12**",
-                "password2": "qkrtlsqls12**",
-                "nickname": "asdf",
-                "gender": "M",
-                "mbti": "ISTP",
-                "age": "10"
-            },
-            follow=True,
-        )
-        new_user = EmailAddress.objects.get(email=f"test{i}@example.com")
-        new_user.verified = True
-        new_user.save()
-        time.sleep(0.2)
-    return redirect('/')
-
-def delete_test_user(request):
-    for i in range(10):
-        user = User.objects.filter(email=f"test{i}@example.com")
-        user.delete()
-        time.sleep(0.2)
-    return redirect('/')
