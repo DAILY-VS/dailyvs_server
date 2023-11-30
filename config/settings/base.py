@@ -16,9 +16,6 @@ DEBUG = False
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ROOT_DIR = os.path.dirname(BASE_DIR)
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -54,6 +51,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.kakao',
 
     "corsheaders",
+    "storages",
     "raven.contrib.django.raven_compat",
 ]
 
@@ -63,13 +61,11 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
     'config.CustomMiddleware.DisableCSRFMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    # 'config.CustomMiddleware.SuperUserMiddleware',
 ]
 
 # CORS 추가
@@ -98,10 +94,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -138,10 +132,12 @@ AUTH_USER_MODEL = "accounts.User"
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "/static/"
-
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'client', 'static'),
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 if DEBUG == True:
     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -151,7 +147,7 @@ else:
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
-FAVICON_PATH = os.path.join(BASE_DIR, "static", "favicon.ico")
+FAVICON_PATH = os.path.join(BASE_DIR, "client", "favicon.ico")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
@@ -240,3 +236,13 @@ sentry_sdk.init(
     send_default_pii=True,
     enable_tracing=True,
 )
+
+# AWS Setting
+# AWS_ACCESS_KEY_ID = local_settings.AWS_ACCESS_KEY_ID #액서스 키 ID
+# AWS_SECRET_ACCESS_KEY = local_settings.AWS_SECRET_ACCESS_KEY #액서스 키 PW
+# AWS_REGION = local_settings.AWS_REGION #AWS서버의 지역
+# AWS_STORAGE_BUCKET_NAME = local_settings.AWS_STORAGE_BUCKET_NAME #생성한 버킷 이름
+# AWS_S3_CUSTOM_DOMAIN = local_settings.AWS_S3_CUSTOM_DOMAIN
+
+# DEFAULT_FILE_STORAGE = 'config.storages.S3DefaultStorage'
+# STATICFILES_STORAGE = 'config.storages.S3StaticStorage'
