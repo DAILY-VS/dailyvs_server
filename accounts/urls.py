@@ -23,7 +23,6 @@ urlpatterns = [
     path('mypage_info/', MyPageInfo),
 
     path('allauth/', include('allauth.urls')),
-    path('kakao/login/callback/', kakao_login, name='kakao_callback'),
-    path('kakao/login/finish/', KakaoLogin.as_view(), name='kakao_login_todjango'),
+    path('kakao/login/callback/', KakaoLoginView.as_view(), name='kakao_callback'),
     path('kakao/logout/', logout_with_kakao),
 ]+ static(base.MEDIA_URL, document_root=base.MEDIA_ROOT)
