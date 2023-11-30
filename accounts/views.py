@@ -10,7 +10,6 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework import status
 
-
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao import views as kakao_view
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
