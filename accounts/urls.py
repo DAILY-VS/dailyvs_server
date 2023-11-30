@@ -1,28 +1,325 @@
-from django.urls import path, include ,re_path
-from django.conf import settings
-from django.conf.urls.static import static
-from django.views.generic import TemplateView
-from dj_rest_auth.registration.views import VerifyEmailView
-from dj_rest_auth.views import PasswordResetView, PasswordChangeView
-from .views import *
+import os
+from django.shortcuts import redirect
+import requests
+from rest_framework import status
+from .models import User
+from config.settings.base import local_settings
+from config.settings import base
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework.views import APIView
+from rest_framework import status
 
-urlpatterns = [
-    # 유효한 이메일이 유저에게 전달
-    re_path(r'^allauth/confirm-email/$', VerifyEmailView.as_view(), name='account_email_verification_sent'),
-    # 유저가 클릭한 이메일(=링크) 확인
-    re_path(r'^allauth/confirm-email/(?P<key>[-:\w]+)/$', MyConfirmEmailView.as_view(), name='account_confirm_email'),
-    path('password/reset/', MyPasswordResetView.as_view(), name='rest_password_reset'),
-    path('password/reset/confirm/<uidb64>/<token>/', MyPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
-    path('delete/', DeleteAccount.as_view()),
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.kakao import views as kakao_view
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from vote.models import Poll, UserVote
 
-    path('', include('dj_rest_auth.urls')),
-    path('', include('dj_rest_auth.registration.urls')),
+@api_view(['POST'])
+def kakao_login(request):
+    code = request.data.get('code')
+    access_token = request.data.get("access")
+    BASE_URL = local_settings.BASE_URL
+    # access token으로 카카오톡 프로필 요청
+    profile_request = requests.post(
+        "https://kapi.kakao.com/v2/user/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    profile_json = profile_request.json()
+    kakao_account = profile_json.get("kakao_account")
+    email = kakao_account.get("email", None)
+    if email is None:
+        return Response({'message': 'fail'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # 이메일, access_token, code를 바탕으로 회원가입/로그인
+    try:
+        # 이메일로 등록된 유저가 있는지 탐색
+        user = User.objects.get(email=email)
 
-    path('user_info/', UserInfo),
-    path('mypage_info/', MyPageInfo),
+        # 기존 로그인 회원인 경우
+        if user.is_kakao == False:
+            return Response({"message": "existing user"}, status=530)
+        
+        # 이미 카카오로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
+        data = {'access_token': access_token, 'code': code}
+        accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
+        accept_status = accept.status_code
 
-    path('allauth/', include('allauth.urls')),
-    path('kakao/login/callback/', KakaoLoginView.as_view(), name='kakao_callback'),
-    path('kakao/logout/', logout_with_kakao),
-]+ static(base.MEDIA_URL, document_root=base.MEDIA_ROOT)
+        # 로그인 과정에서 문제가 생김
+        if accept_status != 200:
+            return Response({'message': 'fail'}, status=accept_status)
+        
+        # 로그인이 정상적으로 처리된 경우
+        accept_json = accept.json()
+        accept_json.pop('user', None)
+        access = print(accept_json.pop('access'))
+        context = {
+            'access': access,
+            'refresh': accept_json.pop('refresh'),
+        }
+
+        return Response(context)
+    
+    except User.DoesNotExist:
+        # 처음 보는 이메일 => 새로 회원가입 & 해당 유저의 jwt 발급
+        data = {'access_token': access_token, 'code': code}
+        accept = requests.post(f"{BASE_URL}/accounts/kakao/login/finish/", data=data)
+        accept_status = accept.status_code
+
+        # 뭔가 중간에 문제가 생기면 에러
+        if accept_status != 200:
+            return Response({'message': 'fail'}, status=accept_status)
+        
+        # 회원 생성
+        accept_json = accept.json()
+        accept_json.pop('user', None)
+        user = User.objects.get(email=email)
+        user.nickname = "user" + str(user.id)
+        user.is_kakao = True
+        user.save()
+
+        context = {
+            'access': accept_json.pop('access'),
+            'refresh': accept_json.pop('refresh'),
+        }
+        return Response(context)
+
+
+    
+class KakaoLogin(SocialLoginView):
+    adapter_class = kakao_view.KakaoOAuth2Adapter
+    client_class = OAuth2Client
+    callback_url = local_settings.KAKAO_CALLBACK_URI
+
+@api_view(['POST'])
+def logout_with_kakao(request):
+    try:
+
+        REST_API_KEY = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
+        access_kakao = request.data.get('access_kakao')
+        headers = {"Authorization": f'Bearer {access_kakao}'}
+        logout_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers=headers)
+
+        refresh = request.data.get('refresh')
+        body = {"refresh": f'{refresh}'}
+        daily_logout_response = requests.post(f'{local_settings.BASE_URL}/accounts/logout/', data=body)
+    except:
+        return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({'message':'success'}, status=status.HTTP_200_OK)
+    
+
+from django.http import HttpResponseRedirect
+from rest_framework.permissions import AllowAny
+from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
+from allauth.account.views import ConfirmEmailView
+from allauth.account import app_settings as allauth_settings
+
+class MyConfirmEmailView(ConfirmEmailView):
+    permission_classes = [AllowAny]
+
+    def get(self, *args, **kwargs):
+        FRONT_BASE_URL = local_settings.FRONT_BASE_URL
+        try:
+            self.object = self.get_object()
+            if allauth_settings.CONFIRM_EMAIL_ON_GET:
+                return self.post(*args, **kwargs)
+        except:
+            self.object = None
+            return redirect(f"{FRONT_BASE_URL}/email-error/")
+
+        return redirect(f"{FRONT_BASE_URL}/login/")
+
+    def post(self, request, *args, **kwargs):
+        FRONT_BASE_URL = local_settings.FRONT_BASE_URL
+        try:
+            self.object = confirmation = self.get_object()
+            confirmation.confirm(self.request)
+            return redirect(f"{FRONT_BASE_URL}/login/")
+        except:
+            # print("잘못된 key이거나 이미 인증된 메일, 기타등등")
+            return redirect(f"{FRONT_BASE_URL}/email-error/")
+
+        return self.respond(True)
+
+    def get_object(self, queryset=None):
+        key = self.kwargs['key']
+        email_confirmation = EmailConfirmationHMAC.from_key(key)
+        if not email_confirmation:
+            if queryset is None:
+                queryset = self.get_queryset()
+            try:
+                email_confirmation = queryset.get(key=key.lower())
+            except EmailConfirmation.DoesNotExist:
+                return HttpResponseRedirect('/') # 인증실패
+        return email_confirmation
+
+    def get_queryset(self):
+        qs = EmailConfirmation.objects.all_valid()
+        qs = qs.select_related("email_address__user")
+        return qs
+
+from dj_rest_auth.views import PasswordResetConfirmView, PasswordResetView
+class MyPasswordResetConfirmView(PasswordResetConfirmView):
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(
+                {'message': 'success'},
+            )
+        except:
+            return Response({'message':'fail'})
+        
+from dj_rest_auth.serializers import PasswordResetSerializer
+class MyPasswordResetView(PasswordResetView):
+    serializer_class = PasswordResetSerializer
+    permission_classes = (AllowAny,)
+    throttle_scope = 'dj_rest_auth'
+
+    def post(self, request, *args, **kwargs):
+        # Create a serializer with request.data
+        email = request.data.get('email')
+
+        # 비밀번호 변경의 경우
+        if request.user.is_authenticated:
+            user = request.user
+            if user.email != email:
+                return Response({'message':'wrong'}, status=522)
+            if user.is_kakao:
+                return Response({'message':'kakao user'}, status=521)
+        
+        # 비밀번호 재설정의 경우
+        else:
+            user = User.objects.filter(email=email)
+            # 회원가입한 이메일이 아닌 경우
+            if not user:
+                return Response({'message':'invalid'}, status=520)
+            # 카카오 유저인 경우
+            user = user[0]
+            if user.is_kakao:
+                return Response({'message':'kakao user'}, status=521)
+            
+        
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid()
+        except:
+            return Response({'message':'fail'}, status=523)
+        serializer.save()
+        # Return the success message with OK HTTP status
+        return Response({'message': 'success'}, status=200)
+
+@api_view(['GET'])
+def MyPageInfo(request):
+    user = request.user
+    voted_polls = []
+    v_app = voted_polls.append
+
+    for poll_n in user.voted_polls.all():
+        poll = Poll.objects.get(id=poll_n.id)
+        v_app({
+            "id": poll.id,
+            "title": poll.title,
+            "owner_id": poll.owner.id,
+            "owner": poll.owner.nickname,
+            "thumbnail": poll.thumbnail.url,
+            "choice": UserVote.objects.get(user=user, poll=poll.id).choice.choice_text,
+        })
+
+    context = {
+        "id": user.id,
+        "email": user.email,
+        "nickname": user.nickname,
+        "gender": user.gender,
+        "mbti": user.mbti,
+        "age": user.age,
+        "voted_polls": voted_polls
+    }
+    return Response(context)
+
+@api_view(['GET'])
+def UserInfo(request):
+    user = request.user
+    context = {
+        "id": user.id,
+        "email": user.email,
+        "nickname": user.nickname,
+        "gender": user.gender,
+        "mbti": user.mbti,
+        "age": user.age,
+    }
+    return Response(context)
+
+class DeleteAccount(APIView):
+    def delete(self, request):
+        user=request.user
+        if user.is_authenticated:
+            try:
+                # 카카오 유저인 경우 카카오와 연결 끊기 먼저 진행.
+                if user.is_kakao:
+                    access_kakao = request.data.get('access_kakao')
+                    headers = {"Authorization": f'Bearer {access_kakao}'}
+                    unlink_response = requests.post('https://kapi.kakao.com/v1/user/unlink', headers=headers)
+                
+                self.logout(request)
+                user.delete()
+
+                response = Response(
+                    {"message": "success"},
+                    status=status.HTTP_200_OK,
+                )
+
+                cookie_name1 = base.REST_AUTH['JWT_AUTH_COOKIE']
+                cookie_name2 = base.REST_AUTH['JWT_AUTH_REFRESH_COOKIE']
+                response.delete_cookie(cookie_name1)
+                response.delete_cookie(cookie_name2)
+
+                return response
+            except:
+                return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response({"message": "fail"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def logout(self, request):
+        from rest_framework_simplejwt.exceptions import TokenError
+        from rest_framework_simplejwt.tokens import RefreshToken
+        from dj_rest_auth.jwt_auth import unset_jwt_cookies
+        from django.utils.translation import gettext_lazy as _
+
+        response = Response(
+            {'detail': _('Successfully logged out.')},
+            status=status.HTTP_200_OK,
+        )
+        
+        cookie_name = base.REST_AUTH['JWT_AUTH_COOKIE']
+        unset_jwt_cookies(response)
+        if 'rest_framework_simplejwt.token_blacklist' in base.INSTALLED_APPS:
+            # add refresh token to blacklist
+            try:
+                token = RefreshToken(request.data['refresh'])
+                token.blacklist()
+            except KeyError:
+                response.data = {'detail': _('Refresh token was not included in request data.')}
+                response.status_code =status.HTTP_401_UNAUTHORIZED
+            except (TokenError, AttributeError, TypeError) as error:
+                if hasattr(error, 'args'):
+                    if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
+                        response.data = {'detail': _(error.args[0])}
+                        response.status_code = status.HTTP_401_UNAUTHORIZED
+                    else:
+                        response.data = {'detail': _('An error has occurred.')}
+                        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                else:
+                    response.data = {'detail': _('An error has occurred.')}
+                    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        elif not cookie_name:
+            message = _(
+                'Neither cookies or blacklist are enabled, so the token '
+                'has not been deleted server side. Please make sure the token is deleted client side.',
+            )
+            response.data = {'detail': message}
+            response.status_code = status.HTTP_200_OK
+        return response

@@ -49,6 +49,7 @@ class CustomRegisterSerializer(RegisterSerializer):
         return data
 
 
+
 class CustomLoginSerializer(LoginSerializer):
     email = serializers.CharField(required=True, allow_blank=False)
     password = serializers.CharField(style={'input_type': 'password'})
