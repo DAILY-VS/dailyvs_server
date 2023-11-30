@@ -218,28 +218,37 @@ SITE_ID = 1
 
 
 
-# STATIC_URL = "/static/"
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
-# MEDIA_URL = "/media/"
-# MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-# AWS Setting
-AWS_REGION = 'Seoul' #AWS서버의 지역
-AWS_STORAGE_BUCKET_NAME = 'daily-vs-s3' #생성한 버킷 이름
-AWS_ACCESS_KEY_ID = 'AKIA6LD7XOMD34F76SOW' #액서스 키 ID
-AWS_SECRET_ACCESS_KEY = 'f+dmYoKER0r73Tu930MzVEp0KwnGEveFpmH4BdvV' #액서스 키 PW
-#버킷이름.s3.AWS서버지역.amazonaws.com 형식
-AWS_S3_CUSTOM_DOMAIN = '%s.s3.%s.amazonaws.com' % (AWS_STORAGE_BUCKET_NAME, AWS_REGION)
-# Static Setting
-STATIC_URL = "https://%s/static/" % AWS_S3_CUSTOM_DOMAIN
-STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-# Media Setting
- 
-MEDIA_URL = "https://%s/meida/" % AWS_S3_CUSTOM_DOMAIN
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
- 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+USE_S3 = local_settings.USE_S3
+if USE_S3:
+    # AWS Setting
+    AWS_REGION = 'ap-northeast-2' #AWS서버의 지역
+    AWS_STORAGE_BUCKET_NAME = 'daily-vs-s3' #생성한 버킷 이름
+    AWS_ACCESS_KEY_ID = local_settings.AWS_ACCESS_KEY_ID #액서스 키 ID
+    AWS_SECRET_ACCESS_KEY = local_settings.AWS_SECRET_ACCESS_KEY #액서스 키 PW
+    #버킷이름.s3.AWS서버지역.amazonaws.com 형식
+    AWS_S3_CUSTOM_DOMAIN = '%s.s3.%s.amazonaws.com' % (AWS_STORAGE_BUCKET_NAME, AWS_REGION)
+    # Static Setting
+    # STATIC_URL = "https://%s/static/" % AWS_S3_CUSTOM_DOMAIN
+    # STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    # Media Setting
+    
+    # MEDIA_URL = "https://%s/" % AWS_S3_CUSTOM_DOMAIN
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    # Default primary key field type
+    # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
+    
+    DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+else:
+    STATIC_URL = "/static/"
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
