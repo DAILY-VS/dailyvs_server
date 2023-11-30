@@ -36,6 +36,8 @@ def kakao_login(request):
     try:
         # 이메일로 등록된 유저가 있는지 탐색
         user = User.objects.get(email=email)
+        print(user)
+        print(user.is_kakao)
 
         # 기존 로그인 회원인 경우
         if user.is_kakao == False:
@@ -53,12 +55,10 @@ def kakao_login(request):
         # 로그인이 정상적으로 처리된 경우
         accept_json = accept.json()
         accept_json.pop('user', None)
-        access = print(accept_json.pop('access'))
         context = {
-            'access': access,
+            'access': accept_json.pop('access'),
             'refresh': accept_json.pop('refresh'),
         }
-
         return Response(context)
     
     except User.DoesNotExist:
