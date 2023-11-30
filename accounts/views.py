@@ -192,7 +192,7 @@ class MyConfirmEmailView(ConfirmEmailView):
         qs = qs.select_related("email_address__user")
         return qs
 
-from dj_rest_auth.views import PasswordResetConfirmView
+from dj_rest_auth.views import PasswordResetConfirmView, PasswordResetView
 class MyPasswordResetConfirmView(PasswordResetConfirmView):
     def post(self, request, *args, **kwargs):
         try:
