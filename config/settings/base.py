@@ -245,4 +245,4 @@ AWS_STORAGE_BUCKET_NAME = local_settings.AWS_STORAGE_BUCKET_NAME #생성한 버�
 AWS_S3_CUSTOM_DOMAIN = local_settings.AWS_S3_CUSTOM_DOMAIN
 
 DEFAULT_FILE_STORAGE = 'config.storages.S3DefaultStorage'
-#STATICFILES_STORAGE = 'config.storages.S3StaticStorage'
+STATICFILES_STORAGE = 'config.storages.S3StaticStorage'
