@@ -238,11 +238,11 @@ sentry_sdk.init(
 )
 
 # AWS Setting
-# AWS_ACCESS_KEY_ID = local_settings.AWS_ACCESS_KEY_ID #액서스 키 ID
-# AWS_SECRET_ACCESS_KEY = local_settings.AWS_SECRET_ACCESS_KEY #액서스 키 PW
-# AWS_REGION = local_settings.AWS_REGION #AWS서버의 지역
-# AWS_STORAGE_BUCKET_NAME = local_settings.AWS_STORAGE_BUCKET_NAME #생성한 버킷 이름
-# AWS_S3_CUSTOM_DOMAIN = local_settings.AWS_S3_CUSTOM_DOMAIN
+AWS_ACCESS_KEY_ID = local_settings.AWS_ACCESS_KEY_ID #액서스 키 ID
+AWS_SECRET_ACCESS_KEY = local_settings.AWS_SECRET_ACCESS_KEY #액서스 키 PW
+AWS_REGION = local_settings.AWS_REGION #AWS서버의 지역
+AWS_STORAGE_BUCKET_NAME = local_settings.AWS_STORAGE_BUCKET_NAME #생성한 버킷 이름
+AWS_S3_CUSTOM_DOMAIN = local_settings.AWS_S3_CUSTOM_DOMAIN
 
-# DEFAULT_FILE_STORAGE = 'config.storages.S3DefaultStorage'
-# STATICFILES_STORAGE = 'config.storages.S3StaticStorage'
+DEFAULT_FILE_STORAGE = 'config.storages.S3DefaultStorage'
+STATICFILES_STORAGE = 'config.storages.S3StaticStorage'
