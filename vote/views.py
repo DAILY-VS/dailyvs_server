@@ -133,6 +133,7 @@ class PollDetailView(APIView):
         user = request.user
         #이미 투표한 경우 
         previous_choice = False
+        previous_choice_id = False
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             try : 
                 uservote = UserVote.objects.get(poll_id=poll_id, user=user)
