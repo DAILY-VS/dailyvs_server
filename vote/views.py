@@ -137,6 +137,7 @@ class PollDetailView(APIView):
             try : 
                 uservote = UserVote.objects.get(poll_id=poll_id, user=user)
                 previous_choice = int(uservote.choice.choice_number)
+                previous_choice_id = int(uservote.choice.id)
             except :
                 previous_choice = False
         poll = get_object_or_404(Poll, id=poll_id)
