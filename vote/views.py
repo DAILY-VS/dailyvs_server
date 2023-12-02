@@ -140,6 +140,8 @@ class PollDetailView(APIView):
                 previous_choice_id = int(uservote.choice.id)
             except :
                 previous_choice = False
+                previous_choice_id = False
+
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll, context={'request': request}).data
 
