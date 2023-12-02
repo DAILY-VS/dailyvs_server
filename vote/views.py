@@ -160,6 +160,7 @@ class PollDetailView(APIView):
         context = {
             "is_owner" : is_owner,
             "previous_choice" : previous_choice,
+            "previous_choice_id" : previous_choice_id,
             "poll": serialized_poll,
             "category_list" : category_list,
         }
