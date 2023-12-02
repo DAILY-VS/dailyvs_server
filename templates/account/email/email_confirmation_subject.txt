@@ -1,4 +1,4 @@
 {% load i18n %}
 {% autoescape off %}
-{% blocktrans %}Please Confirm Your Email Address{% endblocktrans %}
+{% blocktrans %}회원가입을 마무리 하세요!{% endblocktrans %}
 {% endautoescape %}
