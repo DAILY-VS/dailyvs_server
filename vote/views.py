@@ -643,11 +643,15 @@ class poll_result_page(APIView):
 
         #user 정보 업데이트
         if user.is_authenticated and not user.voted_polls.filter(id=poll_id).exists():
-            UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id, gender = user.gender, mbti = user.mbti, age = user.age)
-            user.voted_polls.add(poll_id)
             for category in category_list:
                 setattr(user, category, received_data[category])
                 user.save()
+
+        #uservote 생성
+        if user.is_authenticated and not user.voted_polls.filter(id=poll_id).exists():
+            UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id, gender = user.gender, mbti = user.mbti, age = user.age)
+            user.voted_polls.add(poll_id)
+
 
         #poll_result_update
         if user.is_authenticated:
