@@ -133,6 +133,7 @@ class PollDetailView(APIView):
         user = request.user
         #이미 투표한 경우 
         previous_choice = False
+        previous_choice_id = False
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             try : 
                 uservote = UserVote.objects.get(poll_id=poll_id, user=user)
@@ -140,6 +141,8 @@ class PollDetailView(APIView):
                 previous_choice_id = int(uservote.choice.id)
             except :
                 previous_choice = False
+                previous_choice_id = False
+
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll, context={'request': request}).data
 
