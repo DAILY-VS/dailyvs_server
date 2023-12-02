@@ -633,17 +633,16 @@ class poll_result_page(APIView):
             uservote.choice_id = choice_id
             uservote.age = user.age
             uservote.mbti = user.mbti
-            uservote.gender =user.gender
+            uservote.gender = user.gender
             uservote.save()
 
         #user 정보 업데이트
-        if user.is_authenticated:
-            if not user.voted_polls.filter(id=poll_id).exists():
-                UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id, gender = user.gender, mbti = user.mbti, age = user.age)
-                user.voted_polls.add(poll_id)
-                for category in category_list:
-                    setattr(user, category, received_data[category])
-                    user.save()
+        if user.is_authenticated and not user.voted_polls.filter(id=poll_id).exists():
+            UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id, gender = user.gender, mbti = user.mbti, age = user.age)
+            user.voted_polls.add(poll_id)
+            for category in category_list:
+                setattr(user, category, received_data[category])
+                user.save()
 
         #poll_result_update
         if user.is_authenticated:
@@ -652,17 +651,19 @@ class poll_result_page(APIView):
             extra_fields = {}
             for i in category_list:
                 extra_fields[i] = received_data[i]
+                print(i)
+                print(received_data[i])
             poll_result_update(poll_id, choice_number, **extra_fields)
 
-        #statistics, analysis 
+        #statistics
         statistics = poll_calcstat(poll_id)
-        #analysis = poll_analysis(statistics, gender, mbti, age)
         
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
             choice = Choice.objects.get(id = uservote.choice_id)
-        serialized_choice = ChoiceSerializer(choice, many=False).data
 
+
+        serialized_choice = ChoiceSerializer(choice, many=False).data
         serialized_poll = PollSerializer(poll, context={'request': request}).data
 
         context = {
@@ -670,7 +671,6 @@ class poll_result_page(APIView):
             "choices": choice_dict,
             "statistics": statistics,
             "choice":serialized_choice,
-            #"analysis" : analysis,
             }
         return Response(context)
 
