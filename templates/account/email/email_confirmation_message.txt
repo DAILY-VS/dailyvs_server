@@ -1,7 +1,10 @@
-{% extends "account/email/base_message.txt" %}
-{% load account %}
-{% load i18n %}
+{% load i18n %}{% autoescape off %}
 
-{% block content %}{% autoescape off %}{% user_display user as user_display %}{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}You're receiving this email because user {{ user_display }} has given your email address to register an account on {{ site_domain }}.
+안녕하세요. Daily-VS.com 입니다.
+아래 링크로 접속하여 이메일을 인증을 완료해주세요.
+{{ activate_url }}
 
-To confirm this is correct, go to {{ activate_url }}{% endblocktrans %}{% endautoescape %}{% endblock content %}
+가입을 시도하지 않으셨나요?
+문의 메일 : dailyvsofficial@gmail.com
+
+{% endautoescape %}
