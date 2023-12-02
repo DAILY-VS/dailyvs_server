@@ -133,12 +133,16 @@ class PollDetailView(APIView):
         user = request.user
         #이미 투표한 경우 
         previous_choice = False
+        previous_choice_id = False
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             try : 
                 uservote = UserVote.objects.get(poll_id=poll_id, user=user)
                 previous_choice = int(uservote.choice.choice_number)
+                previous_choice_id = int(uservote.choice.id)
             except :
                 previous_choice = False
+                previous_choice_id = False
+
         poll = get_object_or_404(Poll, id=poll_id)
         serialized_poll = PollSerializer(poll, context={'request': request}).data
 
@@ -159,6 +163,7 @@ class PollDetailView(APIView):
         context = {
             "is_owner" : is_owner,
             "previous_choice" : previous_choice,
+            "previous_choice_id" : previous_choice_id,
             "poll": serialized_poll,
             "category_list" : category_list,
         }
@@ -624,7 +629,6 @@ class poll_result_page(APIView):
         else : 
             owner= User.objects.get(id= poll.owner.id)
             User.objects.filter(id= poll.owner.id).update(point = owner.point + 1)
-            print(poll.owner.point)
 
         #이미 투표 하였을 경우, poll_result_remove
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
@@ -634,17 +638,20 @@ class poll_result_page(APIView):
             uservote.choice_id = choice_id
             uservote.age = user.age
             uservote.mbti = user.mbti
-            uservote.gender =user.gender
+            uservote.gender = user.gender
             uservote.save()
 
         #user 정보 업데이트
-        if user.is_authenticated:
-            if not user.voted_polls.filter(id=poll_id).exists():
-                UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id, gender = user.gender, mbti = user.mbti, age = user.age)
-            user.voted_polls.add(poll_id)
+        if user.is_authenticated and not user.voted_polls.filter(id=poll_id).exists():
             for category in category_list:
                 setattr(user, category, received_data[category])
                 user.save()
+
+        #uservote 생성
+        if user.is_authenticated and not user.voted_polls.filter(id=poll_id).exists():
+            UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id, gender = user.gender, mbti = user.mbti, age = user.age)
+            user.voted_polls.add(poll_id)
+
 
         #poll_result_update
         if user.is_authenticated:
@@ -653,17 +660,19 @@ class poll_result_page(APIView):
             extra_fields = {}
             for i in category_list:
                 extra_fields[i] = received_data[i]
+                print(i)
+                print(received_data[i])
             poll_result_update(poll_id, choice_number, **extra_fields)
 
-        #statistics, analysis 
+        #statistics
         statistics = poll_calcstat(poll_id)
-        #analysis = poll_analysis(statistics, gender, mbti, age)
         
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
             choice = Choice.objects.get(id = uservote.choice_id)
-        serialized_choice = ChoiceSerializer(choice, many=False).data
 
+
+        serialized_choice = ChoiceSerializer(choice, many=False).data
         serialized_poll = PollSerializer(poll, context={'request': request}).data
 
         context = {
@@ -671,7 +680,6 @@ class poll_result_page(APIView):
             "choices": choice_dict,
             "statistics": statistics,
             "choice":serialized_choice,
-            #"analysis" : analysis,
             }
         return Response(context)
 
