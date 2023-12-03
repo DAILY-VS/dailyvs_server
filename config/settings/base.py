@@ -169,6 +169,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 REST_AUTH = {
     'LOGIN_SERIALIZER': 'accounts.serializers.CustomLoginSerializer',
     'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'accounts.serializers.CustomPasswordResetSerializer',
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'access',
     'JWT_AUTH_REFRESH_COOKIE': 'refresh',
@@ -189,8 +190,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# URL_FRONT = 'http://localhost:3000/'
-CUSTOM_ACCOUNT_CONFIRM_EMAIL_URL = local_settings.BASE_URL + "/accounts/allauth/confirm-email/{0}/"
+CUSTOM_ACCOUNT_CONFIRM_EMAIL_URL = local_settings.FRONT_BASE_URL + "/register/{0}/"
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
