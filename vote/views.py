@@ -69,20 +69,20 @@ def event(request):
 
 
     event_description = '''본인이 올린 투표 주제에 사람들이 투표할 때마다 VS POINT 획득! 
-서버 내 첫 500, 1000, 50000 포인트 달성 시 다음 과 같은 상금 지급!’
-500 포인트 (5명)
+    서버 내 첫 100, 2000, 50000 포인트 달성 시 다음 과 같은 상금 지급!’
+    1000 포인트 (5명)
 
-- 4500원 기프티콘
+    - 4500원 기프티콘
 
-1000 포인트 (3명)
+    2000 포인트 (3명)
 
-- 10000원 기프티콘
+    - 10000원 기프티콘
 
-20000 포인트 (1명)
+    20000 포인트 (1명)
 
-- 5만원 현금 지급
-※비정상적인 방법 사용 적발 시 상품이 미지급 될 수 있습니다.
-'''
+    - 5만원 현금 지급
+    ※비정상적인 방법 사용 적발 시 상품이 미지급 될 수 있습니다.
+    '''
 
     context = {
         'event_description':event_description,
@@ -675,7 +675,11 @@ class poll_result_page(APIView):
         #포인트 업데이트
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             pass
-        else : 
+        elif user.is_authenticated : 
+            owner= User.objects.get(id= poll.owner.id)
+            if user != owner : 
+                User.objects.filter(id= poll.owner.id).update(point = owner.point + 10)
+        else :
             owner= User.objects.get(id= poll.owner.id)
             User.objects.filter(id= poll.owner.id).update(point = owner.point + 1)
 
