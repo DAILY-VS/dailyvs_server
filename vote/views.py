@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .serializers import *
+from itertools import chain
 
 
 # 메인페이지
@@ -645,8 +646,11 @@ class poll_result_page(APIView):
         choice_dict= {}
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
+        
 
-        latest_polls = Poll.objects.all().order_by("-id")[0:5]
+        next_polls = Poll.objects.filter(id__gt =poll.id).order_by('id')[0:2][::-1]
+        previous_polls = Poll.objects.filter(id__lt =poll.id).order_by('-id')[0:2]
+        latest_polls = list(chain(next_polls, [poll], previous_polls))
         serialized_latest_polls = PollSerializer(latest_polls, many=True, context={'request': request}).data
 
         context = {
