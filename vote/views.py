@@ -68,26 +68,17 @@ def event(request):
         else:
             user_data['most_recent_poll'] = None
 
-
-    event_description = '''본인이 올린 투표 주제에 사람들이 투표할 때마다 VS POINT 획득! 
-    서버 내 첫 100, 2000, 50000 포인트 달성 시 다음 과 같은 상금 지급!’
-    1000 포인트 (5명)
-
-    - 4500원 기프티콘
-
-    2000 포인트 (3명)
-
-    - 10000원 기프티콘
-
-    20000 포인트 (1명)
-
-    - 5만원 현금 지급
-    ※비정상적인 방법 사용 적발 시 상품이 미지급 될 수 있습니다.
-    '''
-
     context = {
-        'event_description':event_description,
-        'top_users': serialized_top_users,
+    "event_title": "VS Point 경품 행사!",
+    "event_sub_title": "본인이 올린 투표 주제에 사람들이 투표할 때마다 VS POINT 획득!",
+    "event_description": [
+        { "id": 1, "text": "서버 내 첫 100, 2000, 50000 포인트 달성 시 다음 과 같은 상금 지급!" },
+        { "id": 2, "text": "1000 포인트 (5명) - 4500원 기프티콘" },
+        { "id": 3, "text": "2000 포인트 (3명) - 10000원 기프티콘" },
+        { "id": 4, "text": "20000 포인트 (1명) - 5만원 현금 지급" },
+    ],
+    "warning": "※비정상적인 방법 사용 적발 시 상품이 미지급 될 수 있습니다.",        
+    'top_users': serialized_top_users,
     }
     return Response(context)
 
