@@ -1,0 +1,123 @@
+[
+  {
+    "id": 1,
+    "title": "민트 초코",
+    "thumbnail": "/images/Carousel/mintchoco.jpg",
+    "content": "민초 vs 반민초",
+    "option_1": "민초파",
+    "option_2": "반민초파",
+    "option_1_url": "https://sallysbakingaddiction.com/wp-content/uploads/2015/03/Easy-Mint-Chocolate-Bark-6.jpg",
+    "option_2_url": "https://post-phinf.pstatic.net/MjAxOTA5MDRfMTUz/MDAxNTY3NTY2NTg5MDIw.2WU64EHT9AnW_He4QPYhl40e8-J5OGB1witpkd9hW4gg.nEstPvBqw_HIjftBh9DtPVv9MjI3gjuX26_HjFPEq8cg.JPEG/01.jpg?type=w800_q75",
+    "user_choice": "반민초파"
+  },
+  {
+    "id": 2,
+    "title": "하반기 아이돌 대전",
+    "thumbnail": "/images/Carousel/ive.webp",
+    "content": "아이브 vs 르세라핌",
+    "option_1": "아이브",
+    "option_2": "르세라핌",
+    "option_1_url": "https://talkimg.imbc.com/TVianUpload/tvian/TViews/image/2022/12/03/e4073bd2-ea7a-4bb9-8b1f-d409eef3e053.jpg",
+    "option_2_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/220602_%EB%A5%B4%EC%84%B8%EB%9D%BC%ED%95%8C_%EB%8C%80%EB%A9%B4_%ED%8C%AC%EC%82%AC%EC%9D%B8%ED%9A%8C_%EC%B9%B4%EC%A6%88%ED%95%98%2C_%EA%B9%80%EC%B1%84%EC%9B%90%2C_%EC%82%AC%EC%BF%A0%EB%9D%BC%2C_%ED%97%88%EC%9C%A4%EC%A7%84%2C_%ED%99%8D%EC%9D%80%EC%B1%84_%EB%8B%A8%EC%B2%B4_%EC%BB%B7.jpg/1200px-220602_%EB%A5%B4%EC%84%B8%EB%9D%BC%ED%95%8C_%EB%8C%80%EB%A9%B4_%ED%8C%AC%EC%82%AC%EC%9D%B8%ED%9A%8C_%EC%B9%B4%EC%A6%88%ED%95%98%2C_%EA%B9%80%EC%B1%84%EC%9B%90%2C_%EC%82%AC%EC%BF%A0%EB%9D%BC%2C_%ED%97%88%EC%9C%A4%EC%A7%84%2C_%ED%99%8D%EC%9D%80%EC%B1%84_%EB%8B%A8%EC%B2%B4_%EC%BB%B7.jpg",
+    "user_choice": "르세라핌"
+  },
+  {
+    "id": 3,
+    "name": "프로그래밍 언어",
+    "url": "/images/Carousel/computer.jpg",
+    "explain": "입문용 프로그래밍 언어 추천좀  JS vs Python",
+    "option_1": "C",
+    "option_2": "Python",
+    "option_1_url": "https://velog.velcdn.com/images/augus-xury/post/f3acd3d5-4b54-46dc-9427-c007c3b46a7d/image.png",
+    "option_2_url": "https://mblogthumb-phinf.pstatic.net/MjAxNzAyMTNfMjEg/MDAxNDg2OTcxNzM3NTE5.FKqf5HaO1eoFhgXkGE2jXVKKQ-jVdwXho4N8cIU6L-Ig.KOSZAUeaSF3L8rh1kjDgoQUDuFg5pEX6EsZKJ4lmASEg.JPEG.acornedu/01_%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D%EC%96%B8%EC%96%B4.jpg?type=w800",
+    "user_choice": "Python"
+  },
+  {
+    "id": 4,
+    "title": "진짜 판다",
+    "thumbnail": "/images/Carousel/pandas.jpg",
+    "content": "자이언트 판다 vs 렛서 판다",
+    "option_1": "자이언트 판다",
+    "option_2": "렛서 판다",
+    "option_1_url": "https://blog.kakaocdn.net/dn/bq7aS9/btqSIYWoFWc/uECunLf1LkTa3jkXKtQkO0/img.jpg",
+    "option_2_url": "https://i.namu.wiki/i/iCJdpjwdRC13Ya6feuwv0kVgy2fifAz9evhm08I1mCJLIhFvNQM3FoqQUXi6I6Ed5WPl63-ohn2vtizKgW4egg.webp",
+    "user_choice": "렛서 판다"
+  },
+  {
+    "id": 5,
+    "title": "파인애플 피자",
+    "thumbnail": "/images/Carousel/pandas.jpg",
+    "content": "자이언트 판다 vs 렛서 판다",
+    "option_1": "자이언트 판다",
+    "option_2": "렛서 판다",
+    "option_1_url": "https://blog.kakaocdn.net/dn/bq7aS9/btqSIYWoFWc/uECunLf1LkTa3jkXKtQkO0/img.jpg",
+    "option_2_url": "https://i.namu.wiki/i/iCJdpjwdRC13Ya6feuwv0kVgy2fifAz9evhm08I1mCJLIhFvNQM3FoqQUXi6I6Ed5WPl63-ohn2vtizKgW4egg.webp",
+    "user_choice": "극호"
+  },
+  {
+    "id": 6,
+    "title": "닌텐도 vs 플레이스테이션",
+    "thumbnail": "/images/Carousel/pandas.jpg",
+    "content": "자이언트 판다 vs 렛서 판다",
+    "option_1": "자이언트 판다",
+    "option_2": "렛서 판다",
+    "option_1_url": "https://blog.kakaocdn.net/dn/bq7aS9/btqSIYWoFWc/uECunLf1LkTa3jkXKtQkO0/img.jpg",
+    "option_2_url": "https://i.namu.wiki/i/iCJdpjwdRC13Ya6feuwv0kVgy2fifAz9evhm08I1mCJLIhFvNQM3FoqQUXi6I6Ed5WPl63-ohn2vtizKgW4egg.webp",
+    "user_choice": "닌텐도"
+  },
+  {
+    "id": 7,
+    "title": "읽씹 vs 안읽씹",
+    "thumbnail": "/images/Carousel/pandas.jpg",
+    "content": "자이언트 판다 vs 렛서 판다",
+    "option_1": "자이언트 판다",
+    "option_2": "렛서 판다",
+    "option_1_url": "https://blog.kakaocdn.net/dn/bq7aS9/btqSIYWoFWc/uECunLf1LkTa3jkXKtQkO0/img.jpg",
+    "option_2_url": "https://i.namu.wiki/i/iCJdpjwdRC13Ya6feuwv0kVgy2fifAz9evhm08I1mCJLIhFvNQM3FoqQUXi6I6Ed5WPl63-ohn2vtizKgW4egg.webp",
+    "user_choice": "안읽씹"
+  },
+  {
+    "id": 8,
+    "title": "부먹 vs 찍먹",
+    "thumbnail": "/images/Carousel/pandas.jpg",
+    "content": "자이언트 판다 vs 렛서 판다",
+    "option_1": "자이언트 판다",
+    "option_2": "렛서 판다",
+    "option_1_url": "https://blog.kakaocdn.net/dn/bq7aS9/btqSIYWoFWc/uECunLf1LkTa3jkXKtQkO0/img.jpg",
+    "option_2_url": "https://i.namu.wiki/i/iCJdpjwdRC13Ya6feuwv0kVgy2fifAz9evhm08I1mCJLIhFvNQM3FoqQUXi6I6Ed5WPl63-ohn2vtizKgW4egg.webp",
+    "user_choice": "부먹"
+  },
+  {
+    "id": 9,
+    "title": "아침 vs 밤",
+    "thumbnail": "/images/Carousel/pandas.jpg",
+    "content": "자이언트 판다 vs 렛서 판다",
+    "option_1": "자이언트 판다",
+    "option_2": "렛서 판다",
+    "option_1_url": "https://blog.kakaocdn.net/dn/bq7aS9/btqSIYWoFWc/uECunLf1LkTa3jkXKtQkO0/img.jpg",
+    "option_2_url": "https://i.namu.wiki/i/iCJdpjwdRC13Ya6feuwv0kVgy2fifAz9evhm08I1mCJLIhFvNQM3FoqQUXi6I6Ed5WPl63-ohn2vtizKgW4egg.webp",
+    "user_choice": "밤"
+  },
+  {
+    "id": 10,
+    "title": "상단세 vs 중단세",
+    "thumbnail": "/images/Carousel/pandas.jpg",
+    "content": "자이언트 판다 vs 렛서 판다",
+    "option_1": "자이언트 판다",
+    "option_2": "렛서 판다",
+    "option_1_url": "https://blog.kakaocdn.net/dn/bq7aS9/btqSIYWoFWc/uECunLf1LkTa3jkXKtQkO0/img.jpg",
+    "option_2_url": "https://i.namu.wiki/i/iCJdpjwdRC13Ya6feuwv0kVgy2fifAz9evhm08I1mCJLIhFvNQM3FoqQUXi6I6Ed5WPl63-ohn2vtizKgW4egg.webp",
+    "user_choice": "중단세"
+  },
+  {
+    "id": 11,
+    "title": "쿼카 vs 햄스터",
+    "thumbnail": "/images/Carousel/pandas.jpg",
+    "content": "자이언트 판다 vs 렛서 판다",
+    "option_1": "자이언트 판다",
+    "option_2": "렛서 판다",
+    "option_1_url": "https://blog.kakaocdn.net/dn/bq7aS9/btqSIYWoFWc/uECunLf1LkTa3jkXKtQkO0/img.jpg",
+    "option_2_url": "https://i.namu.wiki/i/iCJdpjwdRC13Ya6feuwv0kVgy2fifAz9evhm08I1mCJLIhFvNQM3FoqQUXi6I6Ed5WPl63-ohn2vtizKgW4egg.webp",
+    "user_choice": "쿼카"
+  }
+]

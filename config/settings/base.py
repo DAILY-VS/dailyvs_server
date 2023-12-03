@@ -146,7 +146,8 @@ else:
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-FAVICON_PATH = os.path.join(BASE_DIR,"favicon.ico")
+
+FAVICON_PATH = os.path.join(BASE_DIR, "favicon.ico")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
