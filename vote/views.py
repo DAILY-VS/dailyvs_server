@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .serializers import *
+from itertools import chain
 
 
 # 메인페이지
@@ -50,6 +51,45 @@ class MainViewSet(ModelViewSet):
         }
         return Response(context)
 
+@api_view(['GET'])
+def event(request):
+    top_users = User.objects.order_by('-point')[:10]
+
+    serialized_top_users = TopUserSerializer(top_users, many=True).data
+
+    for user_data in serialized_top_users:
+        email = user_data['email']
+        if '@' in email:
+            prefix, domain = email.rsplit('@', 1)
+            masked_prefix = prefix[0:len(prefix) -3 ] + '*' * (3)
+            masked_email = masked_prefix + '@' + domain
+            user_data['email'] = masked_email
+
+    for user_data in serialized_top_users:
+        user = User.objects.get(id=user_data['id'])
+        
+        most_recent_poll = Poll.objects.filter(owner=user).order_by('-created_at').first()
+
+        if most_recent_poll:
+            serialized_poll = PollSerializer(most_recent_poll).data
+            user_data['most_recent_poll'] = serialized_poll
+        else:
+            user_data['most_recent_poll'] = None
+
+    context = {
+    "event_title": "VS Point 경품 행사!",
+    "event_sub_title": "본인이 올린 투표 주제에 사람들이 투표할 때마다 VS POINT 획득!",
+    "event_description": [
+        { "id": 1, "text": "서버 내 첫 100, 2000, 50000 포인트 달성 시 다음 과 같은 상금 지급!" },
+        { "id": 2, "text": "1000 포인트 (5명) - 4500원 기프티콘" },
+        { "id": 3, "text": "2000 포인트 (3명) - 10000원 기프티콘" },
+        { "id": 4, "text": "20000 포인트 (1명) - 5만원 현금 지급" },
+    ],
+    "warning": "※비정상적인 방법 사용 적발 시 상품이 미지급 될 수 있습니다.",        
+    'top_users': serialized_top_users,
+    }
+    return Response(context)
+
 #검색 기능
 class MainViewSearch(generics.ListAPIView):
     queryset = Poll.objects.all()
@@ -63,6 +103,15 @@ class MainViewSearch(generics.ListAPIView):
         if search_query:
             queryset = queryset.filter(title__icontains=search_query)
         return queryset
+
+@api_view(['GET'])
+def comment_delete(request, comment_id):
+    comment = Comment.objects.get(id=comment_id)
+    if request.user == comment.user_info:
+        comment.delete()
+        return Response("success", status=status.HTTP_204_NO_CONTENT)
+    else:
+        return Response("fail", status=status.HTTP_403_FORBIDDEN)
 
 #투표 만들기
 @api_view(['POST'])
@@ -596,8 +645,11 @@ class poll_result_page(APIView):
         choice_dict= {}
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
+        
 
-        latest_polls = Poll.objects.all().order_by("-id")[0:5]
+        next_polls = Poll.objects.filter(id__gt =poll.id).order_by('id')[0:2][::-1]
+        previous_polls = Poll.objects.filter(id__lt =poll.id).order_by('-id')[0:2]
+        latest_polls = list(chain(next_polls, [poll], previous_polls))
         serialized_latest_polls = PollSerializer(latest_polls, many=True, context={'request': request}).data
 
         context = {
@@ -626,7 +678,11 @@ class poll_result_page(APIView):
         #포인트 업데이트
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             pass
-        else : 
+        elif user.is_authenticated : 
+            owner= User.objects.get(id= poll.owner.id)
+            if user != owner : 
+                User.objects.filter(id= poll.owner.id).update(point = owner.point + 10)
+        else :
             owner= User.objects.get(id= poll.owner.id)
             User.objects.filter(id= poll.owner.id).update(point = owner.point + 1)
 
