@@ -53,12 +53,22 @@ class MainViewSet(ModelViewSet):
 @api_view(['GET'])
 def event(request):
     top_users = User.objects.order_by('-point')[:10]
-    serialized_top_users = TopUserSerializer(top_users, many= True).data
-    context={
-        'top_users' : serialized_top_users
-    }
-    return Response(context)
 
+    serialized_top_users = TopUserSerializer(top_users, many=True).data
+
+    for user_data in serialized_top_users:
+        user = User.objects.get(id=user_data['id'])
+        
+        most_recent_poll = Poll.objects.filter(owner=user).order_by('-created_at').first()
+
+        if most_recent_poll:
+            serialized_poll = PollSerializer(most_recent_poll).data
+            user_data['most_recent_poll'] = serialized_poll
+        else:
+            user_data['most_recent_poll'] = None
+
+    context = {'top_users': serialized_top_users}
+    return Response(context)
 
 #검색 기능
 class MainViewSearch(generics.ListAPIView):
