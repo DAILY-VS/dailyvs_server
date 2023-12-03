@@ -53,3 +53,25 @@ class CustomRegisterSerializer(RegisterSerializer):
 class CustomLoginSerializer(LoginSerializer):
     email = serializers.CharField(required=True, allow_blank=False)
     password = serializers.CharField(style={'input_type': 'password'})
+
+from dj_rest_auth.serializers import PasswordResetSerializer
+from config.settings import base
+
+
+class CustomPasswordResetSerializer(PasswordResetSerializer):
+    
+    def save(self):
+        from allauth.account.forms import default_token_generator
+
+        request = self.context.get('request')
+        # Set some values to trigger the send_email method.
+        opts = {
+            'use_https': request.is_secure(),
+            'from_email': base.DEFAULT_FROM_EMAIL,
+            'request': request,
+            'token_generator': default_token_generator,
+        }
+
+        opts.update(self.get_email_options())
+        print(opts)
+        self.reset_form.save(**opts)
