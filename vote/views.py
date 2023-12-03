@@ -50,6 +50,16 @@ class MainViewSet(ModelViewSet):
         }
         return Response(context)
 
+@api_view(['GET'])
+def event(request):
+    top_users = User.objects.order_by('-point')[:10]
+    serialized_top_users = TopUserSerializer(top_users, many= True).data
+    context={
+        'top_users' : serialized_top_users
+    }
+    return Response(context)
+
+
 #검색 기능
 class MainViewSearch(generics.ListAPIView):
     queryset = Poll.objects.all()
@@ -63,6 +73,15 @@ class MainViewSearch(generics.ListAPIView):
         if search_query:
             queryset = queryset.filter(title__icontains=search_query)
         return queryset
+
+@api_view(['GET'])
+def comment_delete(request, comment_id):
+    comment = Comment.objects.get(id=comment_id)
+    if request.user == comment.user_info:
+        comment.delete()
+        return Response("success", status=status.HTTP_204_NO_CONTENT)
+    else:
+        return Response("fail", status=status.HTTP_403_FORBIDDEN)
 
 #투표 만들기
 @api_view(['POST'])

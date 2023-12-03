@@ -9,7 +9,12 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['nickname', 'age', 'gender', 'mbti']
-        
+
+class TopUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['nickname', 'point','email']
+
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
