@@ -55,10 +55,8 @@ class MainViewSet(ModelViewSet):
 def event(request):
     top_users = User.objects.order_by('-point')[:10]
 
-    # Serialize the data
     serialized_top_users = TopUserSerializer(top_users, many=True).data
 
-    # Modify the email field to replace the last two characters with '*'
     for user_data in serialized_top_users:
         email = user_data['email']
         if '@' in email:
