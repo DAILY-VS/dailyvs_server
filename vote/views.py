@@ -55,7 +55,17 @@ class MainViewSet(ModelViewSet):
 def event(request):
     top_users = User.objects.order_by('-point')[:10]
 
+    # Serialize the data
     serialized_top_users = TopUserSerializer(top_users, many=True).data
+
+    # Modify the email field to replace the last two characters with '*'
+    for user_data in serialized_top_users:
+        email = user_data['email']
+        if '@' in email:
+            prefix, domain = email.rsplit('@', 1)
+            masked_prefix = prefix[0:len(prefix) -3 ] + '*' * (3)
+            masked_email = masked_prefix + '@' + domain
+            user_data['email'] = masked_email
 
     for user_data in serialized_top_users:
         user = User.objects.get(id=user_data['id'])
