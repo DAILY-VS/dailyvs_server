@@ -8,6 +8,8 @@ def monkey_patching():
         site = local_settings.FRONT_BASE_URL
         bits = urlsplit(location)
         if not (bits.scheme and bits.netloc):
+            if str(location[1:6]) == "2F650":
+                location = location[65:]
             uri = "{domain}{url}".format(
                 domain=site,
                 url=location,
