@@ -288,29 +288,26 @@ class DeleteAccount(APIView):
     def delete(self, request):
         user=request.user
         if user.is_authenticated:
-            try:
-                # 카카오 유저인 경우 카카오와 연결 끊기 먼저 진행.
-                if user.is_kakao:
-                    access_kakao = request.data.get('access_kakao')
-                    headers = {"Authorization": f'Bearer {access_kakao}'}
-                    unlink_response = requests.post('https://kapi.kakao.com/v1/user/unlink', headers=headers)
-                
-                self.logout(request)
-                user.delete()
-
-                response = Response(
-                    {"message": "success"},
-                    status=status.HTTP_200_OK,
-                )
-
-                cookie_name1 = base.REST_AUTH['JWT_AUTH_COOKIE']
-                cookie_name2 = base.REST_AUTH['JWT_AUTH_REFRESH_COOKIE']
-                response.delete_cookie(cookie_name1)
-                response.delete_cookie(cookie_name2)
-
-                return response
-            except:
-                return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+            # try:
+            # 카카오 유저인 경우 카카오와 연결 끊기 먼저 진행.
+            if user.is_kakao:
+                access_kakao = request.data.get('access_kakao')
+                headers = {"Authorization": f'Bearer {access_kakao}'}
+                unlink_response = requests.post('https://kapi.kakao.com/v1/user/unlink', headers=headers)
+            
+            self.logout(request)
+            user.delete()
+            response = Response(
+                {"message": "success"},
+                status=status.HTTP_200_OK,
+            )
+            cookie_name1 = base.REST_AUTH['JWT_AUTH_COOKIE']
+            cookie_name2 = base.REST_AUTH['JWT_AUTH_REFRESH_COOKIE']
+            response.delete_cookie(cookie_name1)
+            response.delete_cookie(cookie_name2)
+            return response
+            # except:
+            return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
             
         return Response({"message": "fail"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -329,23 +326,23 @@ class DeleteAccount(APIView):
         unset_jwt_cookies(response)
         if 'rest_framework_simplejwt.token_blacklist' in base.INSTALLED_APPS:
             # add refresh token to blacklist
-            try:
+            # try:
                 token = RefreshToken(request.data['refresh'])
                 token.blacklist()
-            except KeyError:
-                response.data = {'detail': _('Refresh token was not included in request data.')}
-                response.status_code =status.HTTP_401_UNAUTHORIZED
-            except (TokenError, AttributeError, TypeError) as error:
-                if hasattr(error, 'args'):
-                    if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
-                        response.data = {'detail': _(error.args[0])}
-                        response.status_code = status.HTTP_401_UNAUTHORIZED
-                    else:
-                        response.data = {'detail': _('An error has occurred.')}
-                        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-                else:
-                    response.data = {'detail': _('An error has occurred.')}
-                    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            # except KeyError:
+                # response.data = {'detail': _('Refresh token was not included in request data.')}
+                # response.status_code =status.HTTP_401_UNAUTHORIZED
+            # except (TokenError, AttributeError, TypeError) as error:
+                # if hasattr(error, 'args'):
+                #     if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
+                #         response.data = {'detail': _(error.args[0])}
+                #         response.status_code = status.HTTP_401_UNAUTHORIZED
+                #     else:
+                #         response.data = {'detail': _('An error has occurred.')}
+                #         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                # else:
+                #     response.data = {'detail': _('An error has occurred.')}
+                #     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         elif not cookie_name:
             message = _(
                 'Neither cookies or blacklist are enabled, so the token '
