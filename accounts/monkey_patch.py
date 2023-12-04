@@ -6,7 +6,6 @@ from urllib.parse import urlsplit
 def monkey_patching():
     def custom_build_absolute_uri(request, location, protocol=None):
         site = local_settings.FRONT_BASE_URL
-
         bits = urlsplit(location)
         if not (bits.scheme and bits.netloc):
             uri = "{domain}{url}".format(
@@ -15,7 +14,6 @@ def monkey_patching():
             )
         else:
             uri = location
-
         return uri
 
     utils.build_absolute_uri = custom_build_absolute_uri
