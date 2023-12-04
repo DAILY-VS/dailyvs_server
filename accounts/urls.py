@@ -15,6 +15,7 @@ urlpatterns = [
     path('password/reset/confirm/<uidb64>/<token>/', MyPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
     path('delete/', DeleteAccount.as_view()),
+    path('logout/', MyLogoutView.as_view()),
 
     path('', include('dj_rest_auth.urls')),
     path('', include('dj_rest_auth.registration.urls')),
