@@ -650,6 +650,8 @@ class poll_result_page(APIView):
         next_polls = Poll.objects.filter(id__gt =poll.id).order_by('id')[0:2][::-1]
         previous_polls = Poll.objects.filter(id__lt =poll.id).order_by('-id')[0:2]
         latest_polls = list(chain(next_polls, [poll], previous_polls))
+        current_poll_index = latest_polls.index(poll)    
+
         serialized_latest_polls = PollSerializer(latest_polls, many=True, context={'request': request}).data
 
         context = {
@@ -658,6 +660,7 @@ class poll_result_page(APIView):
             "statistics": statistics,
             "choice":serialized_choice,
             "latest_polls":serialized_latest_polls,
+            "current_poll_index":current_poll_index,
             }
         return Response(context)
 
