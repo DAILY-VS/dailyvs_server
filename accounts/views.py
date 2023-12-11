@@ -48,7 +48,6 @@ class KakaoLoginView(APIView):
             user = user[0]
             # 기존 로그인 회원인 경우
             if user.is_kakao == False:
-                raise
                 return Response({"message": "existing user"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             # 이미 카카오로 제대로 가입된 유저 => 로그인 & 해당 유저의 jwt 발급
             data = {'access_token': access_token, 'code': code}
@@ -62,6 +61,8 @@ class KakaoLoginView(APIView):
                 'access': accept.data['access'],
                 'refresh': accept.data['refresh'],
             }
+            print("카카오 로그인 access token")
+            print(access_token)
             return Response(context)
         else:
             # 전달받은 이메일로 기존에 가입된 유저가 아예 없으면 => 새로 회원가입 & 해당 유저의 jwt 발급
@@ -277,6 +278,8 @@ class MyLogoutView(APIView):
 
     def post(self, request, *args, **kwargs):
         user = request.user
+        print("request.data in post")
+        print(request.data)
         
         if(user.is_kakao):
             return self.logout_with_kakao(request)
@@ -287,17 +290,21 @@ class MyLogoutView(APIView):
     
     def logout_with_kakao(self, request):
         try:
-            REST_API_KEY = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
-            LOGOUT_REDIRECT_URI = local_settings.LOGOUT_REDIRECT_URI
+            # REST_API_KEY = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
+            # LOGOUT_REDIRECT_URI = local_settings.LOGOUT_REDIRECT_URI
+
             
             access_kakao = request.data.get('access_kakao')
             headers = {"Authorization": f'Bearer {access_kakao}'}
             logout_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers=headers)
-            
-            self.logout(request)
 
             # 카카오계정과 함께 로그아웃
-            logout_response = requests.get(f'https://kauth.kakao.com/oauth/logout?client_id=${REST_API_KEY}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}')
+            # logout_response = requests.get(f'https://kauth.kakao.com/oauth/logout?client_id=${REST_API_KEY}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}')
+            # print("카카오 계정과 함께 로그아웃 후")
+            # print(logout_response)
+            
+
+            self.logout(request)
             
 
         except:
@@ -368,8 +375,10 @@ class DeleteAccount(APIView):
 
                 cookie_name1 = base.REST_AUTH['JWT_AUTH_COOKIE']
                 cookie_name2 = base.REST_AUTH['JWT_AUTH_REFRESH_COOKIE']
+                cookie_name3 = 'sessionid'
                 response.delete_cookie(cookie_name1)
                 response.delete_cookie(cookie_name2)
+                response.delete_cookie(cookie_name3)
 
                 return response
             except:
