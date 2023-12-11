@@ -125,23 +125,6 @@ class KakaoLoginView(APIView):
         self.login()
         return self.get_response()
 
-@api_view(['POST'])
-def logout_with_kakao(request):
-    try:
-
-        REST_API_KEY = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
-        access_kakao = request.data.get('access_kakao')
-        headers = {"Authorization": f'Bearer {access_kakao}'}
-        logout_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers=headers)
-
-        refresh = request.data.get('refresh')
-        body = {"refresh": f'{refresh}'}
-        daily_logout_response = requests.post(f'{local_settings.BASE_URL}/accounts/logout/', data=body)
-    except:
-        return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response({'message':'success'}, status=status.HTTP_200_OK)
-
 from django.http import HttpResponseRedirect
 from rest_framework.permissions import AllowAny
 from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
@@ -293,7 +276,35 @@ class MyLogoutView(APIView):
         return self.finalize_response(request, response, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        user = request.user
+
+        if(user.is_kakao):
+            self.logout_with_kakao(request)
+
+
         return self.logout(request)
+    
+    def logout_with_kakao(self, request):
+        try:
+            REST_API_KEY = local_settings.SOCIAL_AUTH_KAKAO_CLIENT_ID
+            LOGOUT_REDIRECT_URI = local_settings.LOGOUT_REDIRECT_URI
+            
+            access_kakao = request.data.get('access_kakao')
+            headers = {"Authorization": f'Bearer {access_kakao}'}
+            logout_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers=headers)
+
+            refresh = request.data.get('refresh')
+            body = {"refresh": f'{refresh}'}
+            daily_logout_response = requests.post(f'{local_settings.BASE_URL}/accounts/logout/', data=body)
+            
+            # 카카오계정과 함께 로그아웃
+            logout_response = requests.get(f'https://kauth.kakao.com/oauth/logout?client_id=${REST_API_KEY}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}')
+            
+
+        except:
+            return Response({'message':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'message':'success'}, status=status.HTTP_200_OK)
 
     def logout(self, request):
         from rest_framework_simplejwt.exceptions import TokenError
