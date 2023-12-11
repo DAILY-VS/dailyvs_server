@@ -277,12 +277,13 @@ class MyLogoutView(APIView):
 
     def post(self, request, *args, **kwargs):
         user = request.user
-
+        
         if(user.is_kakao):
-            self.logout_with_kakao(request)
+            return self.logout_with_kakao(request)
+        else:
+            return self.logout(request)
+        
 
-
-        return self.logout(request)
     
     def logout_with_kakao(self, request):
         try:
@@ -292,11 +293,9 @@ class MyLogoutView(APIView):
             access_kakao = request.data.get('access_kakao')
             headers = {"Authorization": f'Bearer {access_kakao}'}
             logout_response = requests.post('https://kapi.kakao.com/v1/user/logout', headers=headers)
-
-            refresh = request.data.get('refresh')
-            body = {"refresh": f'{refresh}'}
-            daily_logout_response = requests.post(f'{local_settings.BASE_URL}/accounts/logout/', data=body)
             
+            self.logout(request)
+
             # 카카오계정과 함께 로그아웃
             logout_response = requests.get(f'https://kauth.kakao.com/oauth/logout?client_id=${REST_API_KEY}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}')
             
@@ -316,7 +315,6 @@ class MyLogoutView(APIView):
             {'detail': _('Successfully logged out.')},
             status=status.HTTP_200_OK,
         )
-
 
         cookie_name = base.REST_AUTH['JWT_AUTH_COOKIE']
         unset_jwt_cookies(response)
