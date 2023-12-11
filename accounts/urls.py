@@ -25,5 +25,5 @@ urlpatterns = [
 
     path('allauth/', include('allauth.urls')),
     path('kakao/login/callback/', KakaoLoginView.as_view(), name='kakao_callback'),
-    path('kakao/logout/', logout_with_kakao),
+    path('kakao/logout/', MyLogoutView.as_view()),
 ]+ static(base.MEDIA_URL, document_root=base.MEDIA_ROOT)
