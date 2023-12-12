@@ -6,6 +6,7 @@ app_name = "vote"
 urlpatterns = [
     # 공통
     path("", views.MainViewSet.as_view({'get': 'list'}), name="main"),
+    path("event/", views.event, name="event"),
     path('search/', views.MainViewSearch.as_view(), name='search'),
     path("<int:poll_id>", views.PollDetailView.as_view(), name="detail"),
     path("<int:poll_id>/poll_result_page", views.poll_result_page.as_view(), name="poll_result_page"),

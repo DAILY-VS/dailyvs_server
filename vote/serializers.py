@@ -9,6 +9,12 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['nickname', 'age', 'gender', 'mbti']
+
+class TopUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','nickname', 'point','email']
+
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
@@ -23,6 +29,7 @@ class PollSerializer(serializers.ModelSerializer):
     owner = UserSerializer()
     choices = ChoiceSerializer(many=True)
     category = CategorySerializer(many=True)
+
     class Meta:
         model = Poll
         fields = '__all__'

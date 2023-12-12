@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .serializers import *
+from itertools import chain
 
 
 # 메인페이지
@@ -25,7 +26,7 @@ class MainViewSet(ModelViewSet):
         polls = Poll.objects.all().order_by('-id')
         today_poll = Today_Poll.objects.first()
         if today_poll:
-            serialized_today_poll = TodayPollSerializer(today_poll, many=False).data
+            serialized_today_poll = TodayPollSerializer(today_poll, context={'request': request}).data
         else:
             serialized_today_poll = None
 
@@ -50,6 +51,45 @@ class MainViewSet(ModelViewSet):
         }
         return Response(context)
 
+@api_view(['GET'])
+def event(request):
+    top_users = User.objects.order_by('-point')[:10]
+
+    serialized_top_users = TopUserSerializer(top_users, many=True).data
+
+    for user_data in serialized_top_users:
+        email = user_data['email']
+        if '@' in email:
+            prefix, domain = email.rsplit('@', 1)
+            masked_prefix = prefix[0:len(prefix) -3 ] + '*' * (3)
+            masked_email = masked_prefix + '@' + domain
+            user_data['email'] = masked_email
+
+    for user_data in serialized_top_users:
+        user = User.objects.get(id=user_data['id'])
+        
+        most_recent_poll = Poll.objects.filter(owner=user).order_by('-created_at').first()
+
+        if most_recent_poll:
+            serialized_poll = PollSerializer(most_recent_poll).data
+            user_data['most_recent_poll'] = serialized_poll
+        else:
+            user_data['most_recent_poll'] = None
+
+    context = {
+    "event_title": "VS Point 경품 행사!",
+    "event_sub_title": "본인이 올린 투표 주제에 사람들이 투표할 때마다 VS POINT 획득!",
+    "event_description": [
+        { "id": 1, "text": "서버 내 첫 100, 2000, 50000 포인트 달성 시 다음 과 같은 상금 지급!" },
+        { "id": 2, "text": "1000 포인트 (5명) - 4500원 기프티콘" },
+        { "id": 3, "text": "2000 포인트 (3명) - 10000원 기프티콘" },
+        { "id": 4, "text": "20000 포인트 (1명) - 5만원 현금 지급" },
+    ],
+    "warning": "※비정상적인 방법 사용 적발 시 상품이 미지급 될 수 있습니다.",        
+    'top_users': serialized_top_users,
+    }
+    return Response(context)
+
 #검색 기능
 class MainViewSearch(generics.ListAPIView):
     queryset = Poll.objects.all()
@@ -63,6 +103,15 @@ class MainViewSearch(generics.ListAPIView):
         if search_query:
             queryset = queryset.filter(title__icontains=search_query)
         return queryset
+
+@api_view(['GET'])
+def comment_delete(request, comment_id):
+    comment = Comment.objects.get(id=comment_id)
+    if request.user == comment.user_info:
+        comment.delete()
+        return Response("success", status=status.HTTP_204_NO_CONTENT)
+    else:
+        return Response("fail", status=status.HTTP_403_FORBIDDEN)
 
 #투표 만들기
 @api_view(['POST'])
@@ -115,7 +164,6 @@ def poll_create(request):
         "thumbnail": thumbnail,
         "owner": owner,
     }
-    print(poll_data)
     poll = Poll.objects.create(**poll_data)
     
     # 카테고리 할당
@@ -134,14 +182,18 @@ class PollDetailView(APIView):
         user = request.user
         #이미 투표한 경우 
         previous_choice = False
+        previous_choice_id = False
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             try : 
                 uservote = UserVote.objects.get(poll_id=poll_id, user=user)
-                previous_choice = str(uservote.choice)
+                previous_choice = int(uservote.choice.choice_number)
+                previous_choice_id = int(uservote.choice.id)
             except :
                 previous_choice = False
+                previous_choice_id = False
+
         poll = get_object_or_404(Poll, id=poll_id)
-        serialized_poll = PollSerializer(poll).data
+        serialized_poll = PollSerializer(poll, context={'request': request}).data
 
         categorys = serialized_poll.get('category', [])
         category_list = [category.get('name') for category in categorys]
@@ -160,6 +212,7 @@ class PollDetailView(APIView):
         context = {
             "is_owner" : is_owner,
             "previous_choice" : previous_choice,
+            "previous_choice_id" : previous_choice_id,
             "poll": serialized_poll,
             "category_list" : category_list,
         }
@@ -222,7 +275,6 @@ def comment_create(request, poll_id):
         'choice': choice.id,
         'poll': poll,
     }
-    print(data)
     serializer = CommentSerializer(data=data)
     if serializer.is_valid():
         serializer.save(user_info=request.user)
@@ -398,8 +450,8 @@ class MypageUserVoteView(APIView, PageNumberPagination):
             return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
         uservote = UserVote.objects.filter(user=request.user)
         uservote_page=self.paginate_queryset(uservote, self.request)
-        uservote_serializer = UserVoteSerializer(uservote_page, many=True).data if uservote_page is not None else UserVoteSerializer(uservote, many=True).data
-        
+        uservote_serializer = UserVoteSerializer(uservote_page, many=True, context={'request': request}).data if uservote_page is not None else UserVoteSerializer(uservote, many=True, context={'request': request}).data
+
         uservote_count = uservote.count()
         
         context={
@@ -419,7 +471,7 @@ class MypageMyPollView(APIView, PageNumberPagination):
             return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
         my_poll = Poll.objects.filter(owner=request.user)
         my_poll_page = self.paginate_queryset(my_poll, self.request)
-        my_poll_serializer = PollSerializer(my_poll_page, many=True).data if my_poll_page is not None else PollSerializer(my_poll, many=True).data
+        my_poll_serializer = PollSerializer(my_poll_page, many=True, context={'request': request}).data if my_poll_page is not None else PollSerializer(my_poll, many=True, context={'request': request}).data
         
         my_poll_count = my_poll.count()
         
@@ -440,7 +492,7 @@ class MypagePollLikeView(APIView, PageNumberPagination):
             return Response("error", status=status.HTTP_401_Unauthorized) #unauthorized
         poll_like = Poll.objects.filter(poll_like=request.user)
         poll_like_page = self.paginate_queryset(poll_like, self.request)
-        poll_like_serializer = PollSerializer(poll_like_page, many=True).data if poll_like_page is not None else PollSerializer(poll_like, many=True).data
+        poll_like_serializer = PollSerializer(poll_like_page, many=True, context={'request': request}).data if poll_like_page is not None else PollSerializer(poll_like, many=True, context={'request': request}).data
         
         poll_like_count = poll_like.count()
         
@@ -465,7 +517,8 @@ class MypageView(APIView, PageNumberPagination):
                 "nickname": user_info.nickname,
                 "age": user_info.age,
                 "mbti": user_info.mbti,
-                "gender": user_info.gender
+                "gender": user_info.gender,
+                "point": user_info.point,
             },
         }
         return Response(context)
@@ -516,8 +569,6 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     mbti = extra_fields.get('mbti')
     age = extra_fields.get('age')
     if gender:
-        print('1')
-        print(gender)
         tmp_set[gender] += 1
     else :
         tmp_set['M'] += 1
@@ -582,7 +633,7 @@ class poll_result_page(APIView):
         #기본 투표 정보
         poll = get_object_or_404(Poll, id=poll_id)
         statistics = poll_calcstat(poll_id)
-        serialized_poll = PollSerializer(poll).data
+        serialized_poll = PollSerializer(poll, context={'request': request}).data
 
         serialized_choice= False
         user = request.user
@@ -594,9 +645,14 @@ class poll_result_page(APIView):
         choice_dict= {}
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
+        
 
-        latest_polls = Poll.objects.all().order_by("-id")[0:5]
-        serialized_latest_polls= PollSerializer(latest_polls, many=True).data
+        next_polls = Poll.objects.filter(id__gt =poll.id).order_by('id')[0:2][::-1]
+        previous_polls = Poll.objects.filter(id__lt =poll.id).order_by('-id')[0:2]
+        latest_polls = list(chain(next_polls, [poll], previous_polls))
+        current_poll_index = latest_polls.index(poll)    
+
+        serialized_latest_polls = PollSerializer(latest_polls, many=True, context={'request': request}).data
 
         context = {
             "poll": serialized_poll,
@@ -604,6 +660,7 @@ class poll_result_page(APIView):
             "statistics": statistics,
             "choice":serialized_choice,
             "latest_polls":serialized_latest_polls,
+            "current_poll_index":current_poll_index,
             }
         return Response(context)
 
@@ -615,6 +672,23 @@ class poll_result_page(APIView):
         category_list = received_data['category_list']
         user=request.user
 
+        #기본 투표 정보
+        poll = get_object_or_404(Poll, id=poll_id)
+        choice_dict= {}
+        for idx, choice in enumerate(poll.choices.all()):
+            choice_dict[idx] = str(choice)
+
+        #포인트 업데이트
+        if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
+            pass
+        elif user.is_authenticated : 
+            owner= User.objects.get(id= poll.owner.id)
+            if user != owner : 
+                User.objects.filter(id= poll.owner.id).update(point = owner.point + 10)
+        else :
+            owner= User.objects.get(id= poll.owner.id)
+            User.objects.filter(id= poll.owner.id).update(point = owner.point + 1)
+
         #이미 투표 하였을 경우, poll_result_remove
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
@@ -623,23 +697,20 @@ class poll_result_page(APIView):
             uservote.choice_id = choice_id
             uservote.age = user.age
             uservote.mbti = user.mbti
-            uservote.gender =user.gender
+            uservote.gender = user.gender
             uservote.save()
 
         #user 정보 업데이트
-        if user.is_authenticated:
-            if not user.voted_polls.filter(id=poll_id).exists():
-                UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id, gender = user.gender, mbti = user.mbti, age = user.age)
-            user.voted_polls.add(poll_id)
+        if user.is_authenticated and not user.voted_polls.filter(id=poll_id).exists():
             for category in category_list:
                 setattr(user, category, received_data[category])
                 user.save()
 
-        #기본 투표 정보
-        poll = get_object_or_404(Poll, id=poll_id)
-        choice_dict= {}
-        for idx, choice in enumerate(poll.choices.all()):
-            choice_dict[idx] = str(choice)
+        #uservote 생성
+        if user.is_authenticated and not user.voted_polls.filter(id=poll_id).exists():
+            UserVote.objects.create(user =user, poll_id=poll_id, choice_id = choice_id, gender = user.gender, mbti = user.mbti, age = user.age)
+            user.voted_polls.add(poll_id)
+
 
         #poll_result_update
         if user.is_authenticated:
@@ -648,25 +719,26 @@ class poll_result_page(APIView):
             extra_fields = {}
             for i in category_list:
                 extra_fields[i] = received_data[i]
+                print(i)
+                print(received_data[i])
             poll_result_update(poll_id, choice_number, **extra_fields)
 
-        #statistics, analysis 
+        #statistics
         statistics = poll_calcstat(poll_id)
-        #analysis = poll_analysis(statistics, gender, mbti, age)
         
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             uservote = UserVote.objects.get(poll_id=poll_id, user=user)
             choice = Choice.objects.get(id = uservote.choice_id)
-        serialized_choice = ChoiceSerializer(choice, many=False).data
 
-        serialized_poll = PollSerializer(poll).data
+
+        serialized_choice = ChoiceSerializer(choice, many=False).data
+        serialized_poll = PollSerializer(poll, context={'request': request}).data
 
         context = {
             "poll": serialized_poll,
             "choices": choice_dict,
             "statistics": statistics,
             "choice":serialized_choice,
-            #"analysis" : analysis,
             }
         return Response(context)
 

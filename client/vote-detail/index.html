@@ -1,0 +1,70 @@
+<!DOCTYPE html><head><meta charset="utf-8"><link rel="icon" href="/favicon.ico"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=0.9,maximum-scale=1"><meta property="og:url"><meta property="og:title"><meta property="og:type"><meta property="og:image"><meta property="og:description"><meta name="description" content="Web site created using create-react-app"><link rel="stylesheet" href="./style.css"><title>Daily VS</title><script defer="defer" src="/static/js/main.89e3ee28.js"></script><link href="/static/css/main.e58470b1.css" rel="stylesheet"><style type="text/css">.rfm-marquee-container {
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  width: var(--width);
+  transform: var(--transform);
+}
+.rfm-marquee-container:hover div {
+  animation-play-state: var(--pause-on-hover);
+}
+.rfm-marquee-container:active div {
+  animation-play-state: var(--pause-on-click);
+}
+
+.rfm-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+.rfm-overlay::before, .rfm-overlay::after {
+  background: linear-gradient(to right, var(--gradient-color), transparent);
+  content: "";
+  height: 100%;
+  position: absolute;
+  width: var(--gradient-width);
+  z-index: 2;
+}
+.rfm-overlay::after {
+  right: 0;
+  top: 0;
+  transform: rotateZ(180deg);
+}
+.rfm-overlay::before {
+  left: 0;
+  top: 0;
+}
+
+.rfm-marquee {
+  flex: 0 0 auto;
+  min-width: var(--min-width);
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  animation: scroll var(--duration) linear var(--delay) var(--iteration-count);
+  animation-play-state: var(--play);
+  animation-delay: var(--delay);
+  animation-direction: var(--direction);
+}
+@keyframes scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.rfm-initial-child-container {
+  flex: 0 0 auto;
+  display: flex;
+  min-width: auto;
+  flex-direction: row;
+  align-items: center;
+}
+
+.rfm-child {
+  transform: var(--transform);
+}</style><style data-styled="active" data-styled-version="6.0.7"></style></head><body><div id="root"><div class="rfm-marquee-container " style="background: linear-gradient(135deg, rgb(224, 233, 255), rgb(245, 232, 252), rgb(255, 219, 227)); cursor: unset; --pause-on-hover:running; --pause-on-click:running; --width:100%; --transform:none;"><div class="rfm-marquee" style="--play:running; --direction:normal; --duration:39.0808s; --delay:0s; --iteration-count:infinite; --min-width:100%;"><div class="rfm-initial-child-container"><div class="rfm-child" style="--transform:none;"><div class="sc-bYUneI cKXgoA"><span>매일매일의 즐거움 Daily VS</span><span>INFP인 그녀는 무엇을 골랐을까?</span><span>매일매일의 즐거움 Daily VS</span><span>INFP인 그녀는 무엇을 골랐을까?</span><span>매일매일의 즐거움 Daily VS</span><span>INFP인 그녀는 무엇을 골랐을까?</span><span>매일매일의 즐거움 Daily VS</span></div></div></div></div><div class="rfm-marquee" style="--play:running; --direction:normal; --duration:39.0808s; --delay:0s; --iteration-count:infinite; --min-width:100%;"><div class="rfm-child" style="--transform:none;"><div class="sc-bYUneI cKXgoA"><span>매일매일의 즐거움 Daily VS</span><span>INFP인 그녀는 무엇을 골랐을까?</span><span>매일매일의 즐거움 Daily VS</span><span>INFP인 그녀는 무엇을 골랐을까?</span><span>매일매일의 즐거움 Daily VS</span><span>INFP인 그녀는 무엇을 골랐을까?</span><span>매일매일의 즐거움 Daily VS</span></div></div></div></div><div class="sc-kMbQoj djtHrj"><div class="sc-ilpitK eJeEGU"><a class="sc-jdkVqZ iKppqH" href="/"><img src="/static/media/Row.7fc0778df5a9ae63d377.png" alt="로고" class="sc-bZCZoC jEErDR"></a><div class="sc-jIJgYh ebwiEQ"><a class="sc-hhWzdI ejtiYv" href="/login"><img src="/static/media/Unlogged.e56960d80399158768bf.png" alt="로그인">로그인</a></div></div></div><div class="sc-iAfmwU zitYY"><div class="sc-cwKisF ifntPW"><button class="sc-gisvNi kYfkPJ"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAPuSURBVHgB7ZnNTttAEMdn1kBLASmXtmnph3tuaVMVJG51n6BwqyIkwhPQNyB5A3gCQKJRbw1PgLlUqHAIgkOPRoIq7SmVgAZCdrqb8LE2sZ14jRSk/C7RrJ11/p6d3ZkJQJcuXbrcJhA0Ma1MonJ0OkGAbwDJBMJEY2Yqi8m3gTG7tLFiww0TWUhyfMqiGs0BkBV6M2GZEArM6M2VNpYcuAHaFpIcz5hUqy62JKD5I+f7q705p7hUhhhpS8jDsfSseLtZsWwSARM6YpmJ6/73CBw0+j7E6Z2WhTwYTc8hQvb6BGgTwSr21Aqlja+Oei05OmUB1jKE+B4ITM9XYxXTkpC6JwDmPd90kLOZ0lZrgZwcTWdFnMx5hmMTw8JukDEBXhEEhf57x29bFSEpbeWzaPAX8gUow+fxpo8RdsPAo5dr4iN5OSBE/N7KT5adnxVok8P93fLQ05erwp0TwryIIXPw6au/Rwe7G6BBoEeSY+mM+OWpywHxNvsHj2dAAxlHckm6BjnOmalMAjQIFCJ2n2nVRoKcYxe0t025JBFoWRlK/LtzkgENfIU0YkM9K7BY2swvQVwYlHXZnH0EDXyF8OpZSrXFG1yAGGls1WhfjZCls7x8hSDjlmobvVCEuCG+qprVe6cmRMQ/RhCeq+bB93zsQogMR7VrVUhBRPyFXGSxDRy4ARhCbPlW6IF4W/CPEeR7imnq7vPN4ASuORmyyB4K8Ag6qlW5exZ5/fo+wbOhYA93ICL+Qjiz3bb7oTGhnh1lnQ3FV0jlrEdMipeuFqn6bJzLq57iw1VqL9LwAmjgK6Rcr+DcaUSl7/QzxAQhd2e9BlsGDQJ3LZF2u9J36ZXhsbR2rMgiDRRvyGRUt0ERKKSeRnBQU5PEGcC38xolErJI81aaPQSToEnoOXJS68teL4ZO12QXBdrk3BPuIk3kWweb+llDaGFVKRUrTYqhhFhnmYHh1+bQs3fbh/vFwP1fih54NLIoPJFpctkceDICRwc766BBy82H5Pgnkzhba9JEkNPYiLTOgYqMGQ1RNW7Wm3ZA8gWYYfOLej7750c+BxFpqx0ULKadh4rOS5O+mI6Y0KWlImtusQQWhoZH9sSvkbtXW+eKFIAkOy9fckOPR4QJlvs6WFGXmVbvt1HT4zQFdh1R9ICpAMSWvV0XnxZRJM9oN7ElpjWRqBwOpmQSyBi/8pLBbW/TzktcYmIRokscYtqKkZvi8NeOrRszHSFEoiumY4RIdMR0lBBJVDEdJ0QSRUxHCpH4ikEw799/t1wWOaA63rFCJNfEyP9kGP+wv7VS8t7b0UIkl2IYmFJE2AHb8cjsAbp06RKZ/yVDsBua29r9AAAAAElFTkSuQmCC" alt="검색" class="sc-lltjXc fTDQJd"></button><input placeholder="제목으로 검색하세요" id="search" type="text" class="sc-iJfdHH ezIFoq" value=""><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAHMSURBVHgB7di9TsJQFMDxc+toTFgwRhh8gRoGcHDiEVjtoj4J9U2YkNWNUTYji6YvoDFAd9ENag+hpikU7sc5g/H8J6zhtr9Q6MkFkCRJkiTpn1e7DBrAVLV1Y7X2ARhWvbi6ThZqeFj34WsSjYCw42bQ9dRicFQ/f5tPoleT9xpBEOElqoevFUCbEoMIpSBc/9kxxWhDqq2g4YEa5o9RYQqIrE7lzH/4/IhinTW0Id/TKD469VV69e38cVdMCQLSY3ezp/4ANDO6tebT6JESswsRP/dDMMj4y06FoURgxhDMFUONwKwgmC2GA4FZQzBTDBcCc4JguhhOxPp8NJ00gzBR0C0eT/Dil6sLDjdOToRYrQWElWG2npgQgTnfWvnKbrNi1AiMFILtw3AgMA8YSr8Sic3/XCL/RMp+nbKop+YsUsg+RBYHhgyy6zmhEhhRT83FSCD7HnbUU/O2nCG6T2xujBPEdOzgxFhDbGcnLowVxHUA5MAYQ6imWGqMEYR6FKfEmG0HKdjY1XCdnXZhKrV0O2jKsR1U89/Tl53fkxENgNswCpa3s/H9UHcN0+2glwxDPcXmMYiIx4MecIe3GTDFubYkSZIkSX+lH4QuR2lpAQQ9AAAAAElFTkSuQmCC" alt="삭제" class="sc-ezGUZh jLtZdK"></div></div><div class="sc-kkczzW hoPVuF"><div class="sc-gZGhCx VIgNR"><img src="/static/media/404.bac1fff9dade6fd86e80.png" class="sc-dhiFBQ iNssDa"><img src="/static/media/404r.ab143f06436fbbb9f278.png" class="sc-ECa-Dv gJNiTi"></div><h1 class="sc-ibAibK ayzwB">404</h1><h2 class="sc-kdSOdw cMyeah">Page not found</h2><h2 class="sc-lapJzp kdWJFO">존재하지 않는 페이지입니다.</h2><a class="sc-iRqJMi atTou" href="/">메인페이지로 돌아가기</a></div><div class="sc-jOHGOj drnaNz"><div class="sc-bCnriq bVNlke">presented by</div><img src="/static/media/team_logo.e4710a97e7314f3e4ec2.png" class="sc-dPOtYP cNaKub"></div></div><svg id="SvgjsSvg1001" width="2" height="0" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev" style="overflow: hidden; top: -100%; left: -100%; position: absolute; opacity: 0;"><defs id="SvgjsDefs1002"></defs><polyline id="SvgjsPolyline1003" points="0,0"></polyline><path id="SvgjsPath1004" d="M0 0 "></path></svg></body>
