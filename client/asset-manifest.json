@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.e58470b1.css",
-    "main.js": "/static/js/main.89e3ee28.js",
+    "main.js": "/static/js/main.3516c93b.js",
     "static/media/DVGif.gif": "/static/media/DVGif.ed6a29820d1fcd93a02d.gif",
     "static/media/C33.png": "/static/media/C33.a55204271af6440da4c9.png",
     "static/media/esamanru-Medium.otf": "/static/media/esamanru-Medium.7f60da04a389283e7758.otf",
@@ -30,15 +30,18 @@
     "static/media/404.png": "/static/media/404.bac1fff9dade6fd86e80.png",
     "static/media/likeBtn.png": "/static/media/likeBtn.5162dbb3d51eb91a0ffa.png",
     "static/media/Angel.png": "/static/media/Angel.7da0c8b14dad67a6859b.png",
+    "static/media/kakao-talkF.png": "/static/media/kakao-talkF.6af80cbc763b5bf1f6ff.png",
     "static/media/confetti.png": "/static/media/confetti.dd76673a84798bd0e94a.png",
     "static/media/check.png": "/static/media/check.0e163e83492acb677d72.png",
     "static/media/mail.png": "/static/media/mail.5cb1dc7f39671b35bb57.png",
     "static/media/capture.png": "/static/media/capture.b241a2fc6dae977f263f.png",
+    "static/media/instagramF.png": "/static/media/instagramF.75e0546a6b5abe4c0506.png",
     "static/media/trophy.png": "/static/media/trophy.87a94bcff37538d354b6.png",
     "static/media/Evil.png": "/static/media/Evil.98718fa6d3f169f1492c.png",
     "static/media/chevron.png": "/static/media/chevron.d7b82f12dca4eea0a612.png",
     "static/media/revicons.eot": "/static/media/revicons.a77de540a38981833f9e.eot",
     "static/media/revicons.ttf": "/static/media/revicons.57fd05d4ae650374c8de.ttf",
+    "static/media/pirologoF.png": "/static/media/pirologoF.a101ed297cd6e65a25e5.png",
     "static/media/revicons.woff": "/static/media/revicons.e8746a624ed098489406.woff",
     "static/media/s.svg": "/static/media/s.da3515cb4dfe8049cf52d6f3e0a03c22.svg",
     "static/media/slick.svg": "/static/media/slick.2630a3e3eab21c607e21.svg",
@@ -49,10 +52,10 @@
     "index.html": "/index.html",
     "static/media/chevron_down.svg": "/static/media/chevron_down.7c1de46479f502ddd2c24a84b4955258.svg",
     "main.e58470b1.css.map": "/static/css/main.e58470b1.css.map",
-    "main.89e3ee28.js.map": "/static/js/main.89e3ee28.js.map"
+    "main.3516c93b.js.map": "/static/js/main.3516c93b.js.map"
   },
   "entrypoints": [
     "static/css/main.e58470b1.css",
-    "static/js/main.89e3ee28.js"
+    "static/js/main.3516c93b.js"
   ]
 }
