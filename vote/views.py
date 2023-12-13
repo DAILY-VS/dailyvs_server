@@ -679,7 +679,7 @@ class poll_result_page(APIView):
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
 
-        #포인트 업데이트
+        #owner 포인트 업데이트
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             pass
         elif user.is_authenticated : 
@@ -689,6 +689,11 @@ class poll_result_page(APIView):
         else :
             owner= User.objects.get(id= poll.owner.id)
             User.objects.filter(id= poll.owner.id).update(point = owner.point + 1)
+
+        #유저 포인트 업데이트
+        if user.is_authenticated and not user.voted_polls.filter(id=poll_id).exists():    
+            user.point += 3
+            user.save()
 
         #이미 투표 하였을 경우, poll_result_remove
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
