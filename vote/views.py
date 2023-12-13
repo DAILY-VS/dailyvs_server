@@ -84,6 +84,7 @@ def event(request):
         { "id": 2, "text": "1000 포인트 (5명) - 4500원 기프티콘" },
         { "id": 3, "text": "2000 포인트 (3명) - 10000원 기프티콘" },
         { "id": 4, "text": "20000 포인트 (1명) - 5만원 현금 지급" },
+        { "id": 5, "text": "자신의 VS 포인트는 마이페이지에서 확인 가능합니다" },
     ],
     "warning": "※비정상적인 방법 사용 적발 시 상품이 미지급 될 수 있습니다.",        
     'top_users': serialized_top_users,
@@ -678,7 +679,7 @@ class poll_result_page(APIView):
         for idx, choice in enumerate(poll.choices.all()):
             choice_dict[idx] = str(choice)
 
-        #포인트 업데이트
+        #owner 포인트 업데이트
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
             pass
         elif user.is_authenticated : 
@@ -688,6 +689,11 @@ class poll_result_page(APIView):
         else :
             owner= User.objects.get(id= poll.owner.id)
             User.objects.filter(id= poll.owner.id).update(point = owner.point + 1)
+
+        #유저 포인트 업데이트
+        if user.is_authenticated and not user.voted_polls.filter(id=poll_id).exists():    
+            user.point += 3
+            user.save()
 
         #이미 투표 하였을 경우, poll_result_remove
         if user.is_authenticated and user.voted_polls.filter(id=poll_id).exists():
