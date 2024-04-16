@@ -54,9 +54,9 @@ cloud : aws ec2
 
 ## **🧑🏻‍💻 Developers**
 
-| Frontend | Backend | Backend | Backend |
+| PM / Backend | Frontend | Backend | Backend |
 | --- | --- | --- | --- |
-| 곽민경 | 김정곤 | 박신빈 | 왕한솔 |
-| [@mikio999](https://github.com/mikio999) | [@Jeonggon-Kim](https://github.com/Jeonggon-Kim) | [@spark2357](https://github.com/spark2357) | [@solsoleee](https://github.com/solsoleee) |
+| 김정곤 | 곽민경 | 박신빈 | 왕한솔 |
+| [@Jeonggon-Kim](https://github.com/Jeonggon-Kim) | [@mikio999](https://github.com/mikio999)| [@spark2357](https://github.com/spark2357) | [@solsoleee](https://github.com/solsoleee) |
 
 </br></br></br>

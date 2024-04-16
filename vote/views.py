@@ -566,6 +566,7 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     for i, key in enumerate(category_set):
         tmp_set[key] = int.from_bytes(choice_set[0 + 4 * i : 4 + 4 * i], byteorder='big', signed=False)
     # 1 더하기
+    print(tmp_set)
     gender = extra_fields.get('gender')
     mbti = extra_fields.get('mbti')
     age = extra_fields.get('age')
@@ -583,6 +584,8 @@ def poll_result_update(poll_id, choice_number, **extra_fields):
     res = bytearray()
     for i, key in enumerate(category_set):
         res += struct.pack('>i', tmp_set[key])
+        print(tmp_set[key])
+        print(res)
     # 저장
     setattr(poll_result, 'choice' + str(choice_number), res)
     poll_result.save()
